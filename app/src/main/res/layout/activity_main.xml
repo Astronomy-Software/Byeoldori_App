@@ -68,4 +68,17 @@
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_margin="16dp"/>
 
+    <!-- 원래 위치로 돌아가기 버튼 (광공해 지도 버튼 아래 배치) -->
+    <Button
+        android:id="@+id/locationback_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="원래 위치"
+        android:backgroundTint="@android:color/holo_blue_light"
+        android:textColor="@android:color/white"
+        app:layout_constraintBottom_toBottomOf="@id/light_pollution_button"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginBottom="50dp"
+        android:layout_marginEnd="16dp"/>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

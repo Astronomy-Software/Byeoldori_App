@@ -31,7 +31,8 @@
         <!-- 네이버 지도 API 키 등록 -->
         <meta-data
             android:name="com.naver.maps.CLIENT_ID"
-            android:value="Cient_ID" />
+            android:value="@string/naver_client_id"
+            tools:replace="android:value"/>
 
         <activity
             android:name=".MainActivity"
