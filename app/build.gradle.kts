@@ -1,7 +1,16 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+}
+
+val localProperties = Properties()
+val localFile = rootProject.file("local.properties")
+if (localFile.exists()) {
+    localProperties.load(FileInputStream(localFile))
 }
 
 android {
@@ -17,11 +26,19 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        // 🔹 네이티브 라이브러리 관련 NDK 필터 추가
+        //API Key를 BuildConfig에 추가
+        buildConfigField("String", "NAVER_CLIENT_ID", "\"${localProperties.getProperty("NAVER_CLIENT_ID")}\"")
+        buildConfigField("String", "NAVER_CLIENT_SECRET", "\"${localProperties.getProperty("NAVER_CLIENT_SECRET")}\"")
+
+        // 네이티브 라이브러리 관련 NDK 필터 추가
         ndk {
             abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
 
         }
+    }
+
+    buildFeatures {
+        buildConfig = true // ✅ BuildConfig 활성화 필요
     }
 
     buildTypes {

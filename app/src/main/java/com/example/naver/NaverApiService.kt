@@ -7,6 +7,9 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
+import okhttp3.Interceptor
+import okhttp3.Response
+import com.example.naver.BuildConfig
 
 // 네이버 API 응답 모델
 data class PoiResponse(
@@ -20,12 +23,19 @@ data class PoiItem(
     val y: Double  // 위도
 )
 
+// ✅ API Key를 동적으로 추가하는 Interceptor
+class NaverApiInterceptor : Interceptor {
+    override fun intercept(chain: Interceptor.Chain): Response {
+        val request = chain.request().newBuilder()
+            .addHeader("X-NCP-APIGW-API-KEY-ID", BuildConfig.NAVER_CLIENT_ID)
+            .addHeader("X-NCP-APIGW-API-KEY", BuildConfig.NAVER_CLIENT_SECRET)
+            .build()
+        return chain.proceed(request)
+    }
+}
+
 // Retrofit 인터페이스
 interface NaverApiService {
-    @Headers(
-        "X-NCP-APIGW-API-KEY-ID: Client_ID",
-        "X-NCP-APIGW-API-KEY: Client_Secret"
-    )
     @GET("map-place/v1/search")
     suspend fun searchPlaces(
         @Query("query") query: String,
@@ -37,8 +47,10 @@ interface NaverApiService {
             val logging = HttpLoggingInterceptor().apply {
                 level = HttpLoggingInterceptor.Level.BODY
             }
+
             val client = OkHttpClient.Builder()
                 .addInterceptor(logging)
+                .addInterceptor(NaverApiInterceptor()) // ✅ API Key를 Interceptor에서 설정
                 .build()
 
             val retrofit = Retrofit.Builder()

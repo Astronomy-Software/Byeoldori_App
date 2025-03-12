@@ -8,6 +8,7 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
 import android.view.View
+import android.widget.Button
 import android.widget.EditText
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -24,7 +25,9 @@ import okhttp3.*
 import org.json.JSONObject
 import java.io.IOException
 import java.net.URLEncoder
-import com.example.naver.R  // 🚀 올바른 패키지명 사용
+import com.example.naver.R
+import com.example.naver.BuildConfig
+
 
 class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
@@ -38,8 +41,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var searchInput: EditText
     private val searchResults = mutableListOf<Pair<String, LatLng>>()  // 검색 결과 저장
 
-    private val clientId = "Naver_Client_ID"  // 네이버 API Client ID
-    private val clientSecret = "Naver_Client_Secret" // 네이버 API Client Secret
+    private val clientId = BuildConfig.NAVER_CLIENT_ID
+    private val clientSecret = BuildConfig.NAVER_CLIENT_SECRET
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -94,7 +97,39 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             searchResultsView.visibility = View.GONE  // 선택 후 리스트 숨김
         }
         searchResultsView.adapter = searchAdapter
+
+        val locationBackButton: Button = findViewById(R.id.locationback_button)
+        locationBackButton.setOnClickListener {
+            moveToCurrentLocation()
+        }
     }
+
+    private fun moveToCurrentLocation() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
+                if (location != null) {
+                    val latLng = LatLng(location.latitude, location.longitude)
+                    naverMap.moveCamera(CameraUpdate.scrollTo(latLng)) // 현재 위치로 이동
+                    naverMap.locationOverlay.position = latLng // 위치 오버레이 업데이트
+
+                    // 🔹 현재 위치 마커 추가
+                    currentLocationMarker?.map = null // 기존 마커 삭제
+                    currentLocationMarker = Marker().apply {
+                        position = latLng
+                        map = naverMap
+                    }
+
+                    // 🔹 위치 업데이트 다시 시작
+                    resumeLocationUpdates()
+                } else {
+                    Log.e("LOCATION_ERROR", "현재 위치를 가져올 수 없습니다.")
+                }
+            }
+        } else {
+            Log.e("PERMISSION_ERROR", "위치 권한이 없습니다.")
+        }
+    }
+
 
 
     private fun startLocationUpdates() {
