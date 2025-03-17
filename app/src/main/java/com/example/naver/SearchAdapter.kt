@@ -1,5 +1,6 @@
 package com.example.naver
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -25,8 +26,13 @@ class SearchAdapter(
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val (name, location) = results[position]
         holder.textView.text = name
-        holder.itemView.setOnClickListener { onItemClick(location) }
+        holder.itemView.setOnClickListener {
+            Log.d("SEARCH_LOCATION", "사용자가 선택한 위치 - 위도: ${location.latitude}, 경도: ${location.longitude}") // ✅ 로그 출력
+            onItemClick(location) // ✅ MainActivity에서 전달받은 클릭 이벤트 실행
+        }
     }
+
+
 
     override fun getItemCount() = results.size
 }
