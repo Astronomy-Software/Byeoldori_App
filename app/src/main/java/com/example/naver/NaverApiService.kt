@@ -23,7 +23,7 @@ data class PoiItem(
     val y: Double  // 위도
 )
 
-// ✅ API Key를 동적으로 추가하는 Interceptor
+//API Key를 동적으로 추가하는 Interceptor
 class NaverApiInterceptor : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
         val request = chain.request().newBuilder()

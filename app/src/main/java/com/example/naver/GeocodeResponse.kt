@@ -8,6 +8,6 @@ data class GeocodeResponse(
 
 data class AddressItem(
     @SerializedName("roadAddress") val roadAddress: String?,
-    @SerializedName("x") val x: String,
-    @SerializedName("y") val y: String
+    @SerializedName("x") val x: String, //경도(Longtitude)
+    @SerializedName("y") val y: String  //위도(Latitude)
 )
