@@ -1,4 +1,0 @@
-<resources>
-    <string name="app_name">Naver App</string>
-    <string name="naver_client_id">${BuildConfig.NAVER_CLIENT_ID}</string>
-</resources>
