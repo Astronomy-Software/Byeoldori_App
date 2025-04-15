@@ -1,0 +1,2 @@
+이곳의 components는 전체적으로 공유하는 UI를 담아둘것이고,
+screnn마다 components는 따로 관리할겁니다
