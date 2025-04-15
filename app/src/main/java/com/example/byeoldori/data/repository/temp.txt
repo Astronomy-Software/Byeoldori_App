@@ -1,0 +1,2 @@
+Repository는 데이터 관리하는거에 사용합니당
+백엔드의 Repository와 유사함
