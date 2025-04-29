@@ -3,6 +3,7 @@ kotlin = "1.9.22"
 composeCompiler = "1.5.9"
 composeBom = "2024.02.01"
 agp = "8.8.0"
+maps = "3.1.0-beta"
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -10,3 +11,4 @@ kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 
 [libraries]
 compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
+maps = { group = "com.google.android.libraries.maps", name = "maps", version.ref = "maps" }

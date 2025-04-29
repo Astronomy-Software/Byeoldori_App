@@ -5,5 +5,6 @@ enum class Screen {
     SkyMap,
     Observatory,
     MyPage,
-    Recommended
+    Recommended,
+    Navermap
 }
