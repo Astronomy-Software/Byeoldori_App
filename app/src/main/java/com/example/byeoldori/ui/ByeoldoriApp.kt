@@ -7,6 +7,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.example.byeoldori.ui.screen.*
 import com.example.byeoldori.ui.screen.MyPage.MyPageScreen
+import com.example.byeoldori.ui.screen.Navermap.NavermapScreen
 import com.example.byeoldori.ui.screen.Observatory.ObservatoryScreen
 import com.example.byeoldori.ui.screen.SkyMap.SkyMapScreen
 
@@ -24,7 +25,7 @@ fun ByeoldoriApp() {
     }
 
     var showSplash by remember { mutableStateOf(true) }
-    var currentScreen by remember { mutableStateOf(Screen.Home) }
+    var currentScreen by remember { mutableStateOf(Screen.Home) } //현재 어떤 화면이 표시되어야 하는지
 
     when {
         showSplash -> SplashScreen(onSplashFinished = { showSplash = false })
@@ -37,7 +38,12 @@ fun ByeoldoriApp() {
         )
 
         currentScreen == Screen.SkyMap -> SkyMapScreen(onBackToHome = { currentScreen = Screen.Home })
-        currentScreen == Screen.Observatory -> ObservatoryScreen(onBackToHome = { currentScreen = Screen.Home })
+        currentScreen == Screen.Observatory -> ObservatoryScreen(
+            onBackToHome = { currentScreen = Screen.Home },
+            onNavigateToNaverMap = { currentScreen = Screen.Navermap })
+        currentScreen == Screen.Navermap -> NavermapScreen(
+            onBack = { currentScreen = Screen.Observatory }
+        )
         currentScreen == Screen.MyPage -> MyPageScreen(onBackToHome = { currentScreen = Screen.Home })
         currentScreen == Screen.Recommended -> RecommendedScreen(onBackToHome = { currentScreen = Screen.Home })
     }

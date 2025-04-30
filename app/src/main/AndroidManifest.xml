@@ -2,10 +2,27 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.example.byeoldori">
 
+    <!-- 인터넷 권한 추가 -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- 위치 권한 추가 -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+
     <application
         android:icon="@mipmap/ic_launcher"
         android:label="Byeoldori_App"
         android:theme="@style/Theme.Byeoldori">
+
+        <!-- 네이버 지도 API 키 등록 -->
+        <meta-data
+            android:name="com.naver.maps.map.CLIENT_ID"
+            android:value="mmbdhc8cpd" />
+
         <activity
             android:name=".MainActivity"
             android:configChanges="orientation|screenSize"

@@ -28,8 +28,8 @@ fun HomeScreen(
             contentAlignment = Alignment.Center
         ) {
             Column(
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                verticalArrangement = Arrangement.spacedBy(16.dp), //버튼 사이간격 16dp
+                horizontalAlignment = Alignment.CenterHorizontally //버튼 가운데 정렬
             ) {
                 Button(onClick = onNavigateToSkyMap) {
                     Text("🌌 별지도")
