@@ -7,7 +7,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.example.byeoldori.ui.screen.*
 import com.example.byeoldori.ui.screen.MyPage.MyPageScreen
-import com.example.byeoldori.ui.screen.Navermap.NavermapScreen
+import com.example.byeoldori.ui.screen.Observatory.NavermapScreen
 import com.example.byeoldori.ui.screen.Observatory.ObservatoryScreen
 import com.example.byeoldori.ui.screen.SkyMap.SkyMapScreen
 
@@ -40,10 +40,7 @@ fun ByeoldoriApp() {
         currentScreen == Screen.SkyMap -> SkyMapScreen(onBackToHome = { currentScreen = Screen.Home })
         currentScreen == Screen.Observatory -> ObservatoryScreen(
             onBackToHome = { currentScreen = Screen.Home },
-            onNavigateToNaverMap = { currentScreen = Screen.Navermap })
-        currentScreen == Screen.Navermap -> NavermapScreen(
-            onBack = { currentScreen = Screen.Observatory }
-        )
+            )
         currentScreen == Screen.MyPage -> MyPageScreen(onBackToHome = { currentScreen = Screen.Home })
         currentScreen == Screen.Recommended -> RecommendedScreen(onBackToHome = { currentScreen = Screen.Home })
     }
