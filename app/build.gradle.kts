@@ -19,7 +19,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.byeoldori"
-        minSdk = 21
+        minSdk = 26
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -67,8 +67,8 @@ dependencies {
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
 
     // 네이버 맵 - 공식
-    implementation("com.naver.maps:map-sdk:3.16.0")
-    implementation("com.google.android.gms:play-services-location:21.0.1")
+    implementation("com.naver.maps:map-sdk:3.21.0")
+    implementation("com.google.android.gms:play-services-location:21.3.0")
 
     // Naver Map Compose
     implementation("io.github.fornewid:naver-map-compose:1.5.0")
