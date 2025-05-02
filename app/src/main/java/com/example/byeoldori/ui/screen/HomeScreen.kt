@@ -8,7 +8,7 @@ import com.example.byeoldori.ui.screen.MyPage.MyPageScreen
 import com.example.byeoldori.ui.screen.Observatory.ObservatoryScreen
 import com.example.byeoldori.ui.screen.SkyMap.SkyMapScreen
 import com.example.byeoldori.viewmodel.NavigationViewModel
-import com.example.byeoldori.viewmodel.Screen
+import com.example.byeoldori.viewmodel.*
 import com.example.byeoldori.ui.screen.Recommended.RecommendedScreen
 
 @Composable
@@ -17,17 +17,17 @@ fun HomeScreen() {
     val screen by navViewModel.currentScreen.collectAsState()
 
     when (screen) {
-        Screen.SkyMap -> SkyMapScreen(
+        AppScreen.SkyMap -> SkyMapScreen(
             onNavigateTo = { navViewModel.navigateTo(it) }
         )
-        Screen.Observatory -> ObservatoryScreen(
-            onNavigateTo = { navViewModel.navigateTo(Screen.SkyMap) }
+        AppScreen.Observatory -> ObservatoryScreen(
+            onNavigateTo = { navViewModel.navigateTo(AppScreen.SkyMap) }
         )
-        Screen.MyPage -> MyPageScreen(
-            onNavigateTo = { navViewModel.navigateTo(Screen.SkyMap) }
+        AppScreen.MyPage -> MyPageScreen(
+            onNavigateTo = { navViewModel.navigateTo(AppScreen.SkyMap) }
         )
-        Screen.Recommended -> RecommendedScreen(
-            onNavigateTo = { navViewModel.navigateTo(Screen.SkyMap) }
+        AppScreen.Recommended -> RecommendedScreen(
+            onNavigateTo = { navViewModel.navigateTo(AppScreen.SkyMap) }
         )
     }
 }

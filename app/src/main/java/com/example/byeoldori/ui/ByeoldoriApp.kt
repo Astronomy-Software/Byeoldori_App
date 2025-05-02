@@ -5,16 +5,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
-import com.example.byeoldori.viewmodel.*
 import com.example.byeoldori.ui.screen.*
 import kotlinx.coroutines.delay
-import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
 fun ByeoldoriApp() {
     val context = LocalContext.current
     val activity = context as? Activity
-    val navViewModel: NavigationViewModel = viewModel()
 
     // 시스템 UI 설정
     LaunchedEffect(Unit) {
