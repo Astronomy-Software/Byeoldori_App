@@ -1,10 +1,8 @@
-package com.example.byeoldori.ui
+package com.example.byeoldori.viewmodel
 
 enum class Screen {
-    Home,
     SkyMap,
     Observatory,
     MyPage,
     Recommended,
-    Navermap
 }
