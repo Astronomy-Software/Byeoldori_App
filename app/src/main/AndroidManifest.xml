@@ -18,10 +18,9 @@
         android:label="Byeoldori_App"
         android:theme="@style/Theme.Byeoldori">
 
-        <!-- 네이버 지도 API 키 등록 -->
         <meta-data
             android:name="com.naver.maps.map.CLIENT_ID"
-            android:value="mmbdhc8cpd" />
+            android:value="${naverClientId}" />
 
         <activity
             android:name=".MainActivity"

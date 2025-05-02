@@ -11,6 +11,7 @@ val localFile = rootProject.file("local.properties")
 if (localFile.exists()) {
     localProperties.load(FileInputStream(localFile))
 }
+val naverClientId: String = localProperties["NAVER_CLIENT_ID"] as String
 
 
 android {
@@ -26,6 +27,8 @@ android {
 
         buildConfigField("String", "NAVER_CLIENT_ID", "\"${localProperties.getProperty("NAVER_CLIENT_ID")}\"")
         buildConfigField("String", "NAVER_CLIENT_SECRET", "\"${localProperties.getProperty("NAVER_CLIENT_SECRET")}\"")
+        manifestPlaceholders["naverClientId"] = naverClientId
+
     }
 
     buildFeatures {

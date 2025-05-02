@@ -206,4 +206,3 @@ fun NaverMapWithSearchUI(modifier: Modifier) {
 }
 
 
-
