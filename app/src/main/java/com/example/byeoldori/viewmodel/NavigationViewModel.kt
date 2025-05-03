@@ -5,7 +5,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 class NavigationViewModel : ViewModel() {
-    private val _currentScreen = MutableStateFlow(AppScreen .SkyMap)
+    private val _currentScreen = MutableStateFlow(AppScreen.SkyMap)
     val currentScreen: StateFlow<AppScreen> = _currentScreen
 
     fun navigateTo(screen: AppScreen ) {
