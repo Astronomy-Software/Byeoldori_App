@@ -8,9 +8,9 @@ import androidx.compose.ui.Modifier
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ObservatoryScreen(
-    onBackToHome: () -> Unit,
+    onNavigateTo: () -> Unit,
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
-        NavermapScreen(onBack = onBackToHome)
+        NavermapScreen(onBack = onNavigateTo)
     }
 }

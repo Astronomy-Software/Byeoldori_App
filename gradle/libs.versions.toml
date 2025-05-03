@@ -1,14 +1,38 @@
 [versions]
-kotlin = "1.9.22"
-composeCompiler = "1.5.9"
-composeBom = "2024.02.01"
-agp = "8.8.0"
-maps = "3.1.0-beta"
+accompanistPermissions = "0.36.0"
+activityCompose = "1.10.1"
+espressoCore = "3.6.1"
+junit = "4.13.2"
+junitVersion = "1.2.1"
+# 코틀린 버전 1.9.25로 변경시 문제발생하므로 변경하지말것
+kotlin = "1.9.23"
+composeCompiler = "1.5.12"
+composeBom = "2025.04.01"
+agp = "8.8.2"
+lifecycleViewmodelCompose = "2.8.7"
+mapSdk = "3.21.0"
+material = "1.12.0"
+naverMapCompose = "1.8.0"
+playServicesLocation = "21.3.0"
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 
 [libraries]
+accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanistPermissions" }
+activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
 compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
-maps = { group = "com.google.android.libraries.maps", name = "maps", version.ref = "maps" }
+espresso-core = { module = "androidx.test.espresso:espresso-core", version.ref = "espressoCore" }
+ext-junit = { module = "androidx.test.ext:junit", version.ref = "junitVersion" }
+junit = { module = "junit:junit", version.ref = "junit" }
+lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycleViewmodelCompose" }
+map-sdk = { module = "com.naver.maps:map-sdk", version.ref = "mapSdk" }
+material = { module = "com.google.android.material:material", version.ref = "material" }
+material3 = { module = "androidx.compose.material3:material3" }
+naver-map-compose = { module = "io.github.fornewid:naver-map-compose", version.ref = "naverMapCompose" }
+play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "playServicesLocation" }
+ui = { module = "androidx.compose.ui:ui" }
+ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4" }
+ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
+ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }

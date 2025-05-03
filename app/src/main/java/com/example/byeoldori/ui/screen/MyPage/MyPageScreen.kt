@@ -8,7 +8,7 @@ import androidx.compose.ui.Modifier
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MyPageScreen(onBackToHome: () -> Unit) {
+fun MyPageScreen(onNavigateTo: () -> Unit) {
     Scaffold(
         topBar = { TopAppBar(title = { Text("👤 마이페이지") }) }
     ) { padding ->
@@ -18,7 +18,7 @@ fun MyPageScreen(onBackToHome: () -> Unit) {
                 .padding(padding),
             contentAlignment = Alignment.Center
         ) {
-            Button(onClick = onBackToHome) {
+            Button(onClick = onNavigateTo) {
                 Text("← 홈으로 돌아가기")
             }
         }
