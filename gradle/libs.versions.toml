@@ -4,6 +4,7 @@ activityCompose = "1.10.1"
 espressoCore = "3.6.1"
 junit = "4.13.2"
 junitVersion = "1.2.1"
+# 코틀린 버전 1.9.25로 변경시 문제발생하므로 변경하지말것
 kotlin = "1.9.23"
 composeCompiler = "1.5.12"
 composeBom = "2025.04.01"

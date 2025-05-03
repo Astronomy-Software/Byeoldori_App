@@ -59,7 +59,7 @@ dependencies {
     implementation(libs.material3)
     implementation(libs.ui.tooling.preview)
     implementation(libs.material)
-    implementation (libs.lifecycle.viewmodel.compose) // 최신 버전 확인
+    implementation (libs.lifecycle.viewmodel.compose)
     debugImplementation(libs.ui.tooling)
 
     testImplementation(libs.junit)
