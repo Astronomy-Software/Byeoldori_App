@@ -12,16 +12,31 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.permissions.*
+import com.naver.maps.geometry.LatLng
 
 @Composable
 fun NavermapScreen(
     onBack: () -> Unit,
+    searchQuery: String,
+    onSearch: (String) -> Unit,
+    showOverlay: Boolean,
+    searchTrigger: Int,
+    onLatLngUpdated: (LatLng)->Unit,     // 추가
+    onAddressUpdated: (String)->Unit,    // 추가
     modifier: Modifier = Modifier
 ) {
     RequestLocationPermission {
         Box(modifier = Modifier.fillMaxSize()) {
             // 지도 및 검색 UI
-            NaverMapWithSearchUI(modifier = Modifier.fillMaxSize())
+            NaverMapWithSearchUI(
+                modifier = Modifier.fillMaxSize(),
+                searchQuery  = searchQuery,
+                onSearchRequested = onSearch,
+                searchTrigger       = searchTrigger,
+                onLatLngUpdated     = onLatLngUpdated,
+                onAddressUpdated    = onAddressUpdated,
+                showOverlay  = showOverlay
+            )
 
             // 오른쪽 상단 돌아가기 버튼
             IconButton(
