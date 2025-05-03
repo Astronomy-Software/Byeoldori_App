@@ -3,23 +3,15 @@ package com.example.byeoldori.ui.screen.Observatory
 import android.content.Context
 import android.location.Geocoder
 import android.widget.Toast
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
 import com.naver.maps.geometry.LatLng
-import com.naver.maps.map.CameraUpdate
-import com.naver.maps.map.MapView
-import com.naver.maps.map.NaverMap
+import com.naver.maps.map.*
 import com.naver.maps.map.overlay.Marker
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -32,6 +24,7 @@ fun searchAndMoveToLocation(
     mapView: MapView,
     selectedMarker: Marker?,
     onMarkerUpdated: (Marker) -> Unit,
+
     onLatLngUpdated: (LatLng) -> Unit,
     onAddressUpdated: (String) -> Unit
 ) {
@@ -96,5 +89,3 @@ fun SearchBox(
         )
     }
 }
-
-

@@ -3,17 +3,14 @@ package com.example.byeoldori.ui.screen.Observatory
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.core.app.ActivityCompat
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.naver.maps.geometry.LatLng
-import com.naver.maps.map.CameraUpdate
-import com.naver.maps.map.MapView
+import com.naver.maps.map.*
 import com.naver.maps.map.overlay.Marker
 
 @Composable
@@ -63,4 +60,3 @@ fun moveToCurrentLocation(
         }
     }
 }
-

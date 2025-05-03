@@ -1,9 +1,7 @@
 package com.example.byeoldori.ui.screen.Observatory
 
-
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.ui.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -14,13 +12,14 @@ import androidx.compose.ui.unit.dp
 import com.naver.maps.geometry.LatLng
 
 @Composable
-fun LocationInfoBox(latLng: LatLng, address: String) {
-
+fun LocationInfoBox(
+    latLng: LatLng,
+    address: String,
+    modifier: Modifier = Modifier
+) {
     Box(
-        modifier = Modifier
-            .offset(x = (-100).dp, y = (-290).dp)
-            .padding(16.dp)
-            .wrapContentWidth(align = Alignment.Start)
+        modifier = modifier
+            .wrapContentWidth(Alignment.Start)
             .background(Color.White)
             .padding(horizontal = 12.dp, vertical = 8.dp)
     ) {
