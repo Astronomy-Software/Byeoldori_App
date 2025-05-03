@@ -17,17 +17,9 @@ fun HomeScreen() {
     val screen by navViewModel.currentScreen.collectAsState()
 
     when (screen) {
-        AppScreen.SkyMap -> SkyMapScreen(
-            onNavigateTo = { navViewModel.navigateTo(it) }
-        )
-        AppScreen.Observatory -> ObservatoryScreen(
-            onNavigateTo = { navViewModel.navigateTo(AppScreen.SkyMap) }
-        )
-        AppScreen.MyPage -> MyPageScreen(
-            onNavigateTo = { navViewModel.navigateTo(AppScreen.SkyMap) }
-        )
-        AppScreen.Recommended -> RecommendedScreen(
-            onNavigateTo = { navViewModel.navigateTo(AppScreen.SkyMap) }
-        )
+        AppScreen.SkyMap -> SkyMapScreen()
+        AppScreen.Observatory -> ObservatoryScreen()
+        AppScreen.MyPage -> MyPageScreen()
+        AppScreen.Recommended -> RecommendedScreen()
     }
 }

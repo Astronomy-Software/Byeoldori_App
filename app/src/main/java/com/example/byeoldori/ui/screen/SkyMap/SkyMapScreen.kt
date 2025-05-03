@@ -6,22 +6,24 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.byeoldori.viewmodel.AppScreen
+import com.example.byeoldori.viewmodel.NavigationViewModel
 
 @Composable
-fun SkyMapScreen(
-    onNavigateTo: (AppScreen) -> Unit
-) {
+fun SkyMapScreen() {
+    val navViewModel: NavigationViewModel = viewModel()
+
     Scaffold { padding ->
         Column(modifier = Modifier.padding(padding).padding(32.dp)) {
-            Button(onClick = { onNavigateTo(AppScreen.Observatory) }) {
-                Text("🔭 관측소로")
+            Button(onClick = { navViewModel.navigateTo(AppScreen.Observatory) }) {
+                Text("Observatory")
             }
-            Button(onClick = { onNavigateTo(AppScreen.MyPage) }) {
-                Text("👤 마이페이지로")
+            Button(onClick = { navViewModel.navigateTo(AppScreen.MyPage) }) {
+                Text("MyPage")
             }
-            Button(onClick = { onNavigateTo(AppScreen.Recommended) }) {
-                Text("⭐ 추천관측대상")
+            Button(onClick = { navViewModel.navigateTo(AppScreen.Recommended) }) {
+                Text("Recommend")
             }
         }
     }

@@ -15,26 +15,12 @@ import com.google.accompanist.permissions.*
 
 @Composable
 fun NavermapScreen(
-    onBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     RequestLocationPermission {
         Box(modifier = Modifier.fillMaxSize()) {
             // 지도 및 검색 UI
             NaverMapWithSearchUI(modifier = Modifier.fillMaxSize())
-
-            // 오른쪽 상단 돌아가기 버튼
-            IconButton(
-                onClick = onBack,
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(top=20.dp, start = 16.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.ArrowBack,
-                    contentDescription = "뒤로가기"
-                )
-            }
         }
     }
 }
