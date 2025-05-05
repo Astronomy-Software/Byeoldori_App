@@ -1,4 +1,5 @@
-package com.example.byeoldori.viewmodel.Skymap
+// CameraViewModel.kt
+package com.example.byeoldori.viewmodel.skymap
 
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,6 +14,17 @@ class CameraViewModel : ViewModel() {
 
     private val _fov = MutableStateFlow(60f)
     val fov: StateFlow<Float> = _fov
+
+    private val _isAutoMode = MutableStateFlow(false)
+    val isAutoMode: StateFlow<Boolean> = _isAutoMode
+
+    fun toggleAutoMode() {
+        _isAutoMode.value = !_isAutoMode.value
+    }
+
+    fun setAutoMode(enabled: Boolean) {
+        _isAutoMode.value = enabled
+    }
 
     fun updateYaw(delta: Float) {
         _yaw.value += delta
@@ -32,5 +44,17 @@ class CameraViewModel : ViewModel() {
         _yaw.value = yaw
         _pitch.value = pitch
         _fov.value = fov.coerceIn(30f, 90f)
+    }
+
+    fun processGyro(dx: Float, dy: Float) {
+        updateYaw(dx * 15f)
+        updatePitch(-dy * 15f)
+    }
+
+    fun setDeviceOrientation(azimuthRad: Float, pitchRad: Float) {
+        val yawDeg = Math.toDegrees(azimuthRad.toDouble()).toFloat()
+        val pitchDeg = Math.toDegrees(pitchRad.toDouble()).toFloat().coerceIn(-90f, 90f)
+        _yaw.value = -yawDeg
+        _pitch.value = -pitchDeg
     }
 }
