@@ -27,6 +27,12 @@ class TextLabelManager {
     private val labels = mutableListOf<Pair<TextLabel, LabelData>>()
     private val program: Int
 
+    companion object {
+        // 기준 텍스트 크기 (비트맵 픽셀)과 기본 쿼드 스케일
+        private const val BASE_TEXT_SIZE = 128f
+        private const val BASE_QUAD_SIZE = 0.05f
+    }
+
     init {
         val vertexShaderCode = """
             uniform mat4 uMVPMatrix;
@@ -37,14 +43,12 @@ class TextLabelManager {
             varying vec2 vTexCoord;
             uniform vec3 uLabelPos;
             void main() {
-                // Billboard(항상 카메라를 바라보도록)
                 mat4 bill = mat4(
                   uViewMatrix[0][0], uViewMatrix[1][0], uViewMatrix[2][0], 0.0,
                   uViewMatrix[0][1], uViewMatrix[1][1], uViewMatrix[2][1], 0.0,
                   uViewMatrix[0][2], uViewMatrix[1][2], uViewMatrix[2][2], 0.0,
                   0.0,               0.0,               0.0,               1.0
                 );
-                // FOV 에 반비례하는 스케일 계산 (기준 FOV=60°)
                 float zoomScale = tan(radians(60.0 * 0.5)) / tan(radians(uFov * 0.5));
                 vec4 scaled = vPosition / zoomScale;
                 vec4 worldPos = vec4(uLabelPos, 1.0) + bill * scaled;
@@ -78,22 +82,33 @@ class TextLabelManager {
         ra: Float,
         dec: Float,
         textColor: Int = Color.WHITE,
-        textSize: Float = 128f
+        textSize: Float = BASE_TEXT_SIZE
     ) {
         val pos = raDecToXYZ(ra, dec)
         val bmp = createTextBitmap(text, textSize, textColor)
         val tex = createTextureFromBitmap(bmp)
 
-        val s = 0.05f
-        val verts = floatArrayOf(-s, s, 0f,  -s, -s, 0f,  s, s, 0f,  s, -s, 0f)
-        val uvs   = floatArrayOf(0f,0f,  0f,1f,  1f,0f,  1f,1f)
-        val vb = ByteBuffer.allocateDirect(verts.size*4)
-            .order(ByteOrder.nativeOrder()).asFloatBuffer().apply {
+        // 텍스트 크기에 따른 쿼드 스케일 조정
+        val scaleFactor = textSize / BASE_TEXT_SIZE
+        val s = BASE_QUAD_SIZE * scaleFactor
+
+        val verts = floatArrayOf(
+            -s,  s, 0f,
+            -s, -s, 0f,
+            s,  s, 0f,
+            s, -s, 0f
+        )
+        val uvs = floatArrayOf(0f, 0f, 0f, 1f, 1f, 0f, 1f, 1f)
+
+        val vb = ByteBuffer.allocateDirect(verts.size * 4)
+            .order(ByteOrder.nativeOrder())
+            .asFloatBuffer().apply {
                 put(verts); position(0)
             }
-        val tb = ByteBuffer.allocateDirect(uvs.size*4)
-            .order(ByteOrder.nativeOrder()).asFloatBuffer().apply {
-                put(uvs);   position(0)
+        val tb = ByteBuffer.allocateDirect(uvs.size * 4)
+            .order(ByteOrder.nativeOrder())
+            .asFloatBuffer().apply {
+                put(uvs); position(0)
             }
 
         labels += TextLabel(text, ra, dec, textColor, textSize) to
@@ -136,9 +151,9 @@ class TextLabelManager {
         val r = Math.toRadians(ra.toDouble())
         val d = Math.toRadians(dec.toDouble())
         return floatArrayOf(
-            (cos(d)*cos(r)).toFloat(),
+            (cos(d) * cos(r)).toFloat(),
             sin(d).toFloat(),
-            (cos(d)*sin(r)).toFloat()
+            (cos(d) * sin(r)).toFloat()
         )
     }
 
