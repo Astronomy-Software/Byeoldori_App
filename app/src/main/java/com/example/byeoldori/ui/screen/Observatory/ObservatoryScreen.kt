@@ -9,11 +9,13 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.byeoldori.viewmodel.AppScreen
+import com.example.byeoldori.viewmodel.NavigationViewModel
 import com.naver.maps.geometry.LatLng
 
 @Composable
 fun ObservatoryScreen(
-    onNavigateTo: () -> Unit,
 ) {
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var searchTrigger by rememberSaveable { mutableStateOf(0) }
@@ -24,7 +26,6 @@ fun ObservatoryScreen(
 
     Box(modifier = Modifier.fillMaxSize()) {
         NavermapScreen(
-            onBack = onNavigateTo,
             searchQuery = searchQuery,
             onSearch = {  searchQuery = it },
             showOverlay = showOverlay,
