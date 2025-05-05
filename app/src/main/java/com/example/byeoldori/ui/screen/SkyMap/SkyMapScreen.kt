@@ -1,4 +1,3 @@
-
 // SkyMapScreen.kt
 package com.example.byeoldori.ui.screen.SkyMap
 
@@ -21,8 +20,8 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.byeoldori.ui.screen.SkyMap.render.CelestialGLView
 import com.example.byeoldori.viewmodel.NavigationViewModel
-import com.example.byeoldori.viewmodel.skymap.CameraViewModel
 import com.example.byeoldori.viewmodel.AppScreen
+import com.example.byeoldori.viewmodel.Skymap.CameraViewModel
 
 @Composable
 fun SkyMapScreen() {
@@ -40,35 +39,37 @@ fun SkyMapScreen() {
         glView.renderer.updateCamera(yaw, pitch, fov)
     }
 
-    // Gesture Modifier (수동 모드에서만 활성)
-    val gestureModifier = Modifier.pointerInput(Unit) {
-        detectTransformGestures { _, pan, zoom, _ ->
-            camViewModel.updateYaw(pan.x * 0.5f)
-            camViewModel.updatePitch(-pan.y * 0.5f)
-            if (zoom != 1f) camViewModel.zoom((1f - zoom) * 30f)
+    // Gesture Modifier: 항상 활성, 자동 모드일 때는 pan 무시하고 pinch만
+    val gestureModifier = Modifier.pointerInput(isAuto) {
+        detectTransformGestures { _, pan, zoomFactor, _ ->
+            if (zoomFactor != 1f) {
+                camViewModel.pinchZoom(zoomFactor)
+            } else if (!isAuto) {
+                camViewModel.updateYaw(pan.x * 0.5f)
+                camViewModel.updatePitch(-pan.y * 0.5f)
+            }
         }
     }
 
-    // 센서 초기화
+    // Sensor setup
     val sensorManager = remember { context.getSystemService(Context.SENSOR_SERVICE) as SensorManager }
     val rotationSensor = remember { sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR) }
     val rotationMatrix = remember { FloatArray(9) }
     val orientationAngles = remember { FloatArray(3) }
 
-    // 센서 리스너
-    val sensorListener = remember {
+    val sensorListener = remember(isAuto) {
         object : SensorEventListener {
             override fun onSensorChanged(event: SensorEvent) {
                 if (!isAuto) return
                 SensorManager.getRotationMatrixFromVector(rotationMatrix, event.values)
-                val remappedMatrix = FloatArray(9)
+                val remapped = FloatArray(9)
                 SensorManager.remapCoordinateSystem(
                     rotationMatrix,
                     SensorManager.AXIS_X,
                     SensorManager.AXIS_Z,
-                    remappedMatrix
+                    remapped
                 )
-                SensorManager.getOrientation(remappedMatrix, orientationAngles)
+                SensorManager.getOrientation(remapped, orientationAngles)
                 camViewModel.setDeviceOrientation(
                     azimuthRad = orientationAngles[0],
                     pitchRad = orientationAngles[1]
@@ -92,11 +93,11 @@ fun SkyMapScreen() {
     }
 
     Scaffold { padding ->
-        // 터치 제스처는 자동 모드일 때 비활성
+        // 항상 제스처 적용
         val boxModifier = Modifier
             .fillMaxSize()
             .padding(padding)
-            .let { m -> if (isAuto) m else m.then(gestureModifier) }
+            .then(gestureModifier)
 
         Box(modifier = boxModifier) {
             AndroidView(factory = { glView }, modifier = Modifier.fillMaxSize())

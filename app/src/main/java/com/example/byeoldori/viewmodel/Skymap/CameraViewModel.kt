@@ -1,5 +1,5 @@
 // CameraViewModel.kt
-package com.example.byeoldori.viewmodel.skymap
+package com.example.byeoldori.viewmodel.Skymap
 
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -34,16 +34,24 @@ class CameraViewModel : ViewModel() {
         _pitch.value = (_pitch.value + delta).coerceIn(-90f, 90f)
     }
 
+    /**
+     * Incremental zoom: delta in degrees
+     */
     fun zoom(delta: Float) {
-        val sensitivity = _fov.value / 60f
-        val adjusted = delta * sensitivity
-        _fov.value = (_fov.value + adjusted).coerceIn(5f, 45f)
+        _fov.value = (_fov.value + delta).coerceIn(5f, 45f)
+    }
+
+    /**
+     * Pinch-to-zoom: apply scale factor to FOV
+     */
+    fun pinchZoom(scale: Float) {
+        _fov.value = (_fov.value / scale).coerceIn(5f, 45f)
     }
 
     fun setCamera(yaw: Float, pitch: Float, fov: Float) {
         _yaw.value = yaw
         _pitch.value = pitch
-        _fov.value = fov.coerceIn(30f, 90f)
+        _fov.value = fov.coerceIn(5f, 45f)
     }
 
     fun processGyro(dx: Float, dy: Float) {
