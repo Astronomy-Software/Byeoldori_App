@@ -4,48 +4,45 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.location.Geocoder
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
+import androidx.compose.foundation.layout.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.*
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.app.ActivityCompat
+import com.example.byeoldori.viewmodel.NaverMapViewModel
 import com.google.android.gms.location.LocationServices
 import com.naver.maps.geometry.LatLng
-import com.naver.maps.map.CameraUpdate
-import com.naver.maps.map.LocationTrackingMode
-import com.naver.maps.map.MapView
-import com.naver.maps.map.NaverMap
 import com.naver.maps.map.overlay.Marker
+import com.naver.maps.map.*
 import java.util.Locale
+import androidx.compose.ui.Alignment
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
-fun NaverMapWithSearchUI(modifier: Modifier) {
+fun NaverMapWithSearchUI(
+    modifier: Modifier = Modifier,
+    viewModel: NaverMapViewModel = viewModel(),
+    searchQuery: String,
+    onSearchRequested: (String)->Unit,
+    onLatLngUpdated: (LatLng)->Unit,
+    onAddressUpdated: (String)->Unit,
+    searchTrigger: Int,
+    showOverlay: Boolean
+) {
+    //이 부분들은 UI에 종속적인 객체(viewModel사용 안함)
     val context = LocalContext.current
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
     val mapView = remember { MapView(context) }
-    var currentCoordinate by remember { mutableStateOf("127.0,37.0") }
-    var selectedLatLng by remember { mutableStateOf<LatLng?>(null) }
-    var selectedAddress by remember { mutableStateOf<String?>(null) }
     var selectedMarker by remember { mutableStateOf<Marker?>(null) }
-    var searchQuery by remember { mutableStateOf("") }
-    var showOverlay by remember { mutableStateOf(false) }
     var lightOverlay by remember { mutableStateOf<com.naver.maps.map.overlay.GroundOverlay?>(null) }
     var naverMapObj by remember { mutableStateOf<NaverMap?>(null) }
+    var currentCoordinate by remember { mutableStateOf("127.0,37.0") }
+
+    //ViewModel사용
+    val selectedLatLng  by viewModel.selectedLatLng.collectAsState()
+    val selectedAddress by viewModel.selectedAddress.collectAsState()
 
 
     LaunchedEffect(showOverlay) {
@@ -70,6 +67,22 @@ fun NaverMapWithSearchUI(modifier: Modifier) {
         }
     }
 
+    LaunchedEffect(searchTrigger) {
+        if (searchQuery.isNotBlank()) {
+            mapView.getMapAsync { naverMap ->
+                searchAndMoveToLocation(
+                    context, searchQuery, naverMap, mapView, selectedMarker,
+                    onMarkerUpdated = { marker ->
+                        selectedMarker?.iconTintColor = Color.BLACK //이전마커 색 초기화
+                        marker.iconTintColor = Color.RED
+                        selectedMarker = marker
+                    },
+                    onAddressUpdated = { viewModel.updateSelectedAddress(it) },
+                    onLatLngUpdated = { viewModel.updateSelectedLatLng(it) }
+                )
+            }
+        }
+    }
     DisposableEffect(Unit) {
         mapView.onCreate(null)
         mapView.onStart()
@@ -112,14 +125,20 @@ fun NaverMapWithSearchUI(modifier: Modifier) {
                                 Marker().apply {
                                     position = currentLatLng
                                     map = naverMap
+                                    iconTintColor = Color.BLACK
 
                                     setOnClickListener {
-                                        //마커 클릭했을 때 위도/경도로부터 주소 검색
-                                        selectedAddress = getAddressFromLatLng(geocoder, currentLatLng.latitude, currentLatLng.longitude)
-                                        selectedLatLng = currentLatLng //클릭한 위치의 위도,경도 저장
-                                        selectedMarker?.iconTintColor = Color.BLACK // 이전 선택 마커 복구
-                                        this.iconTintColor = Color.RED // 현재 선택한 마커 빨간색
-                                        selectedMarker = this // 현재 선택된 마커 갱신
+                                        selectedMarker?.iconTintColor = Color.BLACK
+                                        this.iconTintColor = Color.RED
+                                        selectedMarker = this
+
+                                        viewModel.updateSelectedLatLng(currentLatLng)
+                                        val address = getAddressFromLatLng(
+                                            geocoder,
+                                            currentLatLng.latitude,
+                                            currentLatLng.longitude
+                                        )
+                                        viewModel.updateSelectedAddress(address)
                                         true
                                     }
                                 }
@@ -127,18 +146,24 @@ fun NaverMapWithSearchUI(modifier: Modifier) {
                         }
 
                         naverMap.setOnMapClickListener { point, coord ->
-                            // 지도 클릭이니까 새 마커 생성
+                            // 지도 클릭하니까 새 마커 생성
                             Marker().apply {
                                 position = coord
                                 map = naverMap
+                                iconTintColor = Color.BLACK
 
                                 setOnClickListener {
-                                    selectedLatLng = coord
-                                    selectedAddress = getAddressFromLatLng(geocoder, coord.latitude, coord.longitude)
                                     selectedMarker?.iconTintColor = Color.BLACK
                                     this.iconTintColor = Color.RED
                                     selectedMarker = this
 
+                                    viewModel.updateSelectedLatLng(coord)
+                                    val address = getAddressFromLatLng(
+                                        geocoder,
+                                        coord.latitude,
+                                        coord.longitude
+                                    )
+                                    viewModel.updateSelectedAddress(address)
                                     true
                                 }
                             }
@@ -151,9 +176,13 @@ fun NaverMapWithSearchUI(modifier: Modifier) {
 
         selectedLatLng?.let { latLng ->
             selectedAddress?.let { address ->
-                Box(modifier = Modifier.align(Alignment.BottomEnd)) {
-                    LocationInfoBox(latLng = latLng, address = address)
-                }
+                    LocationInfoBox(
+                        latLng = latLng,
+                        address = address,
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .offset(x=20.dp, y=120.dp)
+                    )
             }
         }
 
@@ -165,45 +194,5 @@ fun NaverMapWithSearchUI(modifier: Modifier) {
                 .align(Alignment.BottomEnd)
                 .padding(16.dp)
         )
-
-        Box(
-            modifier = Modifier
-                .align(Alignment.TopStart)
-        ) {
-            SearchBox(
-                searchQuery = searchQuery,
-                onSearchQueryChange = { searchQuery = it },
-                onSearchClick = {
-                    mapView.getMapAsync { naverMap ->
-                        searchAndMoveToLocation(
-                            context = context,
-                            query = searchQuery,
-                            naverMap = naverMap,
-                            mapView = mapView,
-                            selectedMarker = selectedMarker,
-                            onMarkerUpdated = { selectedMarker = it },
-                            onLatLngUpdated = { selectedLatLng = it },
-                            onAddressUpdated = { selectedAddress = it }
-                        )
-                    }
-                }
-            )
-            Button(
-                onClick = { showOverlay = !showOverlay }, //버튼을 클릭하면 showOverlay의 값을 true
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = androidx.compose.ui.graphics.Color.White,
-                    contentColor = androidx.compose.ui.graphics.Color.Black
-                ),
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .offset(x = (490).dp, y = (250).dp)
-                    .padding(16.dp)
-            ) {
-                Text(if (showOverlay) "광공해 끄기" else "광공해 보기")
-            }
-        }
     }
 }
-
-
-

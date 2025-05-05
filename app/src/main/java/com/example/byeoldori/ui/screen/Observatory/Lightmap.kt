@@ -8,7 +8,6 @@ import com.naver.maps.map.overlay.OverlayImage
 import com.example.byeoldori.R
 import com.naver.maps.geometry.LatLngBounds
 
-
 fun addLightPollutionOverlay(context: Context, naverMap: NaverMap): GroundOverlay {
     val overlayImage = OverlayImage.fromResource(R.drawable.korea)
 

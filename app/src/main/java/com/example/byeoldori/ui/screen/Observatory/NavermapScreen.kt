@@ -11,16 +11,49 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.byeoldori.viewmodel.AppScreen
+import com.example.byeoldori.viewmodel.NavigationViewModel
 import com.google.accompanist.permissions.*
+import com.naver.maps.geometry.LatLng
 
 @Composable
 fun NavermapScreen(
+    searchQuery: String,
+    onSearch: (String) -> Unit,
+    showOverlay: Boolean,
+    searchTrigger: Int,
+    onLatLngUpdated: (LatLng)->Unit,     // 추가
+    onAddressUpdated: (String)->Unit,    // 추가
     modifier: Modifier = Modifier
 ) {
+    val navViewModel: NavigationViewModel = viewModel()
+
     RequestLocationPermission {
         Box(modifier = Modifier.fillMaxSize()) {
             // 지도 및 검색 UI
-            NaverMapWithSearchUI(modifier = Modifier.fillMaxSize())
+            NaverMapWithSearchUI(
+                modifier = Modifier.fillMaxSize(),
+                searchQuery  = searchQuery,
+                onSearchRequested = onSearch,
+                searchTrigger       = searchTrigger,
+                onLatLngUpdated     = onLatLngUpdated,
+                onAddressUpdated    = onAddressUpdated,
+                showOverlay  = showOverlay
+            )
+
+            // 오른쪽 상단 돌아가기 버튼
+            IconButton(
+                onClick = {navViewModel.navigateTo(AppScreen.SkyMap)},
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(top=20.dp, start = 16.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.ArrowBack,
+                    contentDescription = "뒤로가기"
+                )
+            }
         }
     }
 }
@@ -44,11 +77,3 @@ fun RequestLocationPermission(onPermissionGranted: @Composable () -> Unit) {
         }
     }
 }
-
-
-
-
-
-
-
-
