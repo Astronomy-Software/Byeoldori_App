@@ -38,7 +38,7 @@ class CameraViewModel : ViewModel() {
      * Incremental zoom: delta in degrees
      */
     fun zoom(delta: Float) {
-        _fov.value = (_fov.value + delta).coerceIn(5f, 45f)
+        _fov.value = (_fov.value + (delta * ZOOM_SENSITIVITY)).coerceIn(5f, 45f)
     }
 
     /**
