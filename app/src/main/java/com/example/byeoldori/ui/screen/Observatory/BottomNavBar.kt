@@ -52,7 +52,7 @@ fun BottomNavBar(
                     .padding(horizontal = 4.dp)
                     .clickable { onItemSelected(key) }
                     .background(backgroundColor, shape = androidx.compose.foundation.shape.RoundedCornerShape(10.dp))
-                    .padding(horizontal = 12.dp, vertical = 2.dp), // 내부 여백
+                    .padding(horizontal = 10.dp, vertical = 2.dp), // 내부 여백
                 contentAlignment = Alignment.Center
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {

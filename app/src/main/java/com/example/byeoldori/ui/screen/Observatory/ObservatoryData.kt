@@ -32,6 +32,17 @@ val observatoryList = listOf(
         suitability = 87
     ),
     Observatory(
+        name = "필봉산",
+        type = ObservatoryType.GENERAL,
+        latLng = LatLng(37.179097404593584, 127.07212073869198),
+        reviewCount = 150,
+        likeCount = 99,
+        avgRating = 4.2f,
+        address = "경기도 오산시 내삼미동 산 21-1",
+        imageRes = R.drawable.park2,
+        suitability = 85
+    ),
+    Observatory(
         name = "배티공원",
         type = ObservatoryType.GENERAL,
         latLng = LatLng(36.6266086351, 127.4653234453252),

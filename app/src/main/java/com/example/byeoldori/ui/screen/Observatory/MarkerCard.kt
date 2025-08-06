@@ -40,7 +40,7 @@ fun MarkerCardWithGradient() {
                 imageVector = Icons.Default.Place,
                 contentDescription = null,
                 tint = Color(0xFF8459C9), // 일반 관측지 마커색
-                modifier = Modifier.size(17.dp)
+                modifier = Modifier.size(30.dp)
             )
             Spacer(modifier = Modifier.width(4.dp))
             Text("일반 관측지", color = Color.White, fontSize = 10.sp)
@@ -53,7 +53,7 @@ fun MarkerCardWithGradient() {
                 imageVector = Icons.Default.Place,
                 contentDescription = null,
                 tint = Color(0xFF3851CD), // 인기 관측지 마커색
-                modifier = Modifier.size(17.dp)
+                modifier = Modifier.size(30.dp)
             )
             Spacer(modifier = Modifier.width(4.dp))
             Text("인기 관측지", color = Color.White, fontSize = 10.sp)
