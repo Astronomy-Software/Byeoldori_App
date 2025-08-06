@@ -3,10 +3,14 @@ package com.example.byeoldori.ui.screen.Observatory
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.app.ActivityCompat
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.naver.maps.geometry.LatLng
@@ -27,12 +31,13 @@ fun CurrentLocationButton(
             }
         },
         colors = ButtonDefaults.buttonColors(
-            containerColor = Color.White,
-            contentColor = Color.Black
+            containerColor = Color(0xFF8459C9),
+            contentColor = Color.White
         ),
-        modifier = modifier
+        shape = RoundedCornerShape(16.dp),
+        modifier = modifier.height(50.dp)
     ) {
-        Text("현재 위치")
+        Text("현재 위치", fontSize = 12.sp)
     }
 }
 

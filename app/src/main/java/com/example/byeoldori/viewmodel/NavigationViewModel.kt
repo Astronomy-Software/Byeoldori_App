@@ -18,4 +18,5 @@ enum class AppScreen  {
     Observatory,
     MyPage,
     Recommended,
+    LocationRecommend,
 }

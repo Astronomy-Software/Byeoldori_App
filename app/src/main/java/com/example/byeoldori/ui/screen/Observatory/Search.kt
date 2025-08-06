@@ -5,6 +5,8 @@ import android.location.Geocoder
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
@@ -15,7 +17,14 @@ import com.naver.maps.map.*
 import com.naver.maps.map.overlay.Marker
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import java.util.Locale
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.unit.sp
+
 
 fun searchAndMoveToLocation(
     context: Context,
@@ -65,27 +74,49 @@ fun SearchBox(
     onSearchQueryChange: (String) -> Unit,
     onSearchClick: () -> Unit
 ) {
+    val keyboardController = LocalSoftwareKeyboardController.current
     Column(
         modifier = Modifier
-            .padding(top = 20.dp, start = 16.dp)
-            .fillMaxWidth(0.4f)
+            .padding(top = 0.dp, start = 0.dp)
+            .fillMaxWidth(0.7f)
             .clip(RoundedCornerShape(16.dp))
     ) {
         TextField(
             value = searchQuery, //사용자가 입력한 현재 값
             onValueChange = onSearchQueryChange, //사용자가 입력을 변경할 때마다 searchQuery 값 업데이트
-            placeholder = { Text("주소 또는 장소를 입력하세요") },
-            singleLine = true, //한 줄만 입력가능
-            modifier = Modifier.fillMaxWidth(),
+            placeholder = {
+                Text("검색할 내용을 입력해주세요",
+                    color = Color.White,
+                    fontSize = 12.sp
+                )
+            },
+            singleLine = true, //한 줄만 입력 가능
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min=40.dp),
+
             colors = TextFieldDefaults.colors(
-                focusedContainerColor = androidx.compose.ui.graphics.Color.White,
-                unfocusedContainerColor = androidx.compose.ui.graphics.Color.White
+                focusedContainerColor = Color(0xFF241860),
+                unfocusedContainerColor = Color(0xFF241860),
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent,
+                cursorColor = Color.White
             ),
-            trailingIcon = {
-                IconButton(onClick = onSearchClick) {
-                    Icon(Icons.Default.Search, contentDescription = "검색")
+            textStyle = LocalTextStyle.current.copy(color = Color.White), // 🔥 입력 글씨 색상 지정
+            leadingIcon = {
+                Icon(Icons.Default.Search,
+                    contentDescription = "검색",
+                    tint = Color.White,
+                    modifier = Modifier.size(18.dp)
+                )
+            },
+            keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search), // ✅ 검색 버튼으로 설정
+            keyboardActions = KeyboardActions(
+                onSearch = {
+                    keyboardController?.hide() // 키보드 닫기
+                    onSearchClick()            // 🔥 검색 실행
                 }
-            }
+            )
         )
     }
 }

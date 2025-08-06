@@ -19,6 +19,9 @@ import com.naver.maps.map.*
 import java.util.Locale
 import androidx.compose.ui.Alignment
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.byeoldori.R
+import com.naver.maps.map.overlay.InfoWindow
+import com.naver.maps.map.overlay.OverlayImage
 
 @Composable
 fun NaverMapWithSearchUI(
@@ -29,7 +32,9 @@ fun NaverMapWithSearchUI(
     onLatLngUpdated: (LatLng)->Unit,
     onAddressUpdated: (String)->Unit,
     searchTrigger: Int,
-    showOverlay: Boolean
+    showOverlay: Boolean,
+    onMarkerClick: (MarkerInfo) -> Unit
+
 ) {
     //이 부분들은 UI에 종속적인 객체(viewModel사용 안함)
     val context = LocalContext.current
@@ -102,6 +107,36 @@ fun NaverMapWithSearchUI(
                         naverMapObj = naverMap
                         naverMap.locationTrackingMode = LocationTrackingMode.NoFollow
 
+                        val geocoder = Geocoder(context, Locale.getDefault())
+
+                        observatoryList.forEach { obs ->
+                            Marker().apply {
+                                position = obs.latLng
+                                captionText = obs.name
+                                icon = when (obs.type) {
+                                    ObservatoryType.POPULAR -> OverlayImage.fromResource(R.drawable.marker_b)
+                                    ObservatoryType.GENERAL -> OverlayImage.fromResource(R.drawable.marker_p)
+                                }
+                                map = naverMap
+
+                                setOnClickListener {
+                                    onMarkerClick(
+                                        MarkerInfo(
+                                            name = obs.name,
+                                            type = obs.type,
+                                            address = obs.address,
+                                            drawableRes = obs.imageRes,
+                                            reviewCount = obs.reviewCount,
+                                            likeCount = obs.likeCount,
+                                            rating = obs.avgRating,
+                                            suitability = obs.suitability
+                                        )
+                                    )
+                                    true
+                                }
+                            }
+                        }
+
                         if (ActivityCompat.checkSelfPermission(
                                 context,
                                 Manifest.permission.ACCESS_FINE_LOCATION
@@ -114,7 +149,7 @@ fun NaverMapWithSearchUI(
                             lightOverlay?.map = null
                         }
 
-                        val geocoder = Geocoder(context, Locale.getDefault()) //주소->좌표
+                        //val geocoder = Geocoder(context, Locale.getDefault()) //주소->좌표
 
                         //현재 위치를 지도에 표시
                         fusedLocationClient.lastLocation.addOnSuccessListener { location ->
@@ -191,7 +226,8 @@ fun NaverMapWithSearchUI(
             mapView = mapView,
             fusedLocationClient = fusedLocationClient,
             modifier = Modifier
-                .align(Alignment.BottomEnd)
+                .align(Alignment.BottomStart)
+                .offset(y = (-60).dp) // 아래에서 40dp 위로
                 .padding(16.dp)
         )
     }

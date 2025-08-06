@@ -24,7 +24,8 @@ fun NavermapScreen(
     showOverlay: Boolean,
     searchTrigger: Int,
     onLatLngUpdated: (LatLng)->Unit,     // 추가
-    onAddressUpdated: (String)->Unit,    // 추가
+    onAddressUpdated: (String)->Unit,
+    onMarkerClick: (MarkerInfo) -> Unit,  // 추가
     modifier: Modifier = Modifier
 ) {
     val navViewModel: NavigationViewModel = viewModel()
@@ -39,21 +40,9 @@ fun NavermapScreen(
                 searchTrigger       = searchTrigger,
                 onLatLngUpdated     = onLatLngUpdated,
                 onAddressUpdated    = onAddressUpdated,
-                showOverlay  = showOverlay
+                showOverlay         = showOverlay,
+                onMarkerClick       = onMarkerClick
             )
-
-            // 오른쪽 상단 돌아가기 버튼
-            IconButton(
-                onClick = {navViewModel.navigateTo(AppScreen.SkyMap)},
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(top=20.dp, start = 16.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.ArrowBack,
-                    contentDescription = "뒤로가기"
-                )
-            }
         }
     }
 }
