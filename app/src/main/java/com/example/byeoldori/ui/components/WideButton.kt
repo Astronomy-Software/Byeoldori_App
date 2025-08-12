@@ -1,5 +1,6 @@
 package com.example.byeoldori.ui.components
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -8,10 +9,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -26,6 +27,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.byeoldori.ui.theme.Purple500
+import com.example.byeoldori.ui.theme.TextDisabled
+import com.example.byeoldori.ui.theme.TextHighlight
 import com.example.byeoldori.ui.theme.TextNormal
 
 @Composable
@@ -35,23 +38,30 @@ fun WideButton(
     modifier: Modifier = Modifier,
     backgroundColor: Color = Purple500,
     contentColor: Color = TextNormal,
+    disabledContainerColor: Color = TextDisabled,
+    disabledContentColor: Color = TextHighlight,
     icon: Painter? = null,
     iconDescription: String? = null,
-    cornerRadius: Dp = 8.dp,
-    height: Dp = 56.dp,
-    textStyle: androidx.compose.ui.text.TextStyle = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
+    cornerRadius: Dp = 10.dp,
+    height: Dp = 50.dp,
+    width: Dp = 330.dp,
+    enabled: Boolean = true,
+    textStyle: androidx.compose.ui.text.TextStyle = MaterialTheme.typography.bodyLarge.copy(
+        fontWeight = FontWeight.Bold
+    )
 ) {
     Button(
         onClick = onClick,
-        modifier = modifier
-            .fillMaxWidth()
-            .height(height),
+        enabled = enabled,
+        modifier = modifier.width(width).height(height),
+        shape = RoundedCornerShape(cornerRadius),
         colors = ButtonDefaults.buttonColors(
             containerColor = backgroundColor,
-            contentColor = contentColor
+            contentColor = contentColor,
+            disabledContainerColor = disabledContainerColor,
+            disabledContentColor = disabledContentColor
         ),
-        shape = RoundedCornerShape(cornerRadius),
-        contentPadding = PaddingValues(horizontal = 16.dp)  // 내부 여백
+        contentPadding = PaddingValues(horizontal = 8.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -59,18 +69,18 @@ fun WideButton(
             horizontalArrangement = Arrangement.Center
         ) {
             if (icon != null) {
-                Icon(
+                Image(
                     painter = icon,
                     contentDescription = iconDescription,
                     modifier = Modifier
-                        .size(20.dp)
+                        .size(24.dp)
                         .padding(end = 8.dp)
                 )
             }
             Text(
                 text = text,
-                fontSize = 10.sp,
                 style = textStyle,
+                fontSize = 18.sp,
                 modifier = Modifier.weight(1f),
                 textAlign = TextAlign.Center
             )
@@ -78,32 +88,22 @@ fun WideButton(
     }
 }
 
+
 @Preview(showBackground = true)
 @Composable
 fun WideButtonPreview() {
-    Column(){
+    Column(
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+        modifier = Modifier.padding(16.dp)
+    ) {
         WideButton(
-            text = "미리보기 버튼",
-            onClick = {},
-            icon = null
+            text = "Wide Button",
+            onClick = {}
         )
         WideButton(
-            text = "미리보기 버튼",
+            text = "응애응애",
             onClick = {},
-            icon = null,
-            textStyle = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
-        )
-        WideButton(
-            text = "미리보기 버튼",
-            onClick = {},
-            icon = null,
-            textStyle = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.ExtraBold)
-        )
-        WideButton(
-            text = "구글 로그인",
-            onClick = {},
-            icon = rememberAsyncImagePainter("https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg"),
-            iconDescription = "Google Icon"
+            enabled = false
         )
     }
 }
