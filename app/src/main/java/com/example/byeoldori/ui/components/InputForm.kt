@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.MaterialTheme
@@ -34,11 +33,11 @@ import com.example.byeoldori.ui.theme.TextHighlight
 
 @Composable
 fun InputForm(
+    modifier: Modifier = Modifier,
     label: String,
     value: String,
     onValueChange: (String) -> Unit,
-    placeholder: String = "내용을 입력해 주세요",
-    modifier: Modifier = Modifier.width(330.dp)
+    placeholder: String = "내용을 입력해 주세요"
 ) {
     Column(modifier = modifier) {
         Text(

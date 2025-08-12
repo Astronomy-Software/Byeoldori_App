@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
@@ -57,7 +56,6 @@ fun LoginScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 24.dp)
                 .imePadding(), // 키보드 대응
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center, // 세로 가운데
@@ -66,9 +64,7 @@ fun LoginScreen(
                 painter = painterResource(R.drawable.byeoldori),
                 contentDescription = "앱 로고",
                 modifier = Modifier.width(300.dp).height(300.dp)
-
             )
-            Spacer(Modifier.height(32.dp))
             InputForm(
                 label = "Email",
                 value = email,
@@ -76,7 +72,6 @@ fun LoginScreen(
                 placeholder = "Email을 입력해 주세요",
                 modifier = Modifier.width(330.dp)
             )
-            Spacer(Modifier.height(12.dp))
             InputForm(
                 label = "PassWord",
                 value = password,
@@ -90,7 +85,7 @@ fun LoginScreen(
                 onClick = { onLogin(email, password) },
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             )
-            Spacer(Modifier.height(10.dp))
+            Spacer(Modifier.height(16.dp))
             WideButton(
                 text = "Google ID로 로그인 하기",
                 onClick = onGoogleLogin,
@@ -98,11 +93,10 @@ fun LoginScreen(
                 iconDescription = "Google",
                 modifier = Modifier.align(Alignment.CenterHorizontally).width(330.dp)
             )
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(16.dp))
             Row(
                 modifier = Modifier
-                    .width(330.dp)
-                    .padding(horizontal = 6.dp),
+                    .width(330.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
@@ -120,7 +114,6 @@ fun LoginScreen(
                     modifier = Modifier.clickable { onFindAccount() }
                 )
             }
-            Spacer(Modifier.height(24.dp))
         }
     }
 }
