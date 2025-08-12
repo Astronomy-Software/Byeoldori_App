@@ -19,7 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import coil.compose.rememberAsyncImagePainter
+import com.example.byeoldori.R
 import com.example.byeoldori.ui.components.WideButton
 import com.example.byeoldori.ui.theme.Purple800
 import com.example.byeoldori.viewmodel.AppScreen
@@ -46,7 +46,7 @@ fun MyPageScreen() {
                 WideButton(
                     text = "구글 로그인",
                     onClick = {},
-                    icon = rememberAsyncImagePainter("https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"),
+                    icon = R.drawable.ic_google_logo,
                     iconDescription = "Google Icon"
                 )
                 WideButton(

@@ -19,7 +19,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -40,13 +42,13 @@ fun WideButton(
     contentColor: Color = TextNormal,
     disabledContainerColor: Color = TextDisabled,
     disabledContentColor: Color = TextHighlight,
-    icon: Painter? = null,
+    icon: Int? = null,
     iconDescription: String? = null,
     cornerRadius: Dp = 10.dp,
     height: Dp = 50.dp,
     width: Dp = 330.dp,
     enabled: Boolean = true,
-    textStyle: androidx.compose.ui.text.TextStyle = MaterialTheme.typography.bodyLarge.copy(
+    textStyle: TextStyle = MaterialTheme.typography.bodyLarge.copy(
         fontWeight = FontWeight.Bold
     )
 ) {
@@ -70,7 +72,7 @@ fun WideButton(
         ) {
             if (icon != null) {
                 Image(
-                    painter = icon,
+                    imageVector = ImageVector.vectorResource(id = icon),
                     contentDescription = iconDescription,
                     modifier = Modifier
                         .size(24.dp)
