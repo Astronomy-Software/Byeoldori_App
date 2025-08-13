@@ -1,5 +1,6 @@
 package com.example.byeoldori.ui.screen.Observatory
 
+import android.content.res.Configuration
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -15,12 +16,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.byeoldori.R
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
 
 @Composable
@@ -73,6 +77,37 @@ fun BottomNavBar(
                 }
             }
         }
+    }
+}
+
+@Preview(
+    name = "BottomNav",
+    showBackground = true,
+    backgroundColor = 0xFFF5F5F7,
+    widthDp = 360,
+    heightDp = 640,
+    uiMode = Configuration.UI_MODE_NIGHT_NO
+)
+
+@Composable
+fun BottomNavBarPreview() {
+    var selected = remember { mutableStateOf("홈") }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(640.dp)
+            .background(Color(0xFF120A2A))
+            .padding(bottom = 0.dp)
+    ) {
+        // 상단 더미 콘텐츠 공간
+        Spacer(modifier = Modifier.weight(1f))
+
+        // 하단 네비게이션 바
+        BottomNavBar(
+            selectedItem = selected.value,
+            onItemSelected = { selected.value = it }
+        )
     }
 }
 
