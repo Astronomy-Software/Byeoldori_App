@@ -37,7 +37,7 @@ fun ObservatoryInfoCard(
         LazyColumn(
             state = listState,
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxSize()
                 .padding(15.dp),
             contentPadding = PaddingValues(bottom = 16.dp)
         ) {

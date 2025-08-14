@@ -145,7 +145,7 @@ private fun ReviewCard(review: Review) {
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
-                            painter = painterResource(R.drawable.thumbs_up),
+                            painter = painterResource(R.drawable.thumbs_up1),
                             contentDescription = null,
                             tint = Color.White,
                             modifier = Modifier.size(18.dp)

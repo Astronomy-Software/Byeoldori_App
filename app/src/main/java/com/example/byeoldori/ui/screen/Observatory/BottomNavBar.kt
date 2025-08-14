@@ -41,11 +41,11 @@ fun BottomNavBar(
         verticalAlignment = Alignment.CenterVertically
     ) {
         val items = listOf(
-            Triple(R.drawable.menu_star, "별지도", "별지도"),
-            Triple(R.drawable.menu_obs, "관측지", "관측지"),
-            Triple(R.drawable.menu_home, "홈", "홈"),
-            Triple(R.drawable.menu_com, "커뮤니티", "커뮤니티"),
-            Triple(R.drawable.menu_my, "마이페이지", "마이페이지")
+            Triple(R.drawable.menu_star1, "별지도", "별지도"),
+            Triple(R.drawable.menu_obs1, "관측지", "관측지"),
+            Triple(R.drawable.menu_home1, "홈", "홈"),
+            Triple(R.drawable.menu_com1, "커뮤니티", "커뮤니티"),
+            Triple(R.drawable.menu_my1, "마이페이지", "마이페이지")
         )
 
         items.forEach { (iconRes, label, key) ->

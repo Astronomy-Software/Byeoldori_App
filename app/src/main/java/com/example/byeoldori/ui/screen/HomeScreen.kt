@@ -5,7 +5,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.byeoldori.ui.screen.MyPage.MyPageScreen
-import com.example.byeoldori.ui.screen.Observatory.LocationRecommendScreen
 import com.example.byeoldori.ui.screen.Observatory.ObservatoryScreen
 import com.example.byeoldori.ui.screen.SkyMap.SkyMapScreen
 import com.example.byeoldori.viewmodel.NavigationViewModel
@@ -22,6 +21,5 @@ fun HomeScreen() {
         AppScreen.Observatory -> ObservatoryScreen()
         AppScreen.MyPage -> MyPageScreen()
         AppScreen.Recommended -> RecommendedScreen()
-        AppScreen.LocationRecommend -> LocationRecommendScreen()
     }
 }

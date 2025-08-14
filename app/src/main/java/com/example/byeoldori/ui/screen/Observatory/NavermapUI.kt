@@ -114,8 +114,8 @@ fun NaverMapWithSearchUI(
                                 position = obs.latLng
                                 captionText = obs.name
                                 icon = when (obs.type) {
-                                    ObservatoryType.POPULAR -> OverlayImage.fromResource(R.drawable.marker_b)
-                                    ObservatoryType.GENERAL -> OverlayImage.fromResource(R.drawable.marker_p)
+                                    ObservatoryType.POPULAR -> OverlayImage.fromResource(R.drawable.marker_b1)
+                                    ObservatoryType.GENERAL -> OverlayImage.fromResource(R.drawable.marker_p1)
                                 }
                                 map = naverMap
 

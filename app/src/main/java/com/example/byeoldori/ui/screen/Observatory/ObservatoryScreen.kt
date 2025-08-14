@@ -124,8 +124,7 @@ fun ObservatoryScreen(
         info?.let {
             Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight()
+                    .matchParentSize()
                     //.align(Alignment.BottomCenter)
                     .zIndex(1f)
                     .padding(bottom = 70.dp)

@@ -40,12 +40,12 @@ fun WeatherInfoCard(
                 WeatherItem(
                     title = "기온",
                     value = temperature,
-                    iconResId = R.drawable.temp,
+                    iconResId = R.drawable.temp1,
                     modifier = Modifier.weight(1f))
                 WeatherItem(
                     title = "습도",
                     value = humidity,
-                    iconResId = R.drawable.water,
+                    iconResId = R.drawable.water11,
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -56,13 +56,13 @@ fun WeatherInfoCard(
                 WeatherItem(
                     title = "바람",
                     value = windSpeed,
-                    iconResId = R.drawable.wind,
+                    iconResId = R.drawable.wind1,
                     modifier = Modifier.weight(1f)
                 )
                 WeatherItem(
                     title = "관측 적합도",
                     value = suitability,
-                    iconResId = R.drawable.thumbs_up,
+                    iconResId = R.drawable.thumbs_up1,
                     valueColor = Color(0xFF6EFFA6),
                     modifier = Modifier.weight(1f)
                 )
@@ -179,7 +179,7 @@ fun ForecastItem(forecast: HourlyForecast) {
 
         Row(verticalAlignment = Alignment.CenterVertically) {
             Image(
-                painter = painterResource(id = R.drawable.water2),
+                painter = painterResource(id = R.drawable.water22),
                 contentDescription = "습도",
                 modifier = Modifier.size(15.dp)
             )
@@ -237,7 +237,7 @@ fun DailyForecastRow(forecast: DailyForecast) {
 
         // 강수 확률
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1.2f)) {
-            Image(painter = painterResource(id = R.drawable.water2), contentDescription = "강수",modifier = Modifier.size(15.dp))
+            Image(painter = painterResource(id = R.drawable.water22), contentDescription = "강수",modifier = Modifier.size(15.dp))
             Spacer(modifier = Modifier.width(4.dp))
             Text(forecast.precipitation, color = Color.White, fontSize = 12.sp)
         }
