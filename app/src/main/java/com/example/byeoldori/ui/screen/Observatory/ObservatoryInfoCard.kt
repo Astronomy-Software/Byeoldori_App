@@ -3,7 +3,15 @@ package com.example.byeoldori.ui.screen.Observatory
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -20,6 +28,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.byeoldori.R
+import com.example.byeoldori.ui.theme.SuccessGreen
+import com.example.byeoldori.ui.theme.TextHighlight
 
 @Composable
 fun ObservatoryInfoCard(
@@ -93,38 +103,38 @@ private fun BasicInfoCard(info: MarkerInfo) {
                         .padding(end = 20.dp)
                 ) {
                     Spacer(Modifier.height(8.dp))
-                    Text(info.name, fontSize = 30.sp, color = Color.White)
+                    Text(info.name, fontSize = 30.sp, color = TextHighlight)
                     Spacer(Modifier.height(15.dp))
 
                     Row(Modifier.fillMaxWidth()) {
-                        Text("리뷰", color = Color.White, modifier = Modifier.weight(1.2f))
+                        Text("리뷰", color = TextHighlight, modifier = Modifier.weight(1.2f))
                         Text(
                             "${info.reviewCount}",
-                            color = Color.White,
+                            color = TextHighlight,
                             modifier = Modifier.weight(0.5f).padding(start = 10.dp)
                         )
                     }
                     Row(Modifier.fillMaxWidth()) {
-                        Text("좋아요", color = Color.White, modifier = Modifier.weight(1.2f))
+                        Text("좋아요", color = TextHighlight, modifier = Modifier.weight(1.2f))
                         Text(
                             "${info.likeCount}",
-                            color = Color.White,
+                            color = TextHighlight,
                             modifier = Modifier.weight(0.5f).padding(start = 10.dp)
                         )
                     }
                     Row(Modifier.fillMaxWidth()) {
-                        Text("평점", color = Color.White, modifier = Modifier.weight(1.2f))
+                        Text("평점", color = TextHighlight, modifier = Modifier.weight(1.2f))
                         Text(
                             "${info.rating}",
-                            color = Color.White,
+                            color = TextHighlight,
                             modifier = Modifier.weight(0.5f).padding(start = 10.dp)
                         )
                     }
                     Row(Modifier.fillMaxWidth()) {
-                        Text("현재 관측 적합도", color = Color.White, modifier = Modifier.weight(1.2f))
+                        Text("현재 관측 적합도", color = TextHighlight, modifier = Modifier.weight(1.2f))
                         Text(
                             "${info.suitability}",
-                            color = Color.Green,
+                            color = SuccessGreen,
                             modifier = Modifier.weight(0.5f).padding(start = 10.dp)
                         )
                     }
@@ -138,7 +148,7 @@ private fun BasicInfoCard(info: MarkerInfo) {
                         .height(160.dp)
                         .padding(top = 60.dp)
                         .clip(RoundedCornerShape(8.dp))
-                        .border(2.dp, Color.White, RoundedCornerShape(8.dp)),
+                        .border(2.dp, TextHighlight, RoundedCornerShape(8.dp)),
                     contentScale = ContentScale.Crop
                 )
             }
@@ -148,10 +158,10 @@ private fun BasicInfoCard(info: MarkerInfo) {
                     .fillMaxWidth()
                     .padding(top = 5.dp)
             ) {
-                Text("도로명 주소", color = Color.White, modifier = Modifier.weight(2f), maxLines = 1)
+                Text("도로명 주소", color = TextHighlight, modifier = Modifier.weight(2f), maxLines = 1)
                 Text(
                     text = info.address,
-                    color = Color.White,
+                    color = TextHighlight,
                     modifier = Modifier.weight(5f),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis

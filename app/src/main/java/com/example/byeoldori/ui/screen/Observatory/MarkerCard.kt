@@ -2,7 +2,6 @@ package com.example.byeoldori.ui.screen.Observatory
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -18,9 +17,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.byeoldori.ui.theme.Blue500
+import com.example.byeoldori.ui.theme.Blue800
+import com.example.byeoldori.ui.theme.Purple500
+import com.example.byeoldori.ui.theme.Purple700
+import com.example.byeoldori.ui.theme.TextHighlight
 
 @Composable
 fun MarkerCardWithGradient() {
@@ -29,8 +32,8 @@ fun MarkerCardWithGradient() {
             .clip(RoundedCornerShape(15.dp))
             .background(brush = Brush.verticalGradient(
                 colors = listOf(
-                    Color(0xFF241860),
-                    Color(0xFF5A329B)
+                    Blue800,
+                    Purple700
                 )
             ))
             .padding(horizontal = 16.dp, vertical = 12.dp)
@@ -39,11 +42,11 @@ fun MarkerCardWithGradient() {
             Icon(
                 imageVector = Icons.Default.Place,
                 contentDescription = null,
-                tint = Color(0xFF8459C9), // 일반 관측지 마커색
+                tint = Purple500, // 일반 관측지 마커색
                 modifier = Modifier.size(30.dp)
             )
             Spacer(modifier = Modifier.width(4.dp))
-            Text("일반 관측지", color = Color.White, fontSize = 10.sp)
+            Text("일반 관측지", color = TextHighlight, fontSize = 10.sp)
         }
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -52,11 +55,11 @@ fun MarkerCardWithGradient() {
             Icon(
                 imageVector = Icons.Default.Place,
                 contentDescription = null,
-                tint = Color(0xFF3851CD), // 인기 관측지 마커색
+                tint = Blue500, // 인기 관측지 마커색
                 modifier = Modifier.size(30.dp)
             )
             Spacer(modifier = Modifier.width(4.dp))
-            Text("인기 관측지", color = Color.White, fontSize = 10.sp)
+            Text("인기 관측지", color = TextHighlight, fontSize = 10.sp)
         }
     }
 }

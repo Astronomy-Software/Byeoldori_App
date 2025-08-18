@@ -1,26 +1,46 @@
 // ReviewCard.kt
 package com.example.byeoldori.ui.screen.Observatory
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
-import androidx.compose.material.icons.Icons
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.graphics.Color
-import androidx.compose.foundation.Image
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.byeoldori.R
+import com.example.byeoldori.ui.theme.Blue800
+import com.example.byeoldori.ui.theme.TextHighlight
 
 @Composable
 fun ReviewSection(
@@ -49,25 +69,25 @@ fun ReviewSection(
         ) {
             Text(
                 text = title,
-                color = Color.White,
+                color = TextHighlight,
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.weight(1f)
             )
             IconButton(onClick = { if (page > 0) page-- }, enabled = page > 0) {
                 Icon(
-                    painter = painterResource(id = R.drawable.navigate_before),
+                    painter = painterResource(id = R.drawable.ic_before),
                     contentDescription = "이전",
                     tint = Color.Unspecified,
                     modifier = Modifier.size(24.dp)
                 )
             }
-            Text("${page + 1} / $pageCount", color = Color.White)
+            Text("${page + 1} / $pageCount", color = TextHighlight)
             IconButton(
                 onClick = { if (page < pageCount - 1) page++ },
                 enabled = page < pageCount - 1
             ) {
                 Icon(
-                    painter = painterResource(id = R.drawable.navigate_next),
+                    painter = painterResource(id = R.drawable.ic_next),
                     contentDescription = "다음",
                     tint = Color.Unspecified,
                     modifier = Modifier.size(24.dp)
@@ -101,7 +121,7 @@ fun ReviewSection(
 private fun ReviewCard(review: Review) {
     Card(
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF241860)),
+        colors = CardDefaults.cardColors(containerColor = Blue800),
         modifier = Modifier
             .fillMaxWidth()
             .height(240.dp)
@@ -120,7 +140,7 @@ private fun ReviewCard(review: Review) {
             Column(Modifier.padding(start = 15.dp)) {
                 Text(
                     text = review.title,
-                    color = Color.White,
+                    color = TextHighlight,
                     fontSize = 14.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -134,10 +154,10 @@ private fun ReviewCard(review: Review) {
                         modifier = Modifier.size(22.dp)
                     )
                     Spacer(Modifier.width(4.dp))
-                    Text(review.author, color = Color.White, fontSize = 14.sp)
+                    Text(review.author, color = TextHighlight, fontSize = 14.sp)
                 }
                 Spacer(Modifier.height(4.dp))
-                Text("별점 : ${review.rating}", color = Color.White, fontSize = 14.sp)
+                Text("별점 : ${review.rating}", color = TextHighlight, fontSize = 14.sp)
                 Spacer(Modifier.height(6.dp))
                 Row(
                     Modifier.fillMaxWidth(),
@@ -145,25 +165,25 @@ private fun ReviewCard(review: Review) {
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
-                            painter = painterResource(R.drawable.thumbs_up1),
+                            painter = painterResource(R.drawable.ic_thumbs_up),
                             contentDescription = null,
-                            tint = Color.White,
+                            tint = TextHighlight,
                             modifier = Modifier.size(18.dp)
                         )
                         Spacer(Modifier.width(4.dp))
-                        Text("${review.likeCount}", color = Color.White, fontSize = 14.sp)
+                        Text("${review.likeCount}", color = TextHighlight, fontSize = 14.sp)
                     }
                     Row(verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.offset(x=(-8).dp)
                     ) {
                         Icon(
-                            painter = painterResource(R.drawable.comment),
+                            painter = painterResource(R.drawable.ic_comment),
                             contentDescription = null,
-                            tint = Color.White,
+                            tint = TextHighlight,
                             modifier = Modifier.size(18.dp)
                         )
                         Spacer(Modifier.width(4.dp))
-                        Text("${review.commentCount}", color = Color.White, fontSize = 14.sp)
+                        Text("${review.commentCount}", color = TextHighlight, fontSize = 14.sp)
                     }
                 }
             }

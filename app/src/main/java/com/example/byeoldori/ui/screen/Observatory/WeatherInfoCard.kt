@@ -1,27 +1,34 @@
 package com.example.byeoldori.ui.screen.Observatory
-import com.example.byeoldori.R
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.byeoldori.R
+import com.example.byeoldori.ui.theme.Blue800
+import com.example.byeoldori.ui.theme.SuccessGreen
+import com.example.byeoldori.ui.theme.TextHighlight
 
 @Composable
 fun WeatherInfoCard(
@@ -31,7 +38,7 @@ fun WeatherInfoCard(
     suitability: String,
     modifier: Modifier = Modifier
 ) {
-    Text("해당 위치의 현재 날씨", color = Color.White, fontSize = 14.sp)
+    Text("해당 위치의 현재 날씨", color = TextHighlight, fontSize = 14.sp)
     Column(modifier = modifier.fillMaxWidth()) {
         Spacer(modifier = Modifier.height(12.dp))
 
@@ -40,12 +47,12 @@ fun WeatherInfoCard(
                 WeatherItem(
                     title = "기온",
                     value = temperature,
-                    iconResId = R.drawable.temp1,
+                    iconResId = R.drawable.ic_temperature,
                     modifier = Modifier.weight(1f))
                 WeatherItem(
                     title = "습도",
                     value = humidity,
-                    iconResId = R.drawable.water11,
+                    iconResId = R.drawable.ic_pop,
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -56,14 +63,14 @@ fun WeatherInfoCard(
                 WeatherItem(
                     title = "바람",
                     value = windSpeed,
-                    iconResId = R.drawable.wind1,
+                    iconResId = R.drawable.ic_wind,
                     modifier = Modifier.weight(1f)
                 )
                 WeatherItem(
                     title = "관측 적합도",
                     value = suitability,
-                    iconResId = R.drawable.thumbs_up1,
-                    valueColor = Color(0xFF6EFFA6),
+                    iconResId = R.drawable.ic_thumbs_up,
+                    valueColor = SuccessGreen,
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -105,7 +112,7 @@ fun WeatherForecastScrollSection(forecasts: List<HourlyForecast>) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFF241860), RoundedCornerShape(12.dp))
+            .background(Blue800, RoundedCornerShape(12.dp))
             .padding(12.dp)
     ) {
         Row(
@@ -123,7 +130,7 @@ fun WeatherForecastScrollSection(forecasts: List<HourlyForecast>) {
                         modifier = Modifier
                             .padding(end = 12.dp)
                     ) {
-                        Text(date, color = Color.White, fontSize = 20.sp)
+                        Text(date, color = TextHighlight, fontSize = 20.sp)
                         Spacer(modifier = Modifier.height(12.dp))
 
                         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -143,7 +150,7 @@ fun WeatherForecastScrollSection(forecasts: List<HourlyForecast>) {
                                 modifier = Modifier
                                     .width(2.dp)
                                     .fillMaxHeight()
-                                    .background(Color.White.copy(alpha = 0.8f))
+                                    .background(TextHighlight.copy(alpha = 0.8f))
                                     .align(Alignment.CenterEnd)
                             )
                         }
@@ -167,27 +174,27 @@ fun ForecastItem(forecast: HourlyForecast) {
             .width(70.dp)
             .offset(x=-(5).dp)
     ) {
-        Text(forecast.time, color = Color.White, fontSize = 18.sp)
+        Text(forecast.time, color = TextHighlight, fontSize = 18.sp)
         Spacer(modifier = Modifier.height(5.dp))
         Image(
             painter = painterResource(id = iconRes),
             contentDescription = null,
             modifier = Modifier.size(30.dp)
         )
-        Text(forecast.temperature, color = Color.White, fontSize = 18.sp)
+        Text(forecast.temperature, color = TextHighlight, fontSize = 18.sp)
         Spacer(modifier = Modifier.height(10.dp))
 
         Row(verticalAlignment = Alignment.CenterVertically) {
             Image(
-                painter = painterResource(id = R.drawable.water22),
+                painter = painterResource(id = R.drawable.ic_pop),
                 contentDescription = "습도",
                 modifier = Modifier.size(15.dp)
             )
             Spacer(modifier = Modifier.width(2.dp))
-            Text(forecast.precipitation, color = Color.White, fontSize = 12.sp)
+            Text(forecast.precipitation, color = TextHighlight, fontSize = 12.sp)
         }
 
-        Text("관측 적합도", color = Color.White, fontSize = 12.sp)
+        Text("관측 적합도", color = TextHighlight, fontSize = 12.sp)
         Text(forecast.suitability, color = Color(0xFF75FF75), fontSize = 18.sp)
     }
 }
@@ -198,7 +205,7 @@ fun WeatherItem(
     title: String,
     value: String,
     iconResId: Int,
-    valueColor: Color = Color.White,
+    valueColor: Color = TextHighlight,
     modifier: Modifier
 ) {
     Column(
@@ -215,7 +222,7 @@ fun WeatherItem(
                 modifier = Modifier.size(28.dp)
             )
             Spacer(modifier = Modifier.width(6.dp))
-            Text(title, color = Color.White, fontSize = 22.sp)
+            Text(title, color = TextHighlight, fontSize = 22.sp)
         }
         Spacer(modifier = Modifier.height(15.dp))
         Text(value, color = valueColor, fontSize = 20.sp)
@@ -233,13 +240,13 @@ fun DailyForecastRow(forecast: DailyForecast) {
     ) {
         // 날짜
        // Spacer(modifier = Modifier.height(15.dp))
-        Text(forecast.date, color = Color.White, fontSize = 18.sp, modifier = Modifier.weight(1f))
+        Text(forecast.date, color = TextHighlight, fontSize = 18.sp, modifier = Modifier.weight(1f))
 
         // 강수 확률
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1.2f)) {
-            Image(painter = painterResource(id = R.drawable.water22), contentDescription = "강수",modifier = Modifier.size(15.dp))
+            Image(painter = painterResource(id = R.drawable.ic_pop), contentDescription = "강수",modifier = Modifier.size(15.dp))
             Spacer(modifier = Modifier.width(4.dp))
-            Text(forecast.precipitation, color = Color.White, fontSize = 12.sp)
+            Text(forecast.precipitation, color = TextHighlight, fontSize = 12.sp)
         }
 
         // 오전 아이콘
@@ -261,12 +268,12 @@ fun DailyForecastRow(forecast: DailyForecast) {
         )
 
         // 낮 기온 / 밤 기온
-        Text(forecast.dayTemp, color = Color.White, fontSize = 18.sp, modifier = Modifier.weight(1f))
-        Text(forecast.nightTemp, color = Color.White, fontSize = 18.sp, modifier = Modifier.weight(1f))
+        Text(forecast.dayTemp, color = TextHighlight, fontSize = 18.sp, modifier = Modifier.weight(1f))
+        Text(forecast.nightTemp, color = TextHighlight, fontSize = 18.sp, modifier = Modifier.weight(1f))
 
         // 관측 적합도
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("관측 적합도", color = Color.White, fontSize = 12.sp)
+            Text("관측 적합도", color = TextHighlight, fontSize = 12.sp)
             Text(forecast.suitability, color = Color(0xFF75FF75), fontSize = 16.sp)
         }
     }

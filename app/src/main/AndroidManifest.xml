@@ -25,7 +25,6 @@
         <activity
             android:name=".MainActivity"
             android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize"
-            android:screenOrientation="portrait"
             android:resizeableActivity="true"
             android:exported="true"
             android:theme="@style/Theme.Byeoldori"

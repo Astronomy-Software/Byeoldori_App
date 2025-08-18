@@ -4,24 +4,38 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.location.Geocoder
-import androidx.compose.foundation.layout.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.app.ActivityCompat
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.byeoldori.R
+import com.example.byeoldori.ui.theme.ErrorRed
 import com.example.byeoldori.viewmodel.NaverMapViewModel
 import com.google.android.gms.location.LocationServices
 import com.naver.maps.geometry.LatLng
+import com.naver.maps.map.CameraUpdate
+import com.naver.maps.map.LocationTrackingMode
+import com.naver.maps.map.MapView
+import com.naver.maps.map.NaverMap
 import com.naver.maps.map.overlay.Marker
-import com.naver.maps.map.*
-import java.util.Locale
-import androidx.compose.ui.Alignment
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.byeoldori.R
-import com.naver.maps.map.overlay.InfoWindow
 import com.naver.maps.map.overlay.OverlayImage
+import java.util.Locale
 
 @Composable
 fun NaverMapWithSearchUI(
@@ -114,8 +128,8 @@ fun NaverMapWithSearchUI(
                                 position = obs.latLng
                                 captionText = obs.name
                                 icon = when (obs.type) {
-                                    ObservatoryType.POPULAR -> OverlayImage.fromResource(R.drawable.marker_b1)
-                                    ObservatoryType.GENERAL -> OverlayImage.fromResource(R.drawable.marker_p1)
+                                    ObservatoryType.POPULAR -> OverlayImage.fromResource(R.drawable.ic_marker_b)
+                                    ObservatoryType.GENERAL -> OverlayImage.fromResource(R.drawable.ic_marker_p)
                                 }
                                 map = naverMap
 
@@ -164,7 +178,7 @@ fun NaverMapWithSearchUI(
 
                                     setOnClickListener {
                                         selectedMarker?.iconTintColor = Color.BLACK
-                                        this.iconTintColor = Color.RED
+                                        this.iconTintColor = ErrorRed.toArgb()
                                         selectedMarker = this
 
                                         viewModel.updateSelectedLatLng(currentLatLng)
@@ -189,7 +203,7 @@ fun NaverMapWithSearchUI(
 
                                 setOnClickListener {
                                     selectedMarker?.iconTintColor = Color.BLACK
-                                    this.iconTintColor = Color.RED
+                                    this.iconTintColor = ErrorRed.toArgb()
                                     selectedMarker = this
 
                                     viewModel.updateSelectedLatLng(coord)

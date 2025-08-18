@@ -53,7 +53,7 @@ kotlin {
 
 dependencies {
     implementation(platform(libs.compose.bom))
-
+    implementation(libs.coil.compose)
     implementation(libs.activity.compose)
     implementation(libs.ui)
     implementation(libs.material3)

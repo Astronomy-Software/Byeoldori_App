@@ -1,35 +1,43 @@
 package com.example.byeoldori.ui.screen.Observatory
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Place
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.byeoldori.R
+import com.example.byeoldori.ui.components.NavigationBar
+import com.example.byeoldori.ui.theme.Blue500
+import com.example.byeoldori.ui.theme.Purple500
+import com.example.byeoldori.ui.theme.TextHighlight
 import com.example.byeoldori.viewmodel.AppScreen
 import com.example.byeoldori.viewmodel.NavigationViewModel
 import com.naver.maps.geometry.LatLng
@@ -107,8 +115,8 @@ fun ObservatoryScreen(
         Button(
             onClick = { showOverlay = !showOverlay },
             colors = ButtonDefaults.buttonColors(
-                containerColor = if (showOverlay) Color(0xFF3851CD) else Color(0xFF8459C9), // 파란색 ↔ 보라색
-                contentColor = Color.White
+                containerColor = if (showOverlay) Blue500 else Purple500, // 파란색 ↔ 보라색
+                contentColor = TextHighlight
             ),
             shape = RoundedCornerShape(16.dp),
             modifier = Modifier
@@ -156,14 +164,13 @@ fun ObservatoryScreen(
                     .offset(y = (-65).dp)
                     .align(Alignment.BottomCenter) // 정확히 하단에 위치
                     .zIndex(2f) // 카드보다 위에
-                    .background(Color(0xFF473A9D)) // 카드와 같은 배경색
+                    .background(Color(0xFF473A9D)) // 카드와 같은 배경색 ->
+                // TODO : 이거 배경색상 맞춰서 Color.kt의 내용으로 변경부탁함.
             )
         }
 
-
-
         Box(modifier = Modifier.align(Alignment.BottomCenter)) {
-            BottomNavBar(
+            NavigationBar(
                 selectedItem = selectedBottomItem,
                 onItemSelected = { item ->
                     selectedBottomItem = item
@@ -177,7 +184,5 @@ fun ObservatoryScreen(
                 }
             )
         }
-
-
     }
 }
