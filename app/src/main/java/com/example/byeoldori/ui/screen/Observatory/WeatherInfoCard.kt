@@ -186,7 +186,7 @@ fun ForecastItem(forecast: HourlyForecast) {
 
         Row(verticalAlignment = Alignment.CenterVertically) {
             Image(
-                painter = painterResource(id = R.drawable.water22),
+                painter = painterResource(id = R.drawable.ic_pop),
                 contentDescription = "습도",
                 modifier = Modifier.size(15.dp)
             )
@@ -244,7 +244,7 @@ fun DailyForecastRow(forecast: DailyForecast) {
 
         // 강수 확률
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1.2f)) {
-            Image(painter = painterResource(id = R.drawable.water22), contentDescription = "강수",modifier = Modifier.size(15.dp))
+            Image(painter = painterResource(id = R.drawable.ic_pop), contentDescription = "강수",modifier = Modifier.size(15.dp))
             Spacer(modifier = Modifier.width(4.dp))
             Text(forecast.precipitation, color = TextHighlight, fontSize = 12.sp)
         }

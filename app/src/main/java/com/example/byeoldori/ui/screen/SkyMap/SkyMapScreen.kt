@@ -7,21 +7,26 @@ import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import androidx.compose.foundation.gestures.detectTransformGestures
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.Button
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.byeoldori.ui.screen.Observatory.BottomNavBar
-import com.example.byeoldori.viewmodel.AppScreen
+import com.example.byeoldori.ui.components.NavigationBar
 import com.example.byeoldori.ui.screen.SkyMap.render.CelestialGLView
+import com.example.byeoldori.viewmodel.AppScreen
 import com.example.byeoldori.viewmodel.NavigationViewModel
 import com.example.byeoldori.viewmodel.Skymap.CameraViewModel
 
@@ -81,7 +86,7 @@ fun SkyMapScreen() {
     }
     Scaffold(
         bottomBar = {
-            BottomNavBar(
+            NavigationBar(
                 selectedItem = selectedBottomItem,
                 onItemSelected = { item ->
                     selectedBottomItem = item
