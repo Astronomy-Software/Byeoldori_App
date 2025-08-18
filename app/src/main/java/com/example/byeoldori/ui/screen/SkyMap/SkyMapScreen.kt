@@ -12,15 +12,17 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.byeoldori.ui.screen.Observatory.BottomNavBar
+import com.example.byeoldori.viewmodel.AppScreen
 import com.example.byeoldori.ui.screen.SkyMap.render.CelestialGLView
 import com.example.byeoldori.viewmodel.NavigationViewModel
-import com.example.byeoldori.viewmodel.AppScreen
 import com.example.byeoldori.viewmodel.Skymap.CameraViewModel
 
 @Composable
@@ -28,12 +30,11 @@ fun SkyMapScreen() {
     val context = LocalContext.current
     val navViewModel: NavigationViewModel = viewModel()
     val camViewModel: CameraViewModel = viewModel()
-
     val yaw by camViewModel.yaw.collectAsState()
     val pitch by camViewModel.pitch.collectAsState()
     val fov by camViewModel.fov.collectAsState()
     val isAuto by camViewModel.isAutoMode.collectAsState()
-
+    var selectedBottomItem by rememberSaveable { mutableStateOf("별지도") }
     val glView = remember { CelestialGLView(context) }
     LaunchedEffect(yaw, pitch, fov) {
         glView.renderer.updateCamera(yaw, pitch, fov)
@@ -78,43 +79,34 @@ fun SkyMapScreen() {
             override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
         }
     }
-
-    DisposableEffect(isAuto) {
-        if (isAuto) {
-            sensorManager.registerListener(
-                sensorListener,
-                rotationSensor,
-                SensorManager.SENSOR_DELAY_GAME
+    Scaffold(
+        bottomBar = {
+            BottomNavBar(
+                selectedItem = selectedBottomItem,
+                onItemSelected = { item ->
+                    selectedBottomItem = item
+                    when (item) {
+                        "홈" -> {}
+                        "별지도" -> {} // 현재 화면
+                        "관측지" -> navViewModel.navigateTo(AppScreen.Observatory)
+                        "커뮤니티" -> {}
+                        "마이페이지" -> navViewModel.navigateTo(AppScreen.MyPage)
+                    }
+                }
             )
-        } else {
-            sensorManager.unregisterListener(sensorListener)
         }
-        onDispose { sensorManager.unregisterListener(sensorListener) }
-    }
+    ) { padding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .then(gestureModifier)
+        ) {
+            AndroidView(
+                factory = { glView },
+                modifier = Modifier.fillMaxSize()
+            )
 
-    Scaffold { padding ->
-        // 항상 제스처 적용
-        val boxModifier = Modifier
-            .fillMaxSize()
-            .padding(padding)
-            .then(gestureModifier)
-
-        Box(modifier = boxModifier) {
-            AndroidView(factory = { glView }, modifier = Modifier.fillMaxSize())
-
-            Column(modifier = Modifier.padding(16.dp)) {
-                Button(onClick = { camViewModel.toggleAutoMode() }) {
-                    Text(if (isAuto) "수동 모드" else "자동 모드")
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-                Row {
-                    Button(onClick = { navViewModel.navigateTo(AppScreen.Observatory) }) { Text("관측지") }
-                    Spacer(Modifier.width(8.dp))
-                    Button(onClick = { navViewModel.navigateTo(AppScreen.MyPage) }) { Text("MyPage") }
-                    Spacer(Modifier.width(8.dp))
-                    Button(onClick = { navViewModel.navigateTo(AppScreen.Recommended) }) { Text("Recommend") }
-                }
-            }
         }
     }
 }
