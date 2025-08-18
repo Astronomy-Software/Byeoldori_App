@@ -3,27 +3,37 @@ package com.example.byeoldori.ui.screen.Observatory
 import android.content.Context
 import android.location.Geocoder
 import android.widget.Toast
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.*
+import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.unit.dp
-import com.naver.maps.geometry.LatLng
-import com.naver.maps.map.*
-import com.naver.maps.map.overlay.Marker
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import java.util.Locale
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.byeoldori.ui.theme.Blue800
+import com.example.byeoldori.ui.theme.TextHighlight
+import com.naver.maps.geometry.LatLng
+import com.naver.maps.map.CameraUpdate
+import com.naver.maps.map.MapView
+import com.naver.maps.map.NaverMap
+import com.naver.maps.map.overlay.Marker
+import java.util.Locale
 
 
 fun searchAndMoveToLocation(
@@ -86,7 +96,7 @@ fun SearchBox(
             onValueChange = onSearchQueryChange, //사용자가 입력을 변경할 때마다 searchQuery 값 업데이트
             placeholder = {
                 Text("검색할 내용을 입력해주세요",
-                    color = Color.White,
+                    color = TextHighlight,
                     fontSize = 12.sp
                 )
             },
@@ -96,17 +106,17 @@ fun SearchBox(
                 .heightIn(min=40.dp),
 
             colors = TextFieldDefaults.colors(
-                focusedContainerColor = Color(0xFF241860),
-                unfocusedContainerColor = Color(0xFF241860),
+                focusedContainerColor = Blue800,
+                unfocusedContainerColor = Blue800,
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent,
-                cursorColor = Color.White
+                cursorColor = TextHighlight
             ),
-            textStyle = LocalTextStyle.current.copy(color = Color.White), // 🔥 입력 글씨 색상 지정
+            textStyle = LocalTextStyle.current.copy(color = TextHighlight), // 🔥 입력 글씨 색상 지정
             leadingIcon = {
                 Icon(Icons.Default.Search,
                     contentDescription = "검색",
-                    tint = Color.White,
+                    tint = TextHighlight,
                     modifier = Modifier.size(18.dp)
                 )
             },
