@@ -1,3 +1,4 @@
+// CameraViewModel.kt
 package com.example.byeoldori.viewmodel.Skymap
 
 import androidx.lifecycle.ViewModel
@@ -14,6 +15,17 @@ class CameraViewModel : ViewModel() {
     private val _fov = MutableStateFlow(60f)
     val fov: StateFlow<Float> = _fov
 
+    private val _isAutoMode = MutableStateFlow(false)
+    val isAutoMode: StateFlow<Boolean> = _isAutoMode
+
+    fun toggleAutoMode() {
+        _isAutoMode.value = !_isAutoMode.value
+    }
+
+    fun setAutoMode(enabled: Boolean) {
+        _isAutoMode.value = enabled
+    }
+
     fun updateYaw(delta: Float) {
         _yaw.value += delta
     }
@@ -22,15 +34,35 @@ class CameraViewModel : ViewModel() {
         _pitch.value = (_pitch.value + delta).coerceIn(-90f, 90f)
     }
 
+    /**
+     * Incremental zoom: delta in degrees
+     */
     fun zoom(delta: Float) {
-        val sensitivity = _fov.value / 60f
-        val adjusted = delta * sensitivity
-        _fov.value = (_fov.value + adjusted).coerceIn(5f, 45f)
+        _fov.value = (_fov.value + (delta * ZOOM_SENSITIVITY)).coerceIn(5f, 45f)
+    }
+
+    /**
+     * Pinch-to-zoom: apply scale factor to FOV
+     */
+    fun pinchZoom(scale: Float) {
+        _fov.value = (_fov.value / scale).coerceIn(5f, 45f)
     }
 
     fun setCamera(yaw: Float, pitch: Float, fov: Float) {
         _yaw.value = yaw
         _pitch.value = pitch
-        _fov.value = fov.coerceIn(30f, 90f)
+        _fov.value = fov.coerceIn(5f, 45f)
+    }
+
+    fun processGyro(dx: Float, dy: Float) {
+        updateYaw(dx * 15f)
+        updatePitch(-dy * 15f)
+    }
+
+    fun setDeviceOrientation(azimuthRad: Float, pitchRad: Float) {
+        val yawDeg = Math.toDegrees(azimuthRad.toDouble()).toFloat()
+        val pitchDeg = Math.toDegrees(pitchRad.toDouble()).toFloat().coerceIn(-90f, 90f)
+        _yaw.value = -yawDeg
+        _pitch.value = -pitchDeg
     }
 }
