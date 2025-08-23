@@ -33,9 +33,10 @@ import com.example.byeoldori.ui.theme.TextNormal
 @Composable
 fun LoginScreen(
     onLogin: (email: String, password: String) -> Unit = { _, _ -> },
-    onGoogleLogin: () -> Unit = {},
-    onSignUp: () -> Unit = {},
-    onFindAccount: () -> Unit = {},
+    onGoogleLogin: () -> Unit = {}, // TODO
+    onSignUp: () -> Unit = {}, // TODO
+    onFindAccount: () -> Unit = {}, // TODO
+    onSignIn: () -> Unit, // TODO
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -113,5 +114,7 @@ fun LoginScreen(
 @Preview(showBackground = true, backgroundColor = 0xFF000000)
 @Composable
 fun LoginScreenPreview() {
-    LoginScreen()
+    var signedIn by remember { mutableStateOf(false) }
+    val onSignedIn = { signedIn = true }   // ← 임시 콜백
+    LoginScreen(onSignIn = onSignedIn)
 }

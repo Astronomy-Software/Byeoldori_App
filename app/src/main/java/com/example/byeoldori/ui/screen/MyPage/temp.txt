@@ -1,2 +1,0 @@
-이런곳에 MyPageScreen에 필요한 친구들이 들어갑니다.
-ex) MyProfileCard 이런친구들

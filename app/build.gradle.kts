@@ -60,6 +60,8 @@ dependencies {
     implementation(libs.ui.tooling.preview)
     implementation(libs.material)
     implementation (libs.lifecycle.viewmodel.compose)
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.navigation.compose)
     debugImplementation(libs.ui.tooling)
 
     testImplementation(libs.junit)

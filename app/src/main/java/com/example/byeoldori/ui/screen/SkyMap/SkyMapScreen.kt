@@ -9,8 +9,6 @@ import android.hardware.SensorManager
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -24,9 +22,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.byeoldori.ui.components.NavigationBar
 import com.example.byeoldori.ui.screen.SkyMap.render.CelestialGLView
-import com.example.byeoldori.viewmodel.AppScreen
 import com.example.byeoldori.viewmodel.NavigationViewModel
 import com.example.byeoldori.viewmodel.Skymap.CameraViewModel
 
@@ -84,34 +80,15 @@ fun SkyMapScreen() {
             override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
         }
     }
-    Scaffold(
-        bottomBar = {
-            NavigationBar(
-                selectedItem = selectedBottomItem,
-                onItemSelected = { item ->
-                    selectedBottomItem = item
-                    when (item) {
-                        "홈" -> {}
-                        "별지도" -> {} // 현재 화면
-                        "관측지" -> navViewModel.navigateTo(AppScreen.Observatory)
-                        "커뮤니티" -> {}
-                        "마이페이지" -> navViewModel.navigateTo(AppScreen.MyPage)
-                    }
-                }
-            )
-        }
-    ) { padding ->
-        Box(
+
+    Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
                 .then(gestureModifier)
         ) {
             AndroidView(
                 factory = { glView },
                 modifier = Modifier.fillMaxSize()
             )
-
         }
-    }
 }
