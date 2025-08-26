@@ -1,4 +1,4 @@
-package com.example.byeoldori.ui.screen.Observatory
+package com.example.byeoldori.viewmodel.Observatory
 
 import com.example.byeoldori.R
 import com.naver.maps.geometry.LatLng

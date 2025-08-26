@@ -1,4 +1,4 @@
-package com.example.byeoldori.ui.screen.Observatory
+package com.example.byeoldori.viewmodel.Observatory
 
 import android.location.Geocoder
 

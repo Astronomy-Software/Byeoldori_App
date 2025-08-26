@@ -1,4 +1,4 @@
-package com.example.byeoldori.ui.screen.Observatory
+package com.example.byeoldori.viewmodel.Observatory
 
 import android.Manifest
 import android.content.pm.PackageManager
@@ -25,6 +25,8 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.byeoldori.R
+import com.example.byeoldori.ui.components.observatory.CurrentLocationButton
+import com.example.byeoldori.ui.components.observatory.LocationInfoBox
 import com.example.byeoldori.ui.theme.ErrorRed
 import com.example.byeoldori.viewmodel.NaverMapViewModel
 import com.google.android.gms.location.LocationServices
@@ -241,7 +243,7 @@ fun NaverMapWithSearchUI(
             fusedLocationClient = fusedLocationClient,
             modifier = Modifier
                 .align(Alignment.BottomStart)
-                .offset(y = (-60).dp) // 아래에서 40dp 위로
+                .offset(y = (-10).dp) // 아래에서 40dp 위로
                 .padding(16.dp)
         )
     }

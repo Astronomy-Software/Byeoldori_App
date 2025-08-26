@@ -33,3 +33,5 @@ val ErrorRed = Color(0xFFFF6B6B)
 val TextHighlight = Color(0xFFFAFAFA)
 val TextNormal = Color(0xFFE0E0E0)
 val TextDisabled = Color(0xFFB0B0B0)
+
+//naver 기본 컬러
