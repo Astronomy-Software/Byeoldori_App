@@ -35,6 +35,8 @@ import com.example.byeoldori.ui.theme.TextHighlight
 import com.example.byeoldori.viewmodel.Observatory.DailyForecast
 import com.example.byeoldori.viewmodel.Observatory.HourlyForecast
 
+// TODO : 여기도 내부의 컴포넌트들 파일 나눠야합니다.
+
 @Composable
 fun WeatherInfoCard(
     temperature: String,

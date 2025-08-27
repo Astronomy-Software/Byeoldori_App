@@ -10,11 +10,13 @@ kotlin = "1.9.23"
 composeCompiler = "1.5.12"
 composeBom = "2025.04.01"
 agp = "8.8.2"
+kotlinxSerializationJson = "1.6.3"
 lifecycleViewmodelCompose = "2.8.7"
 mapSdk = "3.21.0"
 material = "1.12.0"
 naverMapCompose = "1.8.0"
 playServicesLocation = "21.3.0"
+navigationCompose = "2.9.3"
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -28,11 +30,13 @@ compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = 
 espresso-core = { module = "androidx.test.espresso:espresso-core", version.ref = "espressoCore" }
 ext-junit = { module = "androidx.test.ext:junit", version.ref = "junitVersion" }
 junit = { module = "junit:junit", version.ref = "junit" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycleViewmodelCompose" }
 map-sdk = { module = "com.naver.maps:map-sdk", version.ref = "mapSdk" }
 material = { module = "com.google.android.material:material", version.ref = "material" }
 material3 = { module = "androidx.compose.material3:material3" }
 naver-map-compose = { module = "io.github.fornewid:naver-map-compose", version.ref = "naverMapCompose" }
+navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "playServicesLocation" }
 ui = { module = "androidx.compose.ui:ui" }
 ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4" }

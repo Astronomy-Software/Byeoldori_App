@@ -23,13 +23,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.byeoldori.ui.components.AgreementCheckBox
 import com.example.byeoldori.ui.components.MarkdownViewer
 import com.example.byeoldori.ui.components.WideButton
+import com.example.byeoldori.ui.theme.Background
 import com.example.byeoldori.ui.theme.Purple500
 
 @Composable
@@ -45,23 +45,17 @@ fun SignUpConsentScreen(
     val canSubmit = agreePolicy && agreeProfile
     val contentWidth = 330.dp
 
-    // 배경 그라데이션
-    val gradient = Brush.verticalGradient(
-        colors = listOf(Color(0xFF5C2CA3), Color(0xFF5C2CA3).copy(alpha = 0.9f))
-    )
-
-    Box(
+    Background(
         modifier = Modifier
             .fillMaxSize()
-            .background(gradient)
             .systemBarsPadding()
             .imePadding()
-            .padding(horizontal = 16.dp, vertical = 12.dp)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState()),
+                .verticalScroll(rememberScrollState())
+                .padding(32.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // 정책 본문 카드

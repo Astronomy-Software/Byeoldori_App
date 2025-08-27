@@ -1,8 +1,6 @@
 package com.example.byeoldori.ui.screen.Login
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,12 +18,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.byeoldori.ui.components.InputForm
 import com.example.byeoldori.ui.components.WideButton
+import com.example.byeoldori.ui.theme.Background
 import com.example.byeoldori.ui.theme.TextNormal
 
 @Composable
@@ -38,14 +36,10 @@ fun SignUpScreen(
     var passwordConfirm by remember { mutableStateOf("") }
     var verificationCode by remember { mutableStateOf("") }
 
-    val gradient = Brush.verticalGradient(
-        colors = listOf(Color(0xFF5C2CA3), Color(0xFF5C2CA3).copy(alpha = 0.88f))
-    )
 
-    Box(
+    Background(
         modifier = Modifier
             .fillMaxSize()
-            .background(gradient)
             .systemBarsPadding()
     ) {
         Column(
@@ -116,8 +110,10 @@ fun SignUpScreen(
     }
 }
 
-@Preview(showBackground = true, backgroundColor = 0xFF000000)
+@Preview(showBackground = true)
 @Composable
 fun SignUpScreenPreview() {
-    SignUpScreen()
+    Background(){
+        SignUpScreen()
+    }
 }
