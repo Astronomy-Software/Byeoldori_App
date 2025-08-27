@@ -2,11 +2,9 @@
 package com.example.byeoldori.ui.components.observatory
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -25,8 +23,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -34,13 +32,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.byeoldori.R
+import com.example.byeoldori.ui.theme.Background
 import com.example.byeoldori.ui.theme.Blue800
-import com.example.byeoldori.ui.theme.Purple700
-import com.example.byeoldori.ui.theme.Purple800
-import com.example.byeoldori.viewmodel.Observatory.ObservatoryType
 import com.example.byeoldori.ui.theme.SuccessGreen
 import com.example.byeoldori.ui.theme.TextHighlight
 import com.example.byeoldori.viewmodel.Observatory.MarkerInfo
+import com.example.byeoldori.viewmodel.Observatory.ObservatoryType
 import com.example.byeoldori.viewmodel.Observatory.Review
 
 @Composable
@@ -53,25 +50,19 @@ fun ObservatoryInfoCard(
         modifier = modifier
             .fillMaxWidth()
             .padding(0.dp),
-        shape = RoundedCornerShape(20.dp),
+        shape = RectangleShape,
         colors = CardDefaults.cardColors(containerColor = Color.Transparent)
     ) {
         //그라데이션 배경
         Box(
-            modifier = Modifier
-                .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(Blue800, Purple700)
-                    ),
-                )
-                .fillMaxSize()
+            modifier = Modifier.fillMaxSize()
         ) {
+            Background {  }
             LazyColumn(
                 state = listState,
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(15.dp),
-                contentPadding = PaddingValues(bottom = 16.dp)
+                    .padding(15.dp , bottom = 0.dp),
             ) {
                 // 1) 관측지 기본 정보
                 item {
@@ -91,7 +82,7 @@ fun ObservatoryInfoCard(
                 }
 
                 // 3) 관측 리뷰 섹션
-                item {
+                item { // TODO : 이런 데이터들은 컴포넌트 내부에서 작성하지말고 변수같은느낌으로 만들어서 하기
                     ReviewSection(
                         title = "해당 관측지에서 진행한 관측후기",
                         reviews = listOf(
@@ -127,7 +118,6 @@ private fun BasicInfoCard(info: MarkerInfo) {
             .fillMaxWidth()
             .padding(bottom = 10.dp),
         colors = CardDefaults.cardColors(containerColor = Blue800),
-        shape = RoundedCornerShape(12.dp)
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Row(modifier = Modifier.fillMaxWidth()) {
@@ -217,6 +207,7 @@ private val previewMarkerInfo = MarkerInfo(
     drawableRes = R.drawable.img_dummy // 프로젝트 내 임의 이미지
 )
 
+// TODO : BasicInfoCard는 따로 컴포넌트로 나눠야합니다
 @Preview(
     name = "BasicInfoCard",
     showBackground = true,
@@ -227,6 +218,35 @@ private fun Preview_BasicInfoCard_Only() {
     MaterialTheme {
         Surface(color = Color.Black) { // 앱 실행과 유사하게 Surface로 감싸기
             BasicInfoCard(info = previewMarkerInfo)
+        }
+    }
+}
+
+@Preview(
+    name = "ObservatoryInfoCard",
+    showBackground = true,
+    backgroundColor = 0xFF000000
+)
+@Composable
+private fun Preview_ObservatoryInfoCard() {
+    val dummyMarkerInfo = MarkerInfo(
+        name = "오산천",
+        type = ObservatoryType.POPULAR,
+        reviewCount = 103,
+        likeCount = 57,
+        rating = 4.3f,
+        suitability = 87,
+        address = "경기도 오산시 오산천로 254-5",
+        drawableRes = R.drawable.img_dummy
+    )
+
+    MaterialTheme {
+        Surface(color = Color.Black) { // 배경을 실제 앱과 유사하게 설정
+            ObservatoryInfoCard(
+                info = dummyMarkerInfo,
+                listState = LazyListState(), // 미리보기용 빈 상태
+                modifier = Modifier.fillMaxWidth()
+            )
         }
     }
 }

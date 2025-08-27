@@ -44,6 +44,7 @@ import com.example.byeoldori.ui.theme.Blue800
 import com.example.byeoldori.ui.theme.TextHighlight
 import com.example.byeoldori.viewmodel.Observatory.Review
 
+// TODO : 리뷰섹션 좌우 드래그able하게 변경
 @Composable
 fun ReviewSection(
     title: String,
