@@ -1,4 +1,4 @@
-package com.example.byeoldori.ui.screen.Observatory
+package com.example.byeoldori.ui.components.observatory
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -18,7 +18,7 @@ import com.example.byeoldori.ui.theme.TextHighlight
 import com.naver.maps.geometry.LatLng
 
 @Composable
-fun LocationInfoBox(
+fun LocationInfoBox( //com
     latLng: LatLng,
     address: String,
     modifier: Modifier = Modifier

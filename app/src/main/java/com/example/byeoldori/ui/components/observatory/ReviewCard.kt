@@ -1,5 +1,5 @@
 // ReviewCard.kt
-package com.example.byeoldori.ui.screen.Observatory
+package com.example.byeoldori.ui.components.observatory
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -23,6 +22,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -36,11 +36,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.byeoldori.R
 import com.example.byeoldori.ui.theme.Blue800
 import com.example.byeoldori.ui.theme.TextHighlight
+import com.example.byeoldori.viewmodel.Observatory.Review
 
 @Composable
 fun ReviewSection(
@@ -54,8 +56,8 @@ fun ReviewSection(
     var page by rememberSaveable { mutableStateOf(0) }
     if (page >= pageCount) page = pageCount - 1 // 안전 처리
 
-    val start = page * pageSize
-    val pageItems = reviews.drop(start).take(pageSize)
+    val start = page * pageSize //페이지가 1이면 start는 4
+    val pageItems = reviews.drop(start).take(pageSize) //start개 자르기 + pageSize만큼(현재 페이지에 해당하는 구간만 추출)
 
     Column(
         modifier = modifier
@@ -101,9 +103,7 @@ fun ReviewSection(
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
             userScrollEnabled = false,
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(max = 700.dp), // 유한 높이 필수
+            modifier = modifier.height(540.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
@@ -112,8 +112,6 @@ fun ReviewSection(
                 ReviewCard(review)
             }
         }
-
-        Spacer(Modifier.height(8.dp))
     }
 }
 
@@ -187,6 +185,45 @@ private fun ReviewCard(review: Review) {
                     }
                 }
             }
+        }
+    }
+}
+
+private val previewReviews = listOf(
+    Review("1", "페르세우스 유성우 관측한 날~", "아이마카", 5.0f, 21, 21, R.drawable.img_dummy),
+    Review("2", "토성 고리 봄",              "아이마카", 4.8f, 20,  5, R.drawable.img_dummy),
+    Review("3", "목성 위성 본 날",           "아이마카", 4.7f, 40,  8, R.drawable.img_dummy),
+    Review("4", "태양 흑점 본 날",           "아이마카", 4.9f, 30, 10, R.drawable.img_dummy),
+    // 필요시 더 추가
+)
+
+@Preview(
+    name = "ReviewCard – Single",
+    showBackground = true,
+    backgroundColor = 0xFF000000
+)
+@Composable
+private fun Preview_ReviewCard_Single() {
+    MaterialTheme {
+        Surface(color = Color.Black) {
+            ReviewCard(review = previewReviews.first())
+        }
+    }
+}
+
+@Preview(
+    name = "ReviewSection – 2x2 Grid (page 1)",
+    showBackground = true,
+    backgroundColor = 0xFF000000
+)
+@Composable
+private fun Preview_ReviewSection_Grid() {
+    MaterialTheme {
+        Surface(color = Color.Black) {
+            ReviewSection(
+                title = "해당 관측지에서 진행한 관측후기",
+                reviews = previewReviews
+            )
         }
     }
 }
