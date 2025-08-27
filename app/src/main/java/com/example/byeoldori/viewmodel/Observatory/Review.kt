@@ -1,4 +1,4 @@
-package com.example.byeoldori.ui.screen.Observatory
+package com.example.byeoldori.viewmodel.Observatory
 
 data class Review (
     val id: String,

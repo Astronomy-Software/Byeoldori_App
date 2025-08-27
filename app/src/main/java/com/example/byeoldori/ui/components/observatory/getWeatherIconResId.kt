@@ -1,4 +1,4 @@
-package com.example.byeoldori.ui.screen.Observatory
+package com.example.byeoldori.ui.components.observatory
 
 import com.example.byeoldori.R
 

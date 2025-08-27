@@ -1,4 +1,4 @@
-package com.example.byeoldori.ui.screen.Observatory
+package com.example.byeoldori.ui.components.observatory
 
 import android.Manifest
 import android.content.Context

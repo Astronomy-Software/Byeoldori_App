@@ -1,4 +1,4 @@
-package com.example.byeoldori.ui.screen.Observatory
+package com.example.byeoldori.ui.components.observatory
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
@@ -17,18 +17,23 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.byeoldori.R
 import com.example.byeoldori.ui.theme.Blue800
 import com.example.byeoldori.ui.theme.SuccessGreen
 import com.example.byeoldori.ui.theme.TextHighlight
+import com.example.byeoldori.viewmodel.Observatory.DailyForecast
+import com.example.byeoldori.viewmodel.Observatory.HourlyForecast
 
 @Composable
 fun WeatherInfoCard(
@@ -36,11 +41,12 @@ fun WeatherInfoCard(
     humidity: String,
     windSpeed: String,
     suitability: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    showForecasts: Boolean = true
 ) {
     Text("해당 위치의 현재 날씨", color = TextHighlight, fontSize = 14.sp)
     Column(modifier = modifier.fillMaxWidth()) {
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
         Column {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -76,38 +82,40 @@ fun WeatherInfoCard(
             }
         }
     }
-    Spacer(modifier = Modifier.height(16.dp))
-    val dummyForecasts = listOf(
-        HourlyForecast("5.23", "4시", "15°", "cloud_sun", "60%", "85%"),
-        HourlyForecast("5.23", "5시", "16°", "sunny", "55%", "82%"),
-        HourlyForecast("5.23", "6시", "17°", "rain", "70%", "60%"),
-        HourlyForecast("5.24", "1시", "13°", "cloud_moon", "80%", "90%"),
-        HourlyForecast("5.24", "2시", "12°", "cloud_sun", "85%", "88%"),
-        HourlyForecast("5.24", "3시", "14°", "sunny", "60%", "60%"),
-        HourlyForecast("5.25", "9시", "20°", "cloud_sun", "60%", "60%"),
-        HourlyForecast("5.25", "10시", "22°", "sunny", "40%", "80%"),
-        HourlyForecast("5.25", "11시", "23°", "sunny", "30%", "80%"),
+    if(showForecasts) {
+        Spacer(modifier = Modifier.height(16.dp))
+        val dummyForecasts = listOf(
+            HourlyForecast("5.23", "4시", "15°", "cloud_sun", "60%", "85%"),
+            HourlyForecast("5.23", "5시", "16°", "sunny", "55%", "82%"),
+            HourlyForecast("5.23", "6시", "17°", "rain", "70%", "60%"),
+            HourlyForecast("5.24", "1시", "13°", "cloud_moon", "80%", "90%"),
+            HourlyForecast("5.24", "2시", "12°", "cloud_sun", "85%", "88%"),
+            HourlyForecast("5.24", "3시", "14°", "sunny", "60%", "60%"),
+            HourlyForecast("5.25", "9시", "20°", "cloud_sun", "60%", "60%"),
+            HourlyForecast("5.25", "10시", "22°", "sunny", "40%", "80%"),
+            HourlyForecast("5.25", "11시", "23°", "sunny", "30%", "80%"),
 
-    )
-    WeatherForecastScrollSection(forecasts = dummyForecasts)
+            )
+        WeatherForecastScrollSection(forecasts = dummyForecasts)
 
-    val sampleDailyForecasts = listOf(
-        DailyForecast("5.27", "100%", "sunny", "cloud", "27°", "13°", "85%"),
-        DailyForecast("5.28", "80%", "cloud", "rain", "25°", "12°", "60%"),
-        DailyForecast("5.29", "90%", "rain", "rain", "23°", "11°", "45%"),
-        DailyForecast("5.30", "100%", "rain", "rain", "22°", "10°", "20%"),
-        DailyForecast("5.31", "100%", "cloud_sun", "rain", "23°", "9°", "40%"),
-        DailyForecast("6.1", "100%", "rain", "cloud_moon", "22°", "11°", "35%"),
+        val sampleDailyForecasts = listOf(
+            DailyForecast("5.27", "100%", "sunny", "cloud", "27°", "13°", "85%"),
+            DailyForecast("5.28", "80%", "cloud", "rain", "25°", "12°", "60%"),
+            DailyForecast("5.29", "90%", "rain", "rain", "23°", "11°", "45%"),
+            DailyForecast("5.30", "100%", "rain", "rain", "22°", "10°", "20%"),
+            DailyForecast("5.31", "100%", "cloud_sun", "rain", "23°", "9°", "40%"),
+            DailyForecast("6.1", "100%", "rain", "cloud_moon", "22°", "11°", "35%"),
 
-    )
-    DailyForecastListSection(forecasts = sampleDailyForecasts)
+            )
+        DailyForecastListSection(forecasts = sampleDailyForecasts)
+    }
 }
 
 
 
 @Composable
 fun WeatherForecastScrollSection(forecasts: List<HourlyForecast>) {
-    val grouped = forecasts.groupBy { it.date }.toList()
+    val grouped = forecasts.groupBy { it.date }.toList() // 날짜별로 그룹화
 
     Box(
         modifier = Modifier
@@ -117,7 +125,7 @@ fun WeatherForecastScrollSection(forecasts: List<HourlyForecast>) {
     ) {
         Row(
             modifier = Modifier
-                .horizontalScroll(rememberScrollState())
+                .horizontalScroll(rememberScrollState()) //수평 스크롤
                 .padding(vertical = 8.dp)
         ) {
             grouped.forEachIndexed { index, (date, hourlyList) ->
@@ -186,7 +194,7 @@ fun ForecastItem(forecast: HourlyForecast) {
 
         Row(verticalAlignment = Alignment.CenterVertically) {
             Image(
-                painter = painterResource(id = R.drawable.ic_pop),
+                painter = painterResource(id = R.drawable.ic_humidity),
                 contentDescription = "습도",
                 modifier = Modifier.size(15.dp)
             )
@@ -210,9 +218,9 @@ fun WeatherItem(
 ) {
     Column(
         modifier = Modifier
-            .fillMaxHeight()
+            //.fillMaxHeight()
             .defaultMinSize(minWidth = 170.dp, minHeight = 100.dp)
-            .background(Color(0xFF241860), RoundedCornerShape(15.dp))
+            .background(Blue800, RoundedCornerShape(15.dp))
             .padding(12.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -244,7 +252,7 @@ fun DailyForecastRow(forecast: DailyForecast) {
 
         // 강수 확률
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1.2f)) {
-            Image(painter = painterResource(id = R.drawable.ic_pop), contentDescription = "강수",modifier = Modifier.size(15.dp))
+            Image(painter = painterResource(id = R.drawable.ic_humidity), contentDescription = "강수",modifier = Modifier.size(15.dp))
             Spacer(modifier = Modifier.width(4.dp))
             Text(forecast.precipitation, color = TextHighlight, fontSize = 12.sp)
         }
@@ -286,7 +294,7 @@ fun DailyForecastListSection(forecasts: List<DailyForecast>) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFF241860), RoundedCornerShape(15.dp))
+            .background(Blue800, RoundedCornerShape(15.dp))
             .padding(16.dp)  // 내부 전체 여백
     ) {
         Column(
@@ -300,6 +308,72 @@ fun DailyForecastListSection(forecasts: List<DailyForecast>) {
     }
 }
 
+private val previewHourly = listOf(
+    HourlyForecast("5.23", "4시", "15°", "cloud_sun", "60%", "85%"),
+    HourlyForecast("5.23", "5시", "16°", "sunny",     "55%", "82%"),
+    HourlyForecast("5.23", "6시", "17°", "rain",      "70%", "60%"),
+    HourlyForecast("5.24", "1시", "13°", "cloud_moon","80%", "90%"),
+    HourlyForecast("5.24", "2시", "12°", "cloud_sun", "85%", "88%"),
+    HourlyForecast("5.24", "3시", "14°", "sunny",     "60%", "60%")
+)
 
+private val previewDaily = listOf(
+    DailyForecast("5.27", "100%", "sunny",      "cloud",      "27°", "13°", "85%"),
+    DailyForecast("5.28", "80%",  "cloud",      "rain",       "25°", "12°", "60%"),
+    DailyForecast("5.29", "90%",  "rain",       "rain",       "23°", "11°", "45%"),
+    DailyForecast("5.30", "100%", "rain",       "rain",       "22°", "10°", "20%"),
+    DailyForecast("5.31", "100%", "cloud_sun",  "rain",       "23°", "9°",  "40%"),
+    DailyForecast("6.1",  "100%", "rain",       "cloud_moon", "22°", "11°", "35%")
+)
+
+
+
+@Preview(
+    name = "WeatherInfoCard – Summary",
+    showBackground = true,
+    backgroundColor = 0xFF000000
+)
+@Composable
+private fun Preview_WeatherInfoCard_Summary() {
+    MaterialTheme {
+        Surface(color = Color.Black) {
+            WeatherInfoCard(
+                temperature = "14°",
+                humidity = "35%",
+                windSpeed = "→ 3 m/s",
+                suitability = "75%",
+                showForecasts = false   // ✅ 예보 섹션 숨기기
+            )
+        }
+    }
+}
+
+@Preview(
+    name = "Hourly – Scroll Section",
+    showBackground = true,
+    backgroundColor = 0xFF000000
+)
+@Composable
+private fun Preview_WeatherForecastScrollSection() {
+    MaterialTheme {
+        Surface(color = Color.Black) {
+            WeatherForecastScrollSection(forecasts = previewHourly)
+        }
+    }
+}
+
+@Preview(
+    name = "Daily – List Section",
+    showBackground = true,
+    backgroundColor = 0xFF000000
+)
+@Composable
+private fun Preview_DailyForecastListSection() {
+    MaterialTheme {
+        Surface(color = Color.Black) {
+            DailyForecastListSection(forecasts = previewDaily)
+        }
+    }
+}
 
 

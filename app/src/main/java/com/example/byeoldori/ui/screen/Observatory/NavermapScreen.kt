@@ -3,17 +3,13 @@ package com.example.byeoldori.ui.screen.Observatory
 import android.Manifest
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.byeoldori.viewmodel.AppScreen
+import com.example.byeoldori.viewmodel.Observatory.MarkerInfo
 import com.example.byeoldori.viewmodel.NavigationViewModel
+import com.example.byeoldori.viewmodel.Observatory.NaverMapWithSearchUI
 import com.google.accompanist.permissions.*
 import com.naver.maps.geometry.LatLng
 
