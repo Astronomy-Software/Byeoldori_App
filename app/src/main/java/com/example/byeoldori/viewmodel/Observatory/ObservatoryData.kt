@@ -28,7 +28,7 @@ val observatoryList = listOf(
         likeCount = 57,
         avgRating = 4.3f,
         address = "경기도 오산시 오산천로 254-5",
-        imageRes = R.drawable.park3,
+        imageRes = R.drawable.img_dummy,
         suitability = 87
     ),
     Observatory(
@@ -39,7 +39,7 @@ val observatoryList = listOf(
         likeCount = 99,
         avgRating = 4.2f,
         address = "경기도 오산시 내삼미동 산 21-1",
-        imageRes = R.drawable.park2,
+        imageRes = R.drawable.img_dummy,
         suitability = 85
     ),
     Observatory(
@@ -50,7 +50,7 @@ val observatoryList = listOf(
         likeCount = 12,
         avgRating = 3.9f,
         address = "충청북도 청주시 서원구 개신동 3-16",
-        imageRes = R.drawable.park1,
+        imageRes = R.drawable.img_dummy,
         suitability = 88
     ),
     Observatory(
@@ -61,7 +61,7 @@ val observatoryList = listOf(
         likeCount = 150,
         avgRating = 4.8f,
         address = "충북 청주시 상당구 문의면 덕유리",
-        imageRes = R.drawable.park2,
+        imageRes = R.drawable.img_dummy,
         suitability = 92
     ),
     // 원하는 만큼 더 추가

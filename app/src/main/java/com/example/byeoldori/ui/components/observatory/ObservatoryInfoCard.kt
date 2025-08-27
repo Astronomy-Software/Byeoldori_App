@@ -102,12 +102,12 @@ fun ObservatoryInfoCard(
                                 5.0f,
                                 21,
                                 21,
-                                R.drawable.star_image
+                                R.drawable.img_dummy
                             ),
-                            Review("2", "토성 고리 봄", "아이마카", 5.0f, 20, 5, R.drawable.star_image),
-                            Review("3", "목성 위성 본 날", "아이마카", 5.0f, 40, 8, R.drawable.star_image),
-                            Review("4", "태양 흑점 본 날", "아이마카", 5.0f, 30, 10, R.drawable.star_image),
-                            Review("5", "태양 흑점 본 날", "아이마카", 5.0f, 30, 10, R.drawable.star_image)
+                            Review("2", "토성 고리 봄", "아이마카", 5.0f, 20, 5, R.drawable.img_dummy),
+                            Review("3", "목성 위성 본 날", "아이마카", 5.0f, 40, 8, R.drawable.img_dummy),
+                            Review("4", "태양 흑점 본 날", "아이마카", 5.0f, 30, 10, R.drawable.img_dummy),
+                            Review("5", "태양 흑점 본 날", "아이마카", 5.0f, 30, 10, R.drawable.img_dummy)
                         )
                     )
                     Spacer(Modifier.height(40.dp))
@@ -214,7 +214,7 @@ private val previewMarkerInfo = MarkerInfo(
     rating = 4.3f,
     suitability = 87,
     address = "경기도 오산시 오산천로 254-5",
-    drawableRes = R.drawable.park1 // 프로젝트 내 임의 이미지
+    drawableRes = R.drawable.img_dummy // 프로젝트 내 임의 이미지
 )
 
 @Preview(

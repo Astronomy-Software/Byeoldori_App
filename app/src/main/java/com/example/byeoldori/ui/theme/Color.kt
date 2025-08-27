@@ -34,4 +34,13 @@ val TextHighlight = Color(0xFFFAFAFA)
 val TextNormal = Color(0xFFE0E0E0)
 val TextDisabled = Color(0xFFB0B0B0)
 
-//naver 기본 컬러
+//naver colors (NAVER Developers 참고)
+val NaverGreen = Color(0xFF06CC80)
+val NaverGray = Color(0xFF212121)
+val NaverBlueGray = Color(0xFF273238)
+val NaverGrayA = Color(0xFF666666)
+val NaverGrayB = Color(0xFF999999)
+val NaverLightGrayA = Color(0xFFBEBEBE)
+val NaverLightGrayB = Color(0xFFCCCCCC)
+val NaverLightGrayC = Color(0xFFF7F7F7)
+
