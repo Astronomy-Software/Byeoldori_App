@@ -75,4 +75,8 @@ dependencies {
     implementation(libs.naver.map.compose)
     implementation(libs.play.services.location)
     implementation(libs.accompanist.permissions)
+
+    implementation(libs.accompanist.pager)
+    implementation(libs.accompanist.pager.indicators)
+    androidTestImplementation(platform(libs.compose.bom))
 }

@@ -1,50 +1,30 @@
 // ReviewCard.kt
 package com.example.byeoldori.ui.components.observatory
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.grid.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.*
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.*
 import com.example.byeoldori.R
-import com.example.byeoldori.ui.theme.Blue800
-import com.example.byeoldori.ui.theme.TextHighlight
+import com.example.byeoldori.ui.theme.*
 import com.example.byeoldori.viewmodel.Observatory.Review
+import com.google.accompanist.pager.*
+import kotlinx.coroutines.launch
+
 
 // TODO : 리뷰섹션 좌우 드래그able하게 변경
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ReviewSection(
     title: String,
@@ -54,17 +34,10 @@ fun ReviewSection(
     // ----- 페이징 상태 -----
     val pageSize = 4
     val pageCount = if (reviews.isEmpty()) 1 else ((reviews.size - 1) / pageSize + 1)
-    var page by rememberSaveable { mutableStateOf(0) }
-    if (page >= pageCount) page = pageCount - 1 // 안전 처리
+    val pagerState = rememberPagerState(initialPage = 0) // 페이지 상태를 저장
+    val scope = rememberCoroutineScope()
 
-    val start = page * pageSize //페이지가 1이면 start는 4
-    val pageItems = reviews.drop(start).take(pageSize) //start개 자르기 + pageSize만큼(현재 페이지에 해당하는 구간만 추출)
-
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            //.padding(horizontal = 16.dp)
-    ) {
+    Column(modifier = modifier.fillMaxWidth()) {
         // 타이틀 + 페이지 컨트롤
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -76,7 +49,11 @@ fun ReviewSection(
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.weight(1f)
             )
-            IconButton(onClick = { if (page > 0) page-- }, enabled = page > 0) {
+            IconButton(
+                //페이지를 부드럽게 넘기기 위해 animateScrollToPage 사용
+                onClick = { scope.launch { pagerState.animateScrollToPage(pagerState.currentPage - 1) } },
+                enabled = pagerState.currentPage > 0
+            ) {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_before),
                     contentDescription = "이전",
@@ -84,10 +61,10 @@ fun ReviewSection(
                     modifier = Modifier.size(24.dp)
                 )
             }
-            Text("${page + 1} / $pageCount", color = TextHighlight)
+            Text("${pagerState.currentPage + 1} / $pageCount", color = TextHighlight)
             IconButton(
-                onClick = { if (page < pageCount - 1) page++ },
-                enabled = page < pageCount - 1
+                onClick = { scope.launch { pagerState.animateScrollToPage(pagerState.currentPage + 1) } },
+                enabled = pagerState.currentPage < pageCount - 1
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_next),
@@ -98,19 +75,26 @@ fun ReviewSection(
             }
         }
 
-        //Spacer(Modifier.height(5.dp))
+        HorizontalPager(
+            count = pageCount,
+            state = pagerState,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(540.dp)
+        ) { page ->
+            val start = page * pageSize
+            val pageItems = reviews.drop(start).take(pageSize)
 
-        // 2x2 그리드 (부모 LazyColumn 안이므로 높이는 유한값 권장)
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
-            userScrollEnabled = false,
-            modifier = modifier.height(540.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            // 키: id가 중복될 수 있으니 인덱스를 섞어 임시로 안전하게
-            itemsIndexed(pageItems, key = { idx, item -> "${item.id}#$start+$idx" }) { _, review ->
-                ReviewCard(review)
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2), //2개의 카드를 나란히
+                userScrollEnabled = false,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.fillMaxSize()
+            ) {
+                itemsIndexed(pageItems, key = { idx, item -> "${item.id}#$start+$idx" }) { _, review ->
+                    ReviewCard(review)
+                }
             }
         }
     }
