@@ -2,7 +2,11 @@
 accompanistPermissions = "0.36.0"
 activityCompose = "1.10.1"
 coilCompose = "2.5.0"
+converterMoshi = "2.11.0"
+datastorePreferences = "1.1.7"
 espressoCore = "3.6.1"
+hiltAndroid = "2.51.1"
+hiltNavigationCompose = "1.2.0"
 junit = "4.13.2"
 junitVersion = "1.2.1"
 # 코틀린 버전 1.9.25로 변경시 문제발생하므로 변경하지말것
@@ -10,35 +14,67 @@ kotlin = "1.9.23"
 composeCompiler = "1.5.12"
 composeBom = "2025.04.01"
 agp = "8.8.2"
+kotlinxCoroutinesAndroid = "1.9.0"
 kotlinxSerializationJson = "1.6.3"
+lifecycleRuntimeCompose = "2.9.3"
 lifecycleViewmodelCompose = "2.8.7"
+loggingInterceptor = "4.12.0"
 mapSdk = "3.21.0"
 material = "1.12.0"
+moshiKotlin = "1.15.0"
+moshiKotlinCodegen = "1.15.0"
 naverMapCompose = "1.8.0"
+okhttp = "4.12.0"
 playServicesLocation = "21.3.0"
 navigationCompose = "2.9.3"
+hilt = "2.51.1"
+retrofit = "2.11.0"
+ksp = "1.9.23-1.0.20"
+firebaseAppdistributionGradle = "5.1.1"
+
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+firebase-appdistribution = { id = "com.google.firebase.appdistribution", version.ref = "firebaseAppdistributionGradle" }
+
 
 [libraries]
 accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanistPermissions" }
 activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
+androidx-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
 compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
+converter-moshi = { module = "com.squareup.retrofit2:converter-moshi", version.ref = "converterMoshi" }
+datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastorePreferences" }
 espresso-core = { module = "androidx.test.espresso:espresso-core", version.ref = "espressoCore" }
 ext-junit = { module = "androidx.test.ext:junit", version.ref = "junitVersion" }
+hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hiltAndroid" }
+hilt-android-testing = { module = "com.google.dagger:hilt-android-testing", version.ref = "hiltAndroid" }
+hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "hiltAndroid" }
+hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
 junit = { module = "junit:junit", version.ref = "junit" }
+kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinxCoroutinesAndroid" }
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinxCoroutinesAndroid" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
+lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecycleRuntimeCompose" }
 lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycleViewmodelCompose" }
+logging-interceptor = { module = "com.squareup.okhttp3:logging-interceptor", version.ref = "loggingInterceptor" }
 map-sdk = { module = "com.naver.maps:map-sdk", version.ref = "mapSdk" }
 material = { module = "com.google.android.material:material", version.ref = "material" }
 material3 = { module = "androidx.compose.material3:material3" }
+mockwebserver = { module = "com.squareup.okhttp3:mockwebserver", version.ref = "loggingInterceptor" }
+moshi-kotlin = { module = "com.squareup.moshi:moshi-kotlin", version.ref = "moshiKotlin" }
+moshi-kotlin-codegen = { module = "com.squareup.moshi:moshi-kotlin-codegen", version.ref = "moshiKotlinCodegen" }
 naver-map-compose = { module = "io.github.fornewid:naver-map-compose", version.ref = "naverMapCompose" }
 navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
+okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "playServicesLocation" }
+retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
 ui = { module = "androidx.compose.ui:ui" }
 ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4" }
 ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
 ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
+firebase-appdistribution-gradle = { group = "com.google.firebase", name = "firebase-appdistribution-gradle", version.ref = "firebaseAppdistributionGradle" }

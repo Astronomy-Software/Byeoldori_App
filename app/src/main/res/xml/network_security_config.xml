@@ -1,6 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
-    <domain-config cleartextTrafficPermitted="true">
-        <domain includeSubdomains="true">www.lightpollutionmap.info</domain>
-    </domain-config>
+<!-- 모든 도메인/아이피에 대해 HTTP(클리어텍스트) 허용 -->
+<base-config cleartextTrafficPermitted="true">
+    <trust-anchors>
+        <!-- 시스템/사용자(프록시용) 인증서 모두 신뢰: 디버깅 편의 -->
+        <certificates src="system"/>
+        <certificates src="user"/>
+    </trust-anchors>
+</base-config>
 </network-security-config>
+
+<!--// 실제 배포전용-->
+<!--<network-security-config>-->
+<!--<domain-config cleartextTrafficPermitted="true">-->
+<!--    <domain includeSubdomains="true">www.lightpollutionmap.info</domain>-->
+<!--</domain-config>-->
+<!--<domain-config cleartextTrafficPermitted="true">-->
+<!--    <domain includeSubdomains="true">별도리 https 주소</domain>-->
+<!--</domain-config>-->
+<!--</network-security-config>-->
