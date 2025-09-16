@@ -95,8 +95,8 @@ fun ContentInput(
         // 텍스트+이미지 통합 리스트
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .imePadding(),
+                .fillMaxWidth(),
+                //.imePadding(),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
             items.forEachIndexed { index, item ->

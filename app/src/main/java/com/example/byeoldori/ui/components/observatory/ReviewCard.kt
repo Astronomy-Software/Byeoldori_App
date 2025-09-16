@@ -120,16 +120,31 @@ fun ReviewCard(
         Column(Modifier.fillMaxSize()) {
             //대표 이미지
             val thumb = review.contentItems.firstOrNull { it is EditorItem.Photo } as? EditorItem.Photo
-            AsyncImage(
-                model = thumb?.model ?: R.drawable.img_dummy,
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(10.dp)
-                    .height(110.dp)
-                    .clip(RoundedCornerShape(16.dp))
-            )
+            val model = thumb?.model ?: R.drawable.img_dummy
+            val imageModifier = Modifier
+                .fillMaxWidth()
+                .padding(10.dp)
+                .height(110.dp)
+                .clip(RoundedCornerShape(16.dp))
+
+            when (model) {
+                is Int -> {
+                    Image(
+                        painter = painterResource(model),
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = imageModifier
+                    )
+                }
+                else -> {
+                    AsyncImage(
+                        model = model,
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = imageModifier
+                    )
+                }
+            }
             Column(Modifier.padding(start = 15.dp)) {
                 Text(
                     text = review.title,

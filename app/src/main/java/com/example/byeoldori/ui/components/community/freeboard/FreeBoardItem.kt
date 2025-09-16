@@ -7,9 +7,11 @@ import androidx.compose.material3.*
 import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
 import com.example.byeoldori.R
+import com.example.byeoldori.ui.components.community.EditorItem
 import com.example.byeoldori.ui.theme.*
 import com.example.byeoldori.viewmodel.Community.FreePost
 
@@ -27,8 +29,14 @@ fun FreeBoardItem(
         Column(Modifier.padding(12.dp)) {
             Text(text = post.title, fontSize = 17.sp, color = Color.White)
             Spacer(Modifier.height(10.dp))
+            val previewText = post.contentItems
+                .filterIsInstance<EditorItem.Paragraph>()
+                .firstOrNull()
+                ?.value
+                ?.text
+                ?: ""
             Text(
-                text = post.content,
+                text = previewText,
                 fontSize = 15.sp,
                 color = Color.White,
                 maxLines = 2,
@@ -92,9 +100,13 @@ private fun Preview_FreeBoardItem() {
         likeCount = 21,
         commentCount = 21,
         viewCount = 120,
-        imageRes = R.drawable.profile1,
         createdAt = 202510301500,
-        content = "안녕하세요 오늘 처음 별도리앱 깔았어요\n혹시 다들 어디서 관측하시나요??\n이런 곳은 어떤가요?? 잘보이나요?\"\n",
+        contentItems = listOf(
+        EditorItem.Paragraph(value = TextFieldValue("오늘 처음 가입했습니다.")),
+        EditorItem.Photo(model = R.drawable.img_dummy),
+        EditorItem.Paragraph(value = TextFieldValue("좋은 관측 장소 공유 부탁드려요!"))
+        ),
+        profile = R.drawable.profile1
     )
     MaterialTheme {
         Surface(color = Blue800) {

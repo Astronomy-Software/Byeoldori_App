@@ -31,7 +31,6 @@ fun CommentInput(
         modifier = modifier
             .fillMaxWidth()
             .background(Purple900),
-            //.imePadding(),
         verticalAlignment = Alignment.CenterVertically
     ) {
         TextField(
@@ -39,16 +38,8 @@ fun CommentInput(
             onValueChange = onTextChange,
             modifier = Modifier.weight(1f),
             placeholder = { Text(placeholder, color = TextDisabled) },
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
-            keyboardActions = KeyboardActions(
-                onSend = {
-                    if (canSend) {
-                        onSend(text)
-                        focus.clearFocus()
-                    }
-                }
-            ),
-            singleLine = true,
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.None),//엔터키 줄바꿈으로
+            singleLine = false,
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = Color.Transparent,
                 unfocusedContainerColor = Color.Transparent,

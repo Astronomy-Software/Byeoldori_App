@@ -132,7 +132,7 @@ fun EduProgramSection(
             }
         }
 
-        //리뷰 작성 버튼
+        //작성 버튼
         Box(
             modifier = Modifier
                 .align(Alignment.BottomEnd)

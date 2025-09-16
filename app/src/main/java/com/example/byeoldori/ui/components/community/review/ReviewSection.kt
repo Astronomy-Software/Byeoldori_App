@@ -14,6 +14,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
 import com.example.byeoldori.R
+import com.example.byeoldori.ui.components.community.EditorItem
 import com.example.byeoldori.ui.components.community.SortBar
 import com.example.byeoldori.ui.components.observatory.ReviewCard
 import com.example.byeoldori.ui.theme.*
@@ -41,16 +42,22 @@ fun ReviewSection(
         val q = searchText.trim() //양끝 공백 제거
         val base = if (q.isEmpty()) reviewsAll //검색어가 비어있으면 전체 리스트 사용
             else {
-                reviewsAll.filter { r -> //제목,작성자를 검색(대소문자 구분X)
-                    r.title.contains(q, ignoreCase = true) ||
-                    r.author.contains(q, ignoreCase = true)
+                reviewsAll.filter { r ->
+                    val matchesTitle   = r.title.contains(q, ignoreCase = true)
+                    val matchesAuthor  = r.author.contains(q, ignoreCase = true)
+                    val matchesContent = r.contentItems
+                        .filterIsInstance<EditorItem.Paragraph>()
+                        .any { it.value.text.contains(q, ignoreCase = true) }
+
+                    matchesTitle || matchesAuthor || matchesContent
+
+                }
             }
-        }
-        when (sort) {
-            ReviewSort.Latest -> base.sortedByDescending { it.createdAt}
-            ReviewSort.Like -> base.sortedByDescending { it.likeCount }
-            ReviewSort.View -> base.sortedByDescending { it.viewCount }
-        }
+            when (sort) {
+                ReviewSort.Latest -> base.sortedByDescending { it.createdAt}
+                ReviewSort.Like -> base.sortedByDescending { it.likeCount }
+                ReviewSort.View -> base.sortedByDescending { it.viewCount }
+            }
     }
 
     //정렬 기준이 바뀔 때 스크롤 맨 위로 이동

@@ -1,5 +1,6 @@
 package com.example.byeoldori.ui.components.community
 
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -19,10 +20,10 @@ private fun formatCommentTime(createdAt: Long): String = try {
     if (createdAt.toString().length == 12) {
         val sdf = java.text.SimpleDateFormat("yyyyMMddHHmm", java.util.Locale.getDefault())
         val d = sdf.parse(createdAt.toString())
-        java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault()).format(d!!)
+        java.text.SimpleDateFormat("yy.MM.dd  HH:mm", java.util.Locale.getDefault()).format(d!!)
     } else {
         val d = java.util.Date(createdAt)
-        java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault()).format(d)
+        java.text.SimpleDateFormat("yy.MM.dd  HH:mm", java.util.Locale.getDefault()).format(d)
     }
 } catch (_: Exception) { "--:--" }
 
@@ -33,8 +34,14 @@ fun CommentItem(
     onLike: (ReviewComment) -> Unit = {},
     onReply: (ReviewComment) -> Unit = {},
     onEdit: (ReviewComment) -> Unit = {},
-    onDelete: (ReviewComment) -> Unit = {}
+    onDelete: (ReviewComment) -> Unit = {},
+    canEditDelete: (ReviewComment) -> Boolean = { false },
+    isLiked: Boolean = false
 ) {
+    val likeTint by animateColorAsState(
+        targetValue = if (isLiked) Purple500 else Color.Unspecified,
+    )
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -59,26 +66,28 @@ fun CommentItem(
                         color = TextHighlight
                     )
                     Spacer(Modifier.weight(1f))
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text(
-                            "수정",
-                            color = TextDisabled,
-                            style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier.clickable { onEdit(comment) }
-                        )
-                        Text(
-                            "삭제",
-                            color = TextDisabled,
-                            style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier.clickable { onDelete(comment) }
-                        )
+                    if(canEditDelete(comment)) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text(
+                                "수정",
+                                color = TextDisabled,
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.clickable { onEdit(comment) }
+                            )
+                            Text(
+                                "삭제",
+                                color = TextDisabled,
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.clickable { onDelete(comment) }
+                            )
+                        }
                     }
                 }
                 Spacer(modifier = Modifier.height(2.dp))
                 Text( //작성 시간
                     text = formatCommentTime(comment.createdAt),
                     style = MaterialTheme.typography.bodySmall.copy(color = TextDisabled),
-                    fontSize = 17.sp
+                    fontSize = 15.sp
                 )
             }
         }
@@ -91,18 +100,18 @@ fun CommentItem(
         )
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(top = 8.dp)
+            modifier = Modifier.padding(top=8.dp)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.clickable { onLike(comment) }
+                modifier = Modifier
+                    .clickable(enabled = !isLiked) { onLike(comment) }
+                    .clickable { onLike(comment) }
             ) {
                 Icon(
                     painter = painterResource(R.drawable.ic_thumbs_up),
                     contentDescription = "좋아요",
-                    tint = Color.Unspecified,
-                    modifier = Modifier
-                        .size(15.dp)
-                        .clickable {onLike(comment)}
+                    tint = likeTint,
+                    modifier = Modifier.size(17.dp)
                 )
                 Spacer(Modifier.width(8.dp))
                 Text(
@@ -119,7 +128,7 @@ fun CommentItem(
                 contentDescription = "대댓글",
                 tint = Color.Unspecified,
                 modifier = Modifier
-                    .size(15.dp)
+                    .size(17.dp)
                     .clickable{onReply(comment)}
             )
             Spacer(Modifier.width(8.dp))
@@ -127,7 +136,7 @@ fun CommentItem(
                 "${comment.commentCount}",
                 style = MaterialTheme.typography.bodySmall,
                 color = Color.White,
-                modifier = Modifier.alignByBaseline()
+                //modifier = Modifier.alignByBaseline()
             )
         }
     }

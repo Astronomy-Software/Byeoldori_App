@@ -225,7 +225,7 @@ val dummyReviews = mutableStateListOf(
 )
 
 //댓글 더미 데이터(관측 리뷰)
-val dummyComments = mutableStateListOf(
+val dummyReviewComments = mutableStateListOf(
     ReviewComment(
         id = "c1", reviewId = "r1",
         author = "아이마카", profile = R.drawable.profile1,
@@ -264,6 +264,51 @@ val dummyComments = mutableStateListOf(
     )
 )
 
+// 댓글 더미 데이터(자유게시판)
+val dummyFreeComments = mutableStateListOf(
+    ReviewComment(
+        id = "fc1", reviewId = "f1",
+        author = "star_gazer",
+        profile = R.drawable.profile1,
+        content = "환영합니다! 저는 주로 교외에서 관측해요 🌌",
+        likeCount = 2, commentCount = 0,
+        createdAt = 202510251600
+    ),
+    ReviewComment(
+        id = "fc2", reviewId = "f1",
+        author = "astro_friend",
+        profile = R.drawable.profile1,
+        content = "오산천도 괜찮아요. 접근성이 좋아요!",
+        likeCount = 1, commentCount = 0,
+        createdAt = 202510251630
+    ),
+    ReviewComment(
+        id = "fc3", reviewId = "f2",
+        author = "별헤는 밤",
+        profile = R.drawable.profile1,
+        content = "저는 충북대 대운동장에서 자주 봅니다.",
+        likeCount = 0, commentCount = 0,
+        createdAt = 202510291510
+    ),
+    ReviewComment(
+        id = "fc4", reviewId = "f3",
+        author = "meteor_chaser",
+        profile = R.drawable.profile1,
+        content = "요즘 투명도가 좋아서 별이 잘 보여요!",
+        likeCount = 3, commentCount = 1,
+        createdAt = 202510301600
+    ),
+    ReviewComment(
+        id = "fc5", reviewId = "f4",
+        author = "astro4",
+        profile = R.drawable.profile1,
+        content = "저도 같은 생각이에요. 좋은 장소 공유해요~",
+        likeCount = 1, commentCount = 0,
+        createdAt = 202510281530
+    )
+)
+
+
 
 //교육 프로그램 더미 데이터
 val dummyPrograms = listOf(
@@ -277,49 +322,65 @@ val dummyPrograms = listOf(
     EduProgram("8", "유성우 관측 방법8", "아이마카8", 5.0f, 205, 10, R.drawable.img_dummy,70,202510291500)
 )
 
-val dummyFreePosts = listOf(
+// === 자유게시판 더미 데이터 ===
+val dummyFreePosts = mutableStateListOf(
     FreePost(
-        id = "1",
+        id = "f1",
         title = "처음 뵙겠습니다!1",
         author = "astro1",
         likeCount = 12,
-        content = "안녕하세요 오늘 처음 별도리앱 깔았어요\n혹시 다들 어디서 관측하시나요??\n이런 곳은 어떤가요?? 잘보이나요?\"\n",
         commentCount = 10,
-        imageRes = R.drawable.img_dummy,
         viewCount = 120,
-        createdAt = 202510251500
+        createdAt = 202510251500,
+        profile = R.drawable.profile1,
+        contentItems = listOf(
+            EditorItem.Paragraph(value = TextFieldValue("안녕하세요 오늘 처음 별도리앱 깔았어요")),
+            EditorItem.Paragraph(value = TextFieldValue("혹시 다들 어디서 관측하시나요??")),
+            EditorItem.Photo(model = R.drawable.img_dummy),
+            EditorItem.Paragraph(value = TextFieldValue("이런 곳은 어떤가요?? 잘 보이나요?"))
+        )
     ),
     FreePost(
-        id = "2",
+        id = "f2",
         title = "처음 뵙겠습니다!2",
         author = "astro2",
         likeCount = 20,
-        content = "안녕하세요 오늘 처음 별도리앱 깔았어요\n혹시 다들 어디서 관측하시나요??\n이런 곳은 어떤가요?? 잘보이나요?\"\n",
         commentCount = 10,
-        imageRes = R.drawable.img_dummy,
         viewCount = 87,
-        createdAt = 202510291500
+        createdAt = 202510291500,
+        profile = R.drawable.profile1,
+        contentItems = listOf(
+            EditorItem.Paragraph(value = TextFieldValue("오늘 처음 가입했습니다.")),
+            EditorItem.Photo(model = R.drawable.img_dummy),
+            EditorItem.Paragraph(value = TextFieldValue("좋은 관측 장소 공유 부탁드려요!"))
+        )
     ),
     FreePost(
-        id = "3",
+        id = "f3",
         title = "처음 뵙겠습니다!3",
         author = "astro3",
         likeCount = 5,
-        content = "안녕하세요 오늘 처음 별도리앱 깔았어요\n혹시 다들 어디서 관측하시나요??\n이런 곳은 어떤가요?? 잘보이나요?\"\n",
         commentCount = 10,
-        imageRes = R.drawable.img_dummy,
         viewCount = 100,
-        createdAt = 202510301500
+        createdAt = 202510301500,
+        profile = R.drawable.profile1,
+        contentItems = listOf(
+            EditorItem.Paragraph(value = TextFieldValue("안녕하세요 astro3입니다.")),
+            EditorItem.Paragraph(value = TextFieldValue("저는 주로 교외에서 관측해요 🌌"))
+        )
     ),
     FreePost(
-        id = "4",
+        id = "f4",
         title = "처음 뵙겠습니다!4",
         author = "astro4",
         likeCount = 1,
-        content = "안녕하세요 오늘 처음 별도리앱 깔았어요\n혹시 다들 어디서 관측하시나요??\n이런 곳은 어떤가요?? 잘보이나요?\"\n",
         commentCount = 10,
-        imageRes = R.drawable.img_dummy,
         viewCount = 10,
-        createdAt = 202510281500
+        createdAt = 202510281500,
+        profile = R.drawable.profile1,
+        contentItems = listOf(
+            EditorItem.Paragraph(value = TextFieldValue("astro4 입니다. 잘 부탁드려요!")),
+            EditorItem.Photo(model = R.drawable.img_dummy)
+        )
     )
 )

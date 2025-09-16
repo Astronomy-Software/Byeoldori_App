@@ -26,9 +26,9 @@ fun HomeSection(
     recentReviews: List<Review>,
     recentEduPrograms: List<EduProgram>,
     popularFreePosts: List<FreePost>,
-    onMoreReviews: () -> Unit = {},
-    onMorePrograms: () -> Unit = {},
-    onMoreFreeBoard: () -> Unit = {}
+    onReviewClick: (Review) -> Unit = {},
+    onProgramClick: (EduProgram) -> Unit = {},
+    onFreePostClick: (FreePost) -> Unit = {}
 ) {
     Column(
         modifier = Modifier
@@ -40,14 +40,16 @@ fun HomeSection(
             title = "최근 추가된 관측지 리뷰",
             items = recentReviews,
             itemContent = { review: Review ->
-                ReviewCard(review)
+                Box(Modifier.clickable { onReviewClick(review) }) {
+                    ReviewCard(review)
+                }
             }
         )
         PagerSection(
             title = "새로운 교육 프로그램",
             items = recentEduPrograms,
             itemContent = { program: EduProgram ->
-                ReviewCard(program.asReview())
+                ReviewCard(program.asReview()) //추후 추가
             }
         )
 
@@ -55,7 +57,9 @@ fun HomeSection(
             title = "인기 자유게시판 게시물",
             items = popularFreePosts,
             itemContent = { post: FreePost ->
-                ReviewCard(post.asReview())
+                Box(Modifier.clickable { onFreePostClick(post) }) {
+                    ReviewCard(post.asReview())
+                }
             }
         )
 
@@ -92,7 +96,6 @@ fun <T> PagerSection(
             HorizontalPager(
                 state = pagerState,
                 pageSpacing = 12.dp,
-               // contentPadding = PaddingValues(horizontal = 10.dp),
                 modifier = Modifier
                     .matchParentSize()
             ) { page ->

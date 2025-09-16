@@ -41,10 +41,7 @@ fun FreePost.asReview(): Review =
         startTime = "",
         endTime = "",
         siteScore = 0,
-        contentItems = buildList {
-            add(EditorItem.Paragraph(value = TextFieldValue(content ?: "")))
-            imageRes?.let { add(EditorItem.Photo(model = it)) }
-        }
+        contentItems = contentItems
     )
 
 @Composable
@@ -62,9 +59,14 @@ fun FreeBoardSection(
         val q = searchText.trim() //양끝 공백 제거
         val base = if (q.isEmpty()) freeBoardsAll //검색어가 비어있으면 전체 리스트 사용
         else {
-            freeBoardsAll.filter { r -> //제목,작성자를 검색(대소문자 구분X)
-                r.title.contains(q, ignoreCase = true) ||
-                        r.author.contains(q, ignoreCase = true)
+            freeBoardsAll.filter { r ->
+                val matchesTitle = r.title.contains(q, ignoreCase = true)
+                val matchesAuthor = r.author.contains(q, ignoreCase = true)
+                val matchesContent = r.contentItems
+                    .filterIsInstance<EditorItem.Paragraph>()
+                    .any { it.value.text.contains(q, ignoreCase = true) }
+
+                matchesTitle || matchesAuthor || matchesContent
             }
         }
         when (sort) {
@@ -122,7 +124,7 @@ fun FreeBoardSection(
                 }
             }
         }
-        //리뷰 작성 버튼
+        //작성 버튼
         Box(
             modifier = Modifier
                 .align(Alignment.BottomEnd)

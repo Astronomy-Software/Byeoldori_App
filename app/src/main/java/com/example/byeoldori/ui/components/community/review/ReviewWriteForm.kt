@@ -56,7 +56,6 @@ fun ReviewWriteForm(
         pendingOnPicked = null
     }
 
-    // ⬇️ ReviewWriteForm 상태 영역에 추가
     var items by remember {
         mutableStateOf(listOf<EditorItem>(EditorItem.Paragraph())) // 시작 문단 1개
     }
@@ -238,7 +237,7 @@ fun ReviewWriteForm(
 
 
 /* ===== 프리뷰 ===== */
-@Preview(showBackground = true, backgroundColor = 0x0000FF, widthDp = 360, heightDp = 720)
+@Preview(showBackground = true, backgroundColor = 0xFF241860, widthDp = 360, heightDp = 720)
 @Composable
 private fun Preview_ReviewWriteForm_Box() {
     MaterialTheme {

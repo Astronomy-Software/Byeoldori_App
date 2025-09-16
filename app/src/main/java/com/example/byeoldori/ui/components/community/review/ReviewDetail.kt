@@ -2,9 +2,7 @@ package com.example.byeoldori.ui.components.community.review
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.relocation.BringIntoViewRequester
-import androidx.compose.foundation.relocation.BringIntoViewResponder
-import androidx.compose.foundation.relocation.bringIntoViewRequester
+import androidx.compose.foundation.relocation.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -16,47 +14,47 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
 import com.example.byeoldori.R
-import com.example.byeoldori.ui.components.community.CommentInput
-import com.example.byeoldori.ui.components.community.CommentItem
-import com.example.byeoldori.ui.components.community.ContentInput
+import com.example.byeoldori.ui.components.community.*
 import com.example.byeoldori.ui.theme.*
 import com.example.byeoldori.viewmodel.Community.ReviewComment
 import com.example.byeoldori.viewmodel.Observatory.*
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
-import androidx.compose.foundation.relocation.bringIntoViewResponder
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
-import androidx.compose.ui.input.nestedscroll.NestedScrollSource
-import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 
 @Composable
-private fun formatCreatedAt(createdAt: Long): String {
+fun formatCreatedAt(createdAt: Long): String {
     // createdAt이 예: 202510290000 같은 custom Long이라면 직접 파싱 필요
     return try {
         if (createdAt.toString().length == 12) {
             // "yyyyMMddHHmm" 형식으로 저장된 경우
             val sdf = SimpleDateFormat("yyyyMMddHHmm", Locale.getDefault())
             val date = sdf.parse(createdAt.toString())
-            SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(date!!)
+            SimpleDateFormat("yy.MM.dd", Locale.getDefault()).format(date!!)
         } else {
             // epoch millis로 저장된 경우
             val date = Date(createdAt)
-            SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(date)
+            SimpleDateFormat("yy.MM.dd", Locale.getDefault()).format(date)
         }
     } catch (e: Exception) {
         createdAt.toString() // fallback
     }
 }
 
-fun likeComment(commentId: String) {
-    val idx = dummyComments.indexOfFirst { it.id == commentId }
+fun likeComment(commentId: String, delta: Int) {
+    val idx = dummyReviewComments.indexOfFirst { it.id == commentId }
     if (idx >= 0) {
-        val c = dummyComments[idx]
-        dummyComments[idx] = c.copy(likeCount = c.likeCount + 1)
+        val c = dummyReviewComments[idx]
+        val newCount = (c.likeCount + delta).coerceAtLeast(0)
+        dummyReviewComments[idx] = c.copy(likeCount = newCount)
     }
 }
+
+fun likeComment(id: String)  = likeComment(id, +1)
+fun unlikeComment(id: String) = likeComment(id, -1)
 
 fun addComment(
     reviewId: String,
@@ -74,7 +72,7 @@ fun addComment(
         commentCount = 0,
         createdAt = System.currentTimeMillis()
     )
-    dummyComments.add(new)
+    dummyReviewComments.add(new)
     return new
 }
 
@@ -91,20 +89,36 @@ fun ReviewDetail(
     onBack: () -> Unit = {},
     onShare: () -> Unit = {},
     onMore: () -> Unit = {},
-    onBottomBarVisibleChange: (Boolean) -> Unit = {}
+    onBottomBarVisibleChange: (Boolean) -> Unit = {},
+    currentUser: String
 ) {
     var commentText by rememberSaveable { mutableStateOf("") }
     val scrollState = rememberScrollState()
     val scope = rememberCoroutineScope()
 
-    val navBarHeight = 72.dp
     val imeVisible = rememberIsImeVisible()
     val tailRequester = remember { BringIntoViewRequester() }
+    var requestKeyboard by remember { mutableStateOf(false) }
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val focusRequester = remember { FocusRequester() }
+    var editingTarget by remember { mutableStateOf<ReviewComment?>(null) }
+    //val liked = remember { mutableStateMapOf<String, Boolean>() } //좋아요 기억
+    var liked by rememberSaveable { mutableStateOf(setOf<String>()) }
+    var reviewLiked by rememberSaveable { mutableStateOf(false) }
+    var reviewLikeCount by rememberSaveable { mutableStateOf(review.likeCount) }
+
 
     LaunchedEffect(imeVisible) {
         if (imeVisible) {
             // 키보드가 올라오면 리스트를 바닥까지 끌어내려 빈 여백 느낌 제거
             tailRequester.bringIntoView()
+        }
+    }
+    LaunchedEffect(requestKeyboard) {
+        if (requestKeyboard) {
+            focusRequester.requestFocus()
+            keyboardController?.show()
+            requestKeyboard = false  // 한 번만 실행
         }
     }
 
@@ -238,17 +252,20 @@ fun ReviewDetail(
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.clickable { /* 좋아요 로직 */ }
+                    modifier = Modifier.clickable {
+                        reviewLiked = !reviewLiked
+                        reviewLikeCount = (reviewLikeCount + if (reviewLiked) 1 else -1).coerceAtLeast(0)
+                    }
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.ic_thumbs_up),
                         contentDescription = "좋아요",
-                        tint = Color.Unspecified,
+                        tint = if (reviewLiked) Purple500 else Color.Unspecified,
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(Modifier.width(10.dp))
                     Text(
-                        text = "좋아요   ${review.likeCount}",
+                        text = "좋아요   $reviewLikeCount",
                         color = TextHighlight,
                         fontSize = 14.sp
                     )
@@ -269,7 +286,7 @@ fun ReviewDetail(
                     Spacer(Modifier.width(10.dp))
 
                     //총 댓글 수
-                    val commentCount = dummyComments.count { it.reviewId == review.id }
+                    val commentCount = dummyReviewComments.count { it.reviewId == review.id }
                     Text(
                         text = "댓글   $commentCount",
                         color = Color.White,
@@ -278,25 +295,38 @@ fun ReviewDetail(
                 }
             }
             Divider(color = Color.White.copy(alpha = 0.6f), thickness = 2.dp)
-            dummyComments
+            dummyReviewComments
                 .filter { it.reviewId == review.id }
                 .forEach { c ->
+                    val isLiked = c.id in liked
                     CommentItem(
                         comment = c,
-                        onLike = { tapped -> likeComment(tapped.id) },
+                        isLiked = isLiked,
+                        onLike = { tapped ->
+                            if(tapped.id in liked) {
+                                liked = liked - tapped.id
+                                unlikeComment(tapped.id)
+                            } else {
+                                liked = liked + tapped.id
+                                likeComment(tapped.id)
+                            }
+                        },
                         onReply = { /* TODO: 대댓글 입력창 열기 (추후) */ },
-                        onEdit = { /* TODO: 수정 다이얼로그 */ },
+                        canEditDelete = { it.author == currentUser },
+                        onEdit = { target ->
+                            if (target.author == currentUser) {
+                                editingTarget = target
+                                commentText = ""
+                                requestKeyboard = true
+                            }
+                        },
                         onDelete = { del ->
-                            val idx = dummyComments.indexOfFirst { it.id == del.id }
-                            if (idx >= 0) dummyComments.removeAt(idx)
+                            val idx = dummyReviewComments.indexOfFirst { it.id == del.id }
+                            if (idx >= 0) dummyReviewComments.removeAt(idx)
                         }
                     )
                 }
-            Spacer(
-                modifier = Modifier.height(
-                    if (imeVisible) 8.dp else 72.dp // 72dp는 CommentInput 높이에 맞춰 조정
-                )
-            )
+            Spacer(modifier = Modifier.height(50.dp))
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -310,23 +340,33 @@ fun ReviewDetail(
             onTextChange = { commentText = it },
             onSend = { text ->
                 val t = text.trim()
-                if (t.isNotEmpty()) {
-                    addComment(
-                        reviewId = review.id,
-                        author = "헤이헤이",
-                        content = t
-                    )
+                val target = editingTarget
+
+                if (target != null) {
+                    val idx = dummyReviewComments.indexOfFirst { it.id == target.id }
+                    if (idx >= 0) {
+                        dummyReviewComments[idx] = target.copy(content = t)
+                    }
+                    editingTarget = null
                     commentText = ""
+                    return@CommentInput
+                }
+                addComment(
+                    reviewId = review.id,
+                    author = currentUser,
+                    content = t
+                )
+                commentText = ""
                     scope.launch {
                         // 새 댓글까지 스무스하게 스크롤
                         tailRequester.bringIntoView()
                     }
-                }
             },
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
                 .advancedImePadding()
+                .focusRequester(focusRequester)
 
         )
     }
@@ -336,6 +376,6 @@ fun ReviewDetail(
 @Composable
 private fun Preview_ReviewDetail() {
     MaterialTheme {
-        ReviewDetail(review = dummyReviews.first())
+        ReviewDetail(review = dummyReviews.first(), currentUser = "astro_user")
     }
 }

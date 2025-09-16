@@ -16,6 +16,8 @@ import com.example.byeoldori.ui.components.community.review.ReviewSection
 import com.example.byeoldori.ui.components.community.review.ReviewWriteForm
 import com.example.byeoldori.ui.theme.*
 import com.example.byeoldori.viewmodel.Observatory.*
+import com.example.byeoldori.ui.components.community.freeboard.FreeBoardDetail
+import com.example.byeoldori.ui.components.community.freeboard.FreeBoardWriteForm
 
 // --- 탭 정의 ---
 enum class CommunityTab(val label: String, val routeSeg: String) {
@@ -37,13 +39,17 @@ fun CommunityScreen(
     var showSuccessDialog by remember { mutableStateOf(false) }
     var lastSubmittedReview by remember { mutableStateOf<Review?>(null) }
     var selectedReview by remember { mutableStateOf<Review?>(null) }
+    var selectedFreePost by remember { mutableStateOf<String?>(null) }
+    val currentUser = "헤이헤이"
+    var showFreeBoardWriteForm by remember { mutableStateOf(false) }
+    var successMessage by remember { mutableStateOf("") }
 
 
     when {
         showWriteForm -> {
             // 작성 화면만 표시 (탭/목록 숨김)
             ReviewWriteForm(
-                author = "astro_user",
+                author = currentUser,
                 onCancel = { showWriteForm = false },   // 취소 → 다시 탭 화면으로
                 onSubmit = { showWriteForm = false },   // 등록 → 저장 처리 후 목록으로
                 onTempSave = {},
@@ -57,13 +63,49 @@ fun CommunityScreen(
                 },
                 initialReview = lastSubmittedReview
             )
+
         }
+        showFreeBoardWriteForm -> {
+            FreeBoardWriteForm(
+                author = currentUser,
+                onCancel = {
+                    showFreeBoardWriteForm = false
+                    //successMessage = "작성 취소되었습니다"
+                    showSuccessDialog = true
+                },
+                onSubmit = {
+                    showFreeBoardWriteForm = false
+                    successMessage = "게시글이 등록되었습니다"
+                    showSuccessDialog = true
+                },
+                onTempSave = {},
+                onMore = {},
+                onSubmitPost = { newPost ->
+                    dummyFreePosts.add(0, newPost)
+                    showFreeBoardWriteForm = false
+                    showSuccessDialog = true
+                }
+            )
+        }
+
 
         selectedReview != null -> {
             ReviewDetail(
                 review = selectedReview!!,
-                onBack = { selectedReview = null }  // 뒤로가기 누르면 다시 목록으로
+                onBack = { selectedReview = null },  // 뒤로가기 누르면 다시 목록으로
+                currentUser = currentUser
             )
+        }
+        selectedFreePost != null -> {
+            val post = dummyFreePosts.find { it.id == selectedFreePost }
+            if(post != null) {
+                FreeBoardDetail(
+                    post = post,
+                    onBack = { selectedFreePost = null },
+                    currentUser = currentUser
+
+                )
+            }
         }
 
         else -> {
@@ -124,15 +166,17 @@ fun CommunityScreen(
                         HomeSection(
                             recentReviews = recentReviews,
                             recentEduPrograms = recentPrograms,
-                            popularFreePosts = popularFreePost
+                            popularFreePosts = popularFreePost,
+                            onReviewClick = { selectedReview = it },
+                            onFreePostClick = { selectedFreePost = it.id }
                         )
                     }
 
                     CommunityTab.Board -> {
                         FreeBoardSection(
                             freeBoardsAll = dummyFreePosts,
-                            onClickProgram = { id -> onOpenPost(id) },
-                            onWriteClick = {}
+                            onClickProgram = { id -> selectedFreePost = id },
+                            onWriteClick = { showFreeBoardWriteForm = true }
                         )
                     }
                 }
@@ -148,17 +192,7 @@ fun CommunityScreen(
                 }
             },
             title = { Text("알림",color = Color.Black) },
-            text = { Text("리뷰가 등록되었습니다") }
+            text = {  Text(successMessage) }
         )
     }
 }
-
-// --- UI 구성 요소 ---
-private data class Post(
-    val id: String,
-    val title: String,
-    val author: String,
-    val like: Int,
-    val comment: Int,
-    val thumbnailRes: Int? = null
-)
