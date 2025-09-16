@@ -16,11 +16,15 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
+import coil.compose.AsyncImage
 import com.example.byeoldori.R
 import com.example.byeoldori.ui.theme.*
 import com.example.byeoldori.viewmodel.Observatory.Review
+import com.example.byeoldori.viewmodel.Observatory.dummyReviews
 import com.google.accompanist.pager.*
 import kotlinx.coroutines.launch
+import com.example.byeoldori.ui.components.community.EditorItem
+
 
 
 // TODO : 리뷰섹션 좌우 드래그able하게 변경
@@ -101,17 +105,23 @@ fun ReviewSection(
 }
 
 @Composable
-private fun ReviewCard(review: Review) {
+fun ReviewCard(
+    review: Review,
+    modifier: Modifier = Modifier
+) {
     Card(
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Blue800),
         modifier = Modifier
             .fillMaxWidth()
             .height(240.dp)
+            .then(modifier)
     ) {
         Column(Modifier.fillMaxSize()) {
-            Image(
-                painter = painterResource(review.imageRes),
+            //대표 이미지
+            val thumb = review.contentItems.firstOrNull { it is EditorItem.Photo } as? EditorItem.Photo
+            AsyncImage(
+                model = thumb?.model ?: R.drawable.img_dummy,
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
@@ -130,12 +140,14 @@ private fun ReviewCard(review: Review) {
                 )
                 Spacer(Modifier.height(10.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        painter = painterResource(R.drawable.profile1),
-                        contentDescription = null,
-                        tint = Color.Unspecified,
-                        modifier = Modifier.size(22.dp)
-                    )
+                    review.profile?.let {
+                        Icon(
+                            painter = painterResource(it),
+                            contentDescription = "프로필",
+                            tint = Color.Unspecified,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
                     Spacer(Modifier.width(4.dp))
                     Text(review.author, color = TextHighlight, fontSize = 14.sp)
                 }
@@ -174,14 +186,6 @@ private fun ReviewCard(review: Review) {
     }
 }
 
-private val previewReviews = listOf(
-    Review("1", "페르세우스 유성우 관측한 날~", "아이마카", 5.0f, 21, 21, R.drawable.img_dummy),
-    Review("2", "토성 고리 봄",              "아이마카", 4.8f, 20,  5, R.drawable.img_dummy),
-    Review("3", "목성 위성 본 날",           "아이마카", 4.7f, 40,  8, R.drawable.img_dummy),
-    Review("4", "태양 흑점 본 날",           "아이마카", 4.9f, 30, 10, R.drawable.img_dummy),
-    // 필요시 더 추가
-)
-
 @Preview(
     name = "ReviewCard – Single",
     showBackground = true,
@@ -191,7 +195,7 @@ private val previewReviews = listOf(
 private fun Preview_ReviewCard_Single() {
     MaterialTheme {
         Surface(color = Color.Black) {
-            ReviewCard(review = previewReviews.first())
+            ReviewCard(review = dummyReviews.first())
         }
     }
 }
@@ -207,7 +211,7 @@ private fun Preview_ReviewSection_Grid() {
         Surface(color = Color.Black) {
             ReviewSection(
                 title = "해당 관측지에서 진행한 관측후기",
-                reviews = previewReviews
+                reviews = dummyReviews
             )
         }
     }

@@ -1,6 +1,12 @@
 package com.example.byeoldori.viewmodel.Observatory
 
 import com.example.byeoldori.R
+import com.example.byeoldori.viewmodel.Community.EduProgram
+import com.example.byeoldori.viewmodel.Community.FreePost
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.ui.text.input.TextFieldValue
+import com.example.byeoldori.ui.components.community.EditorItem
+import com.example.byeoldori.viewmodel.Community.ReviewComment
 import com.naver.maps.geometry.LatLng
 
 val observatoryList = listOf(
@@ -81,11 +87,239 @@ val dummyDailyForecasts = listOf(
 )
 
 //리뷰 더미 데이터
-val dummyReviews = listOf(
-    Review("2", "토성 고리 봄", "아이마카", 5.0f, 20, 5, R.drawable.img_dummy),
-    Review("3", "목성 위성 본 날", "아이마카", 5.0f, 40, 8, R.drawable.img_dummy),
-    Review("4", "태양 흑점 본 날", "아이마카", 5.0f, 30, 10, R.drawable.img_dummy),
-    Review("5", "태양 흑점 본 날", "아이마카", 5.0f, 30, 10, R.drawable.img_dummy),
-    Review("6", "태양 흑점 본 날", "아이마카", 5.0f, 30, 10, R.drawable.img_dummy),
-    Review("7", "태양 흑점 본 날", "아이마카", 5.0f, 30, 10, R.drawable.img_dummy)
+val dummyReviews = mutableStateListOf(
+    Review(
+        id = "r1",
+        title = "태양 흑점 본 날1",
+        author = "아이마카1",
+        rating = 5,
+        likeCount = 70,
+        commentCount = 10,
+        profile = R.drawable.profile1,
+        viewCount = 60,
+        createdAt = 202510290000,
+        target = "태양",
+        site = "충북대학교 천문대",
+        date = "2025-10-29",
+        siteScore = 5,
+        equipment = "망원경",
+        startTime = "22:00",
+        endTime = "23:30",
+        // ✅ 본문 + 이미지
+        contentItems = listOf(
+            EditorItem.Paragraph(value = TextFieldValue("오늘은 태양 흑점을 관측했습니다.")),
+            EditorItem.Photo(model = R.drawable.img_dummy),
+            EditorItem.Paragraph(value = TextFieldValue("날씨가 좋아 관측이 수월했습니다!."))
+        )
+    ),
+    Review(
+        id = "r2",
+        title = "태양 흑점 본 날2",
+        author = "아이마카2",
+        rating = 5,
+        likeCount = 80,
+        commentCount = 10,
+        profile = R.drawable.profile1,
+        viewCount = 100,
+        createdAt = 202510290000,
+        target = "태양",
+        site = "충북대학교 천문대",
+        date = "2025-10-29",
+        siteScore = 5,
+        equipment = "망원경",
+        startTime = "12:00",
+        endTime = "16:30",
+        contentItems = listOf(
+            EditorItem.Paragraph(value = TextFieldValue("오늘은 태양 흑점을 관측했습니다.")),
+            EditorItem.Photo(model = R.drawable.img_dummy)
+        )
+    ),
+    Review(
+        id = "r3",
+        title = "태양 흑점 본 날3",
+        author = "아이마카3",
+        rating = 5,
+        likeCount = 40,
+        commentCount = 10,
+        profile = R.drawable.profile1,
+        viewCount = 80,
+        createdAt = 202510280000,
+        target = "태양",
+        site = "충북대학교 천문대",
+        date = "2025-10-30",
+        siteScore = 5,
+        equipment = "망원경",
+        startTime = "22:00",
+        endTime = "23:30",
+        contentItems = listOf(
+            EditorItem.Paragraph(value = TextFieldValue("오늘은 태양 흑점을 관측했습니다.")),
+            EditorItem.Photo(model = R.drawable.img_dummy)
+        )
+    ),
+    Review(
+        id = "r4",
+        title = "태양 흑점 본 날4",
+        author = "아이마카4",
+        rating = 5,
+        likeCount = 30,
+        commentCount = 10,
+        profile = R.drawable.profile1,
+        viewCount = 60,
+        createdAt = 202510270000,
+        target = "태양",
+        site = "충북대학교 천문대",
+        date = "2025-10-14",
+        siteScore = 5,
+        equipment = "망원경",
+        startTime = "22:00",
+        endTime = "23:30",
+        contentItems = listOf(
+            EditorItem.Paragraph(value = TextFieldValue("오늘은 태양 흑점을 관측했습니다.")),
+            EditorItem.Photo(model = R.drawable.img_dummy)
+        )
+    ),
+    Review(
+        id = "r5",
+        title = "태양 흑점 본 날5",
+        author = "아이마카5",
+        rating = 5,
+        likeCount = 20,
+        commentCount = 10,
+        profile = R.drawable.profile1,
+        viewCount = 20,
+        createdAt = 202510260000,
+        target = "태양",
+        site = "충북대학교 천문대",
+        date = "2025-10-10",
+        siteScore = 5,
+        equipment = "망원경",
+        startTime = "22:00",
+        endTime = "23:30",
+        contentItems = listOf(
+            EditorItem.Paragraph(value = TextFieldValue("오늘은 태양 흑점을 관측했습니다.")),
+            EditorItem.Photo(model = R.drawable.img_dummy)
+        )
+    ),
+    Review(
+        id = "r6",
+        title = "태양 흑점 본 날6",
+        author = "아이마카6",
+        rating = 5,
+        likeCount = 5,
+        commentCount = 10,
+        profile = R.drawable.profile1,
+        viewCount = 5,
+        createdAt = 202510250000,
+        target = "태양",
+        site = "충북대학교 천문대",
+        date = "2025-10-25",
+        siteScore = 5,
+        equipment = "망원경",
+        startTime = "22:00",
+        endTime = "23:30",
+        contentItems = listOf(
+            EditorItem.Paragraph(value = TextFieldValue("오늘은 태양 흑점을 관측했습니다.")),
+            EditorItem.Photo(model = R.drawable.img_dummy)
+        )
+    ),
+)
+
+//댓글 더미 데이터(관측 리뷰)
+val dummyComments = mutableStateListOf(
+    ReviewComment(
+        id = "c1", reviewId = "r1",
+        author = "아이마카", profile = R.drawable.profile1,
+        content = "색다른 곳 있으면 알려주세요~",
+        likeCount = 3, commentCount = 1, createdAt = 202510291750
+    ),
+    ReviewComment(
+        id = "c2", reviewId = "r1",
+        author = "별헤는 곰돌이", profile = R.drawable.profile1,
+        content = "충북대 대운동장 좋아요!",
+        likeCount = 1, commentCount = 0, createdAt = 202510291755
+    ),
+    ReviewComment(
+        id = "c3", reviewId = "r2",
+        author = "astro_21", profile = R.drawable.profile1,
+        content = "오늘 투명도 좋았습니다 🙌",
+        likeCount = 2, commentCount = 0, createdAt = 202510291820
+    ),
+    ReviewComment(
+        id = "c4", reviewId = "r2",
+        author = "skylover", profile = R.drawable.profile1,
+        content = "광해만 조금만 덜하면 최고!",
+        likeCount = 0, commentCount = 0, createdAt = 202510291825
+    ),
+    ReviewComment(
+        id = "c5", reviewId = "r3",
+        author = "아이마카", profile = R.drawable.profile1,
+        content = "내일도 관측 예정이에요",
+        likeCount = 5, commentCount = 2, createdAt = 202510281930
+    ),
+    ReviewComment(
+        id = "c6", reviewId = "r4",
+        author = "meteor", profile = R.drawable.profile1,
+        content = "유성 두 개 봤습니다!",
+        likeCount = 4, commentCount = 1, createdAt = 202510271145
+    )
+)
+
+
+//교육 프로그램 더미 데이터
+val dummyPrograms = listOf(
+    EduProgram("1", "유성우 관측 방법1", "아이마카1", 5.0f, 70, 10, R.drawable.img_dummy,60,202510290000),
+    EduProgram("2", "유성우 관측 방법2", "아이마카2", 5.0f, 40, 10, R.drawable.img_dummy,50,202510290100),
+    EduProgram("3", "유성우 관측 방법3", "아이마카3", 5.0f, 30, 10, R.drawable.img_dummy,40,202510290500),
+    EduProgram("4", "유성우 관측 방법4", "아이마카4", 5.0f, 65, 10, R.drawable.img_dummy,30,202510290700),
+    EduProgram("5", "유성우 관측 방법5", "아이마카5", 5.0f, 55, 10, R.drawable.img_dummy,20,202510291600),
+    EduProgram("6", "유성우 관측 방법6", "아이마카6", 5.0f, 50, 10, R.drawable.img_dummy,100,202510291900),
+    EduProgram("7", "유성우 관측 방법7", "아이마카7", 5.0f, 100, 10, R.drawable.img_dummy,90,202510291400),
+    EduProgram("8", "유성우 관측 방법8", "아이마카8", 5.0f, 205, 10, R.drawable.img_dummy,70,202510291500)
+)
+
+val dummyFreePosts = listOf(
+    FreePost(
+        id = "1",
+        title = "처음 뵙겠습니다!1",
+        author = "astro1",
+        likeCount = 12,
+        content = "안녕하세요 오늘 처음 별도리앱 깔았어요\n혹시 다들 어디서 관측하시나요??\n이런 곳은 어떤가요?? 잘보이나요?\"\n",
+        commentCount = 10,
+        imageRes = R.drawable.img_dummy,
+        viewCount = 120,
+        createdAt = 202510251500
+    ),
+    FreePost(
+        id = "2",
+        title = "처음 뵙겠습니다!2",
+        author = "astro2",
+        likeCount = 20,
+        content = "안녕하세요 오늘 처음 별도리앱 깔았어요\n혹시 다들 어디서 관측하시나요??\n이런 곳은 어떤가요?? 잘보이나요?\"\n",
+        commentCount = 10,
+        imageRes = R.drawable.img_dummy,
+        viewCount = 87,
+        createdAt = 202510291500
+    ),
+    FreePost(
+        id = "3",
+        title = "처음 뵙겠습니다!3",
+        author = "astro3",
+        likeCount = 5,
+        content = "안녕하세요 오늘 처음 별도리앱 깔았어요\n혹시 다들 어디서 관측하시나요??\n이런 곳은 어떤가요?? 잘보이나요?\"\n",
+        commentCount = 10,
+        imageRes = R.drawable.img_dummy,
+        viewCount = 100,
+        createdAt = 202510301500
+    ),
+    FreePost(
+        id = "4",
+        title = "처음 뵙겠습니다!4",
+        author = "astro4",
+        likeCount = 1,
+        content = "안녕하세요 오늘 처음 별도리앱 깔았어요\n혹시 다들 어디서 관측하시나요??\n이런 곳은 어떤가요?? 잘보이나요?\"\n",
+        commentCount = 10,
+        imageRes = R.drawable.img_dummy,
+        viewCount = 10,
+        createdAt = 202510281500
+    )
 )

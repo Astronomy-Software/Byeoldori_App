@@ -1,84 +1,155 @@
 package com.example.byeoldori.ui.screen.Community
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.foundation.*
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import com.example.byeoldori.R
-import com.example.byeoldori.ui.theme.AppTheme
+import androidx.compose.ui.*
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.*
+import com.example.byeoldori.ui.components.community.*
+import com.example.byeoldori.ui.components.community.freeboard.FreeBoardSection
+import com.example.byeoldori.ui.components.community.program.EduProgramSection
+import com.example.byeoldori.ui.components.community.review.ReviewDetail
+import com.example.byeoldori.ui.components.community.review.ReviewSection
+import com.example.byeoldori.ui.components.community.review.ReviewWriteForm
+import com.example.byeoldori.ui.theme.*
+import com.example.byeoldori.viewmodel.Observatory.*
 
 // --- 탭 정의 ---
 enum class CommunityTab(val label: String, val routeSeg: String) {
-    Feed("피드", "feed"),
-    Hot("인기", "hot"),
-    My("내 글", "my")
+    Home("홈","home"),
+    Program("교육 프로그램", "program"),
+    Review("관측 후기", "review"),
+    Board("자유게시판", "board")
 }
 
 @Composable
 fun CommunityScreen(
-    tab: CommunityTab,                       // 현재 탭 (라우트에서 결정)
-    onSelectTab: (CommunityTab) -> Unit,     // 탭 클릭 시 부모로 콜백
-    onOpenPost: (String) -> Unit = {}        // 게시글 클릭 콜백
+    tab: CommunityTab,
+    onSelectTab: (CommunityTab) -> Unit,
+    onOpenPost: (String) -> Unit = {},
 ) {
     val tabs = CommunityTab.entries
+    var showWriteForm by remember { mutableStateOf(false) }
+    val reviews = remember { mutableStateListOf<Review>().apply { addAll(dummyReviews) } }
+    var showSuccessDialog by remember { mutableStateOf(false) }
+    var lastSubmittedReview by remember { mutableStateOf<Review?>(null) }
+    var selectedReview by remember { mutableStateOf<Review?>(null) }
 
-    Column(Modifier.fillMaxSize()) {
-        // 탭바
-        TabRow(selectedTabIndex = tabs.indexOf(tab)) {
-            tabs.forEach { t ->
-                Tab(
-                    selected = (t == tab),
-                    onClick = { if (t != tab) onSelectTab(t) },
-                    text = { Text(t.label) }
-                )
-            }
+
+    when {
+        showWriteForm -> {
+            // 작성 화면만 표시 (탭/목록 숨김)
+            ReviewWriteForm(
+                author = "astro_user",
+                onCancel = { showWriteForm = false },   // 취소 → 다시 탭 화면으로
+                onSubmit = { showWriteForm = false },   // 등록 → 저장 처리 후 목록으로
+                onTempSave = {},
+                onMore = { /* 더보기 */ },
+                onSubmitReview = { newReview ->
+                    reviews.add(0, newReview)    // 최신 리뷰가 맨 위로
+                    dummyReviews.add(0, newReview) //더미 데이터에도 추가
+                    lastSubmittedReview = newReview
+                    showWriteForm = false        // 작성창 닫기
+                    showSuccessDialog = true
+                },
+                initialReview = lastSubmittedReview
+            )
         }
 
-        // 탭별 더미 데이터
-        val posts = remember(tab) { samplePosts(tab) }
-
-        // 목록
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            items(posts, key = { it.id }) { post ->
-                PostItem(
-                    post = post,
-                    onClick = { onOpenPost(post.id) }
-                )
-            }
-            item { Spacer(Modifier.height(24.dp)) }
+        selectedReview != null -> {
+            ReviewDetail(
+                review = selectedReview!!,
+                onBack = { selectedReview = null }  // 뒤로가기 누르면 다시 목록으로
+            )
         }
+
+        else -> {
+            Column(Modifier.fillMaxSize()) {
+                // 탭바
+                Column(
+                    modifier = Modifier
+                        .background(Blue800)
+                ) {
+                    Spacer(Modifier.height(24.dp))
+                    ScrollableTabRow(
+                        selectedTabIndex = tabs.indexOf(tab),
+                        edgePadding = 0.dp,
+                        containerColor = Blue800,
+                        indicator = {} //강조선 제거
+                    ) {
+                        tabs.forEach { t ->
+                            Tab(
+                                selected = (t == tab),
+                                onClick = { if (t != tab) onSelectTab(t) },
+                                text = {
+                                    Text(
+                                        text = t.label,
+                                        maxLines = 1,
+                                        softWrap = false,
+                                        style = MaterialTheme.typography.labelMedium.copy(fontSize = 15.sp),
+                                        color = if (t == tab) TextHighlight else TextDisabled
+                                    )
+                                }
+                            )
+                        }
+                    }
+                }
+                when (tab) {
+                    CommunityTab.Review -> {
+                        ReviewSection(
+                            reviewsAll = reviews,
+                            onWriteClick = { showWriteForm = true },
+                            onReviewClick = { review ->
+                                selectedReview = review
+                            }
+                        )
+                    }
+
+                    CommunityTab.Program -> {
+                        EduProgramSection(eduProgramsAll = dummyPrograms, onWriteClick = {})
+                    }
+
+                    CommunityTab.Home -> {
+                        val recentReviews by remember {
+                            derivedStateOf { reviews.sortedByDescending { it.createdAt }.take(8) }
+                        }
+                        val recentPrograms =
+                            remember { dummyPrograms.sortedByDescending { it.createdAt }.take(8) }
+                        val popularFreePost =
+                            remember { dummyFreePosts.sortedByDescending { it.likeCount }.take(8) }
+
+                        HomeSection(
+                            recentReviews = recentReviews,
+                            recentEduPrograms = recentPrograms,
+                            popularFreePosts = popularFreePost
+                        )
+                    }
+
+                    CommunityTab.Board -> {
+                        FreeBoardSection(
+                            freeBoardsAll = dummyFreePosts,
+                            onClickProgram = { id -> onOpenPost(id) },
+                            onWriteClick = {}
+                        )
+                    }
+                }
+            }
+        }
+    }
+    if (showSuccessDialog) {
+        AlertDialog(
+            onDismissRequest = { showSuccessDialog = false },
+            confirmButton = {
+                TextButton(onClick = { showSuccessDialog = false }) {
+                    Text("확인")
+                }
+            },
+            title = { Text("알림",color = Color.Black) },
+            text = { Text("리뷰가 등록되었습니다") }
+        )
     }
 }
 
@@ -91,102 +162,3 @@ private data class Post(
     val comment: Int,
     val thumbnailRes: Int? = null
 )
-
-@Composable
-private fun PostItem(
-    post: Post,
-    onClick: () -> Unit
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.85f))
-    ) {
-        Row(
-            modifier = Modifier.padding(14.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            if (post.thumbnailRes != null) {
-                Image(
-                    painter = painterResource(id = post.thumbnailRes),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(56.dp)
-                        .padding(end = 12.dp)
-                )
-            } else {
-                Box(
-                    modifier = Modifier
-                        .size(56.dp)
-                        .padding(end = 12.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("📝")
-                }
-            }
-
-            Column(Modifier.weight(1f)) {
-                Text(
-                    post.title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold
-                )
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    "${post.author} · 👍 ${post.like} · 💬 ${post.comment}",
-                    style = MaterialTheme.typography.bodySmall
-                )
-            }
-        }
-    }
-}
-
-// --- 샘플 데이터 ---
-private fun samplePosts(tab: CommunityTab): List<Post> = when (tab) {
-    CommunityTab.Feed -> List(10) {
-        Post(
-            id = "feed-$it",
-            title = "오늘 하늘 미쳤다 ${it + 1}",
-            author = "user$it",
-            like = (5..60).random(),
-            comment = (0..12).random(),
-            thumbnailRes = null
-        )
-    }
-    CommunityTab.Hot -> List(8) {
-        Post(
-            id = "hot-$it",
-            title = "🔥 이번 주 인기 관측 포인트 ${it + 1}",
-            author = "astro$it",
-            like = (50..300).random(),
-            comment = (10..80).random(),
-            thumbnailRes = R.drawable.ic_star
-        )
-    }
-    CommunityTab.My -> List(6) {
-        Post(
-            id = "my-$it",
-            title = "내 기록 ${it + 1}",
-            author = "나",
-            like = (0..20).random(),
-            comment = (0..10).random(),
-            thumbnailRes = null
-        )
-    }
-}
-
-// --- 미리보기 ---
-@Preview(showBackground = true, widthDp = 360, heightDp = 640)
-@Composable
-private fun CommunityScreenPreview() {
-    AppTheme {
-        var current by remember { mutableStateOf(CommunityTab.Feed) }
-        CommunityScreen(
-            tab = current,
-            onSelectTab = { current = it },
-            onOpenPost = {}
-        )
-    }
-}
-

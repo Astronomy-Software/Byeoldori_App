@@ -35,7 +35,7 @@ fun ObservatoryInfoCard(
                 state = listState,
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 15.dp, vertical = 0.dp)
+                    .padding(horizontal = 15.dp)
                 ,
             ) {
                 // 1) 관측지 기본 정보

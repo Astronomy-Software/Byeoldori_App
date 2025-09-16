@@ -29,6 +29,7 @@
             android:exported="true"
             android:theme="@style/Theme.Byeoldori"
             android:windowLayoutInDisplayCutoutMode="shortEdges"
+            android:windowSoftInputMode="adjustResize"
             tools:targetApi="o_mr1">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
