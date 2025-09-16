@@ -1,31 +1,69 @@
+// data/di/NetworkModule.kt
 package com.example.byeoldori.data.di
 
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import com.example.byeoldori.BuildConfig
-import com.example.byeoldori.data.api.ApiService
+import com.example.byeoldori.data.api.AuthApi
+import com.example.byeoldori.data.api.ObservationSiteApi
+import com.example.byeoldori.data.api.RefreshApi
+import com.example.byeoldori.data.api.UserApi
 import com.example.byeoldori.data.local.datastore.TokenDataStore
 import com.example.byeoldori.data.remote.interceptor.AuthInterceptor
 import com.example.byeoldori.data.remote.interceptor.NetworkCacheInterceptor
+import com.example.byeoldori.data.remote.interceptor.RefreshTokenAuthenticator
+import com.squareup.moshi.Moshi
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import okhttp3.Cache
+import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
+import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import java.io.File
 import java.util.concurrent.TimeUnit
+import javax.inject.Qualifier
 import javax.inject.Singleton
+
+// ──────────────────────────────
+// Qualifiers
+// ──────────────────────────────
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class UnauthOkHttp
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class UnauthRetrofit
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class AuthedOkHttp
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class AuthedRetrofit
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class RefreshOkHttp
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class RefreshRetrofit
 
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
 
+    // ───────── 공통 제공 ─────────
     @Provides @Singleton
-    fun provideCache(@ApplicationContext ctx: Context): okhttp3.Cache =
-        okhttp3.Cache(File(ctx.cacheDir, "http_cache"), 20L * 1024 * 1024)
+    fun provideCache(@ApplicationContext ctx: Context): Cache =
+        Cache(File(ctx.cacheDir, "http_cache"), 20L * 1024 * 1024)
 
     @Provides @Singleton
     fun provideIsOnline(@ApplicationContext ctx: Context): () -> Boolean = {
@@ -44,43 +82,126 @@ object NetworkModule {
         AuthInterceptor(tokenStore)
 
     @Provides @Singleton
-    fun provideOkHttp(
-        cache: okhttp3.Cache,
-        auth: AuthInterceptor,
-        cacheInterceptor: NetworkCacheInterceptor
-    ): okhttp3.OkHttpClient {
-        val logging = HttpLoggingInterceptor().apply {
+    fun provideMoshi(): Moshi = Moshi.Builder().build()
+
+    private fun provideLogging(): HttpLoggingInterceptor =
+        HttpLoggingInterceptor().apply {
             level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY
             else HttpLoggingInterceptor.Level.BASIC
         }
-        return okhttp3.OkHttpClient.Builder()
+
+    // ───────── (1) 비인증용 Unauth ─────────
+    @Provides @Singleton @UnauthOkHttp
+    fun provideUnauthOkHttp(
+        cache: Cache,
+        cacheInterceptor: NetworkCacheInterceptor,
+    ): OkHttpClient =
+        OkHttpClient.Builder()
             .cache(cache)
-            .addInterceptor(auth)
             .addInterceptor(cacheInterceptor)
-            .addInterceptor(logging)
+            .addInterceptor(provideLogging())
+            // 인증/재발급 관련 구성 절대 추가 X
             .connectTimeout(10, TimeUnit.SECONDS)
             .readTimeout(20, TimeUnit.SECONDS)
             .writeTimeout(20, TimeUnit.SECONDS)
             .retryOnConnectionFailure(true)
             .build()
-    }
 
-    @Provides @Singleton
-    fun provideMoshi(): com.squareup.moshi.Moshi =
-        com.squareup.moshi.Moshi.Builder().build()
+    @Provides @Singleton @UnauthRetrofit
+    fun provideUnauthRetrofit(
+        @UnauthOkHttp ok: OkHttpClient,
+        moshi: Moshi
+    ): Retrofit =
+        Retrofit.Builder()
+            .baseUrl(BuildConfig.BASE_URL) // 반드시 / 로 끝나야 함
+            .client(ok)
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
+            .build()
 
+    // 비인증 Api
     @Provides @Singleton
-    fun provideRetrofit(
-        client: okhttp3.OkHttpClient,
-        moshi: com.squareup.moshi.Moshi
-    ): retrofit2.Retrofit =
-        retrofit2.Retrofit.Builder()
+    fun provideAuthApi(@UnauthRetrofit retrofit: Retrofit): AuthApi =
+        retrofit.create(AuthApi::class.java)
+
+    // ───────── (2) 재발급 전용 Refresh ─────────
+    @Provides @Singleton @RefreshOkHttp
+    fun provideRefreshOkHttp(
+        cache: Cache,
+        cacheInterceptor: NetworkCacheInterceptor,
+    ): OkHttpClient =
+        OkHttpClient.Builder()
+            .cache(cache)
+            .addInterceptor(cacheInterceptor)
+            .addInterceptor(provideLogging())
+            // 인증/재발급 관련 구성 절대 추가 X
+            .connectTimeout(10, TimeUnit.SECONDS)
+            .readTimeout(20, TimeUnit.SECONDS)
+            .writeTimeout(20, TimeUnit.SECONDS)
+            .retryOnConnectionFailure(true)
+            .build()
+
+    @Provides @Singleton @RefreshRetrofit
+    fun provideRefreshRetrofit(
+        @RefreshOkHttp ok: OkHttpClient,
+        moshi: Moshi
+    ): Retrofit =
+        Retrofit.Builder()
             .baseUrl(BuildConfig.BASE_URL)
-            .client(client)
+            .client(ok)
             .addConverterFactory(MoshiConverterFactory.create(moshi))
             .build()
 
     @Provides @Singleton
-    fun provideApi(retrofit: retrofit2.Retrofit): ApiService =
-        retrofit.create(ApiService::class.java)
+    fun provideRefreshApi(@RefreshRetrofit retrofit: Retrofit): RefreshApi =
+        retrofit.create(RefreshApi::class.java)
+
+    @Provides @Singleton
+    fun provideRefreshAuthenticator(
+        tokenStore: TokenDataStore,
+        refreshApi: RefreshApi
+    ): RefreshTokenAuthenticator =
+        RefreshTokenAuthenticator(tokenStore, refreshApi)
+
+    // ───────── (3) 인증용 Authed ─────────
+    @Provides @Singleton @AuthedOkHttp
+    fun provideAuthedOkHttp(
+        cache: Cache,
+        auth: AuthInterceptor,
+        cacheInterceptor: NetworkCacheInterceptor,
+        refreshAuthenticator: RefreshTokenAuthenticator
+    ): OkHttpClient =
+        OkHttpClient.Builder()
+            .cache(cache)
+            .addInterceptor(auth)               // Authorization: Bearer <AT>
+            .addInterceptor(cacheInterceptor)   // 캐시 정책
+            .addInterceptor(provideLogging())
+            .authenticator(refreshAuthenticator) // 401 → 자동 재발급
+            .connectTimeout(10, TimeUnit.SECONDS)
+            .readTimeout(20, TimeUnit.SECONDS)
+            .writeTimeout(20, TimeUnit.SECONDS)
+            .retryOnConnectionFailure(true)
+            .build()
+
+    @Provides @Singleton @AuthedRetrofit
+    fun provideAuthedRetrofit(
+        @AuthedOkHttp ok: OkHttpClient,
+        moshi: Moshi
+    ): Retrofit =
+        Retrofit.Builder()
+            .baseUrl(BuildConfig.BASE_URL)
+            .client(ok)
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
+            .build()
+
+    // 인증 Api
+    @Provides @Singleton
+    fun provideUserApi(@AuthedRetrofit retrofit: Retrofit): UserApi =
+        retrofit.create(UserApi::class.java)
+
+    // obseravtionSite용
+    @Provides
+    @Singleton
+    fun provideObservationSiteApi(@UnauthRetrofit retrofit: Retrofit): ObservationSiteApi {
+        return retrofit.create(ObservationSiteApi::class.java)
+    }
 }

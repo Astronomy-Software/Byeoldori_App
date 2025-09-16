@@ -2,7 +2,6 @@ package com.example.byeoldori
 
 // src/test/java/com/example/byeoldori/data/api/ApiServiceTest.kt
 import com.example.byeoldori.data.api.ApiService
-import com.example.byeoldori.data.model.dto.LoginRequest
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 import kotlinx.coroutines.runBlocking

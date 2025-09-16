@@ -1,25 +1,11 @@
 package com.example.byeoldori.ui.screen.Home
 
-//@Composable
-//fun HomeScreen() {
-//    Box(
-//        modifier = Modifier.fillMaxSize(),
-//        contentAlignment = Alignment.Center
-//    ) {
-//        Text(
-//            text = "홈화면이에요",
-//            fontSize = 28.sp // 글자 크기 키움
-//        )
-//        LoginScreen()
-//    }
-//}
-
 import android.app.Application
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -35,6 +21,7 @@ import com.example.byeoldori.data.AuthRepository
 import com.example.byeoldori.data.LoginScreen
 import com.example.byeoldori.data.LoginViewModel
 import com.example.byeoldori.data.Network
+import com.example.byeoldori.ui.screen.TestObservationSiteScreen
 
 @Composable
 fun HomeScreen() {
@@ -55,21 +42,26 @@ fun HomeScreen() {
     // LoginViewModel 주입
     val loginVm: LoginViewModel = viewModel(factory = vmFactory)
 
-    // 레이아웃: Column으로 타이틀 + 로그인 UI를 세로 배치
-    Column(
+    LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .padding(20.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            text = "홈화면이에요",
-            fontSize = 28.sp
-        )
-        Spacer(Modifier.height(16.dp))
+        item {
+            Text("홈화면이에요", fontSize = 28.sp)
+            Spacer(Modifier.height(16.dp))
+        }
 
-        // 로그인 UI 삽입
-        LoginScreen(vm = loginVm)
+        item {
+            LoginScreen(vm = loginVm)
+            Spacer(Modifier.height(16.dp))
+        }
+
+        // 관측지 리스트
+        item {
+            TestObservationSiteScreen()
+        }
     }
 }
 

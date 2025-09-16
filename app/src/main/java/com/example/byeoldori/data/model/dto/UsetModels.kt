@@ -11,3 +11,9 @@ data class UserDto(
     @Json(name = "avatar_url") val avatarUrl: String? = null,
     val role: String? = null
 )
+
+@JsonClass(generateAdapter = true)
+data class UserProfile(
+    val nickname: String?,
+    val birthdate: String? // yyyy-MM-dd
+)

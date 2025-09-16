@@ -1,11 +1,8 @@
 package com.example.byeoldori.data
 
-// LoginDemo.kt
+// 로그인 데모용으로 만든친구인데 API 구조 참조할때 확인하세요
 
 import android.app.Application
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -18,9 +15,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -34,12 +29,9 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.byeoldori.BuildConfig
-import com.squareup.moshi.Json
+import com.example.byeoldori.data.model.common.TokenData
 import com.squareup.moshi.JsonClass
 import com.squareup.moshi.Moshi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -66,10 +58,9 @@ data class LoginRequest(
 
 @JsonClass(generateAdapter = true)
 data class LoginResponse(
-    @Json(name = "accessToken") val accessToken: String,
-    @Json(name = "refreshToken") val refreshToken: String,
-    @Json(name = "userId") val userId: Long,
-    @Json(name = "nickname") val nickname: String?
+    val success: Boolean,
+    val message: String,
+    val data: TokenData
 )
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -137,11 +128,12 @@ object Network {
 
 // ──────────────────────────────────────────────────────────────────────────────
 class AuthRepository(private val api: AuthApi) {
-    suspend fun login(email: String, password: String): LoginResponse {
+    suspend fun login(email: String, password: String): TokenData {
         val resp = api.login(LoginRequest(email, password))
-        InMemoryTokenStore.accessToken = resp.accessToken
-        InMemoryTokenStore.refreshToken = resp.refreshToken
-        return resp
+        val tokenData = resp.data
+        InMemoryTokenStore.accessToken = tokenData.accessToken
+        InMemoryTokenStore.refreshToken = tokenData.refreshToken
+        return tokenData
     }
 }
 
@@ -149,7 +141,7 @@ class AuthRepository(private val api: AuthApi) {
 sealed interface LoginUiState {
     data object Idle : LoginUiState
     data object Loading : LoginUiState
-    data class Success(val nickname: String?, val userId: Long) : LoginUiState
+    data class Success(val tokens: TokenData) : LoginUiState
     data class Error(val message: String) : LoginUiState
 }
 
@@ -166,8 +158,8 @@ class LoginViewModel(
         viewModelScope.launch {
             _uiState.value = LoginUiState.Loading
             try {
-                val resp = repo.login(email, password)
-                _uiState.value = LoginUiState.Success(resp.nickname, resp.userId)
+                val tokens = repo.login(email, password)
+                _uiState.value = LoginUiState.Success(tokens)
             } catch (e: Exception) {
                 _uiState.value = LoginUiState.Error(e.message ?: "알 수 없는 오류가 발생했습니다.")
             }
@@ -177,30 +169,6 @@ class LoginViewModel(
     fun logout() {
         InMemoryTokenStore.clear()
         _uiState.value = LoginUiState.Idle
-    }
-}
-
-// ──────────────────────────────────────────────────────────────────────────────
-class LoginDemoActivity : ComponentActivity() {
-
-    @Suppress("UNCHECKED_CAST")
-    private val vmFactory = object : ViewModelProvider.Factory {
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            val repo = AuthRepository(Network.authApi)
-            return LoginViewModel(application, repo) as T
-        }
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent {
-            MaterialTheme {
-                Surface(modifier = Modifier.fillMaxSize()) {
-                    val vm: LoginViewModel = viewModel(factory = vmFactory)
-                    LoginScreen(vm = vm)
-                }
-            }
-        }
     }
 }
 
@@ -265,12 +233,13 @@ fun LoginScreen(vm: LoginViewModel) {
             is LoginUiState.Loading -> LinearProgressIndicator(Modifier.fillMaxWidth())
             is LoginUiState.Success -> {
                 val s = uiState as LoginUiState.Success
-                Text("로그인 성공! 사용자 #${s.userId}, 닉네임: ${s.nickname ?: "(없음)"}")
+                Text("로그인 성공!")
                 Spacer(Modifier.height(8.dp))
-                Text("AccessToken: ${InMemoryTokenStore.accessToken?.take(12)}…")
-                Spacer(Modifier.height(8.dp))
-                OutlinedButton(onClick = { vm.logout() }) { Text("로그아웃") }
+                Text("AccessToken: ${s.tokens.accessToken.take(12)}…")
+                Text("만료(AT): ${s.tokens.accessTokenExpiresAt}")
+                Text("만료(RT): ${s.tokens.refreshTokenExpiresAt}")
             }
+
             is LoginUiState.Error -> {
                 val e = uiState as LoginUiState.Error
                 Text("오류: ${e.message}", color = MaterialTheme.colorScheme.error)

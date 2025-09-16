@@ -4,7 +4,6 @@ import java.io.FileInputStream
         plugins {
             alias(libs.plugins.android.application)
             alias(libs.plugins.kotlin.android)
-            // ✅ Hilt 플러그인 반드시 활성화
             alias(libs.plugins.hilt)
             alias(libs.plugins.ksp)
             alias(libs.plugins.firebase.appdistribution)
