@@ -13,7 +13,25 @@ data class UserDto(
 )
 
 @JsonClass(generateAdapter = true)
-data class UserProfile(
+data class UpdateUserProfile(
     val nickname: String?,
     val birthdate: String? // yyyy-MM-dd
+)
+
+
+@JsonClass(generateAdapter = true)
+data class UserProfile(
+    val id: Long,
+    val email: String,
+    val name: String,
+    val phone: String?,
+    val nickname: String?,
+    val birthdate: String?, // yyyy-MM-dd
+    val emailVerified: Boolean,
+    val lastLoginAt: String?,
+    val roles: List<String>,
+    val createdAt: String,
+    val updatedAt: String,
+    val passwordHash: String,
+    // passwordHash 는 보안상 굳이 앱에서 쓸 필요 없으면 뺄 수 있음
 )

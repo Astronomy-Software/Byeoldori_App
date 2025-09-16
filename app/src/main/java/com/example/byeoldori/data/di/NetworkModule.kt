@@ -30,7 +30,7 @@ import javax.inject.Qualifier
 import javax.inject.Singleton
 
 // ──────────────────────────────
-// Qualifiers
+// Qualifiers (Retrofit/OkHttp 구분용)
 // ──────────────────────────────
 @Qualifier
 @Retention(AnnotationRetention.BINARY)
@@ -75,7 +75,7 @@ object NetworkModule {
 
     @Provides @Singleton
     fun provideCacheInterceptor(isOnline: () -> Boolean) =
-        NetworkCacheInterceptor(isOnline = isOnline)
+        NetworkCacheInterceptor(isOnline)
 
     @Provides @Singleton
     fun provideAuthInterceptor(tokenStore: TokenDataStore) =
@@ -84,7 +84,8 @@ object NetworkModule {
     @Provides @Singleton
     fun provideMoshi(): Moshi = Moshi.Builder().build()
 
-    private fun provideLogging(): HttpLoggingInterceptor =
+    @Provides @Singleton
+    fun provideLogging(): HttpLoggingInterceptor =
         HttpLoggingInterceptor().apply {
             level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY
             else HttpLoggingInterceptor.Level.BASIC
@@ -95,12 +96,12 @@ object NetworkModule {
     fun provideUnauthOkHttp(
         cache: Cache,
         cacheInterceptor: NetworkCacheInterceptor,
+        logging: HttpLoggingInterceptor
     ): OkHttpClient =
         OkHttpClient.Builder()
             .cache(cache)
             .addInterceptor(cacheInterceptor)
-            .addInterceptor(provideLogging())
-            // 인증/재발급 관련 구성 절대 추가 X
+            .addInterceptor(logging)
             .connectTimeout(10, TimeUnit.SECONDS)
             .readTimeout(20, TimeUnit.SECONDS)
             .writeTimeout(20, TimeUnit.SECONDS)
@@ -113,12 +114,11 @@ object NetworkModule {
         moshi: Moshi
     ): Retrofit =
         Retrofit.Builder()
-            .baseUrl(BuildConfig.BASE_URL) // 반드시 / 로 끝나야 함
+            .baseUrl(BuildConfig.BASE_URL) // 반드시 "/"로 끝나야 함
             .client(ok)
             .addConverterFactory(MoshiConverterFactory.create(moshi))
             .build()
 
-    // 비인증 Api
     @Provides @Singleton
     fun provideAuthApi(@UnauthRetrofit retrofit: Retrofit): AuthApi =
         retrofit.create(AuthApi::class.java)
@@ -128,12 +128,13 @@ object NetworkModule {
     fun provideRefreshOkHttp(
         cache: Cache,
         cacheInterceptor: NetworkCacheInterceptor,
+        logging: HttpLoggingInterceptor
     ): OkHttpClient =
         OkHttpClient.Builder()
             .cache(cache)
             .addInterceptor(cacheInterceptor)
-            .addInterceptor(provideLogging())
-            // 인증/재발급 관련 구성 절대 추가 X
+            .addInterceptor(logging)
+            // ❌ AuthInterceptor 절대 넣지 않음
             .connectTimeout(10, TimeUnit.SECONDS)
             .readTimeout(20, TimeUnit.SECONDS)
             .writeTimeout(20, TimeUnit.SECONDS)
@@ -168,14 +169,15 @@ object NetworkModule {
         cache: Cache,
         auth: AuthInterceptor,
         cacheInterceptor: NetworkCacheInterceptor,
+        logging: HttpLoggingInterceptor,
         refreshAuthenticator: RefreshTokenAuthenticator
     ): OkHttpClient =
         OkHttpClient.Builder()
             .cache(cache)
-            .addInterceptor(auth)               // Authorization: Bearer <AT>
-            .addInterceptor(cacheInterceptor)   // 캐시 정책
-            .addInterceptor(provideLogging())
-            .authenticator(refreshAuthenticator) // 401 → 자동 재발급
+            .addInterceptor(auth)               // ✅ AccessToken 붙여줌
+            .addInterceptor(cacheInterceptor)
+            .addInterceptor(logging)
+            .authenticator(refreshAuthenticator) // ✅ 401 시 자동 재발급
             .connectTimeout(10, TimeUnit.SECONDS)
             .readTimeout(20, TimeUnit.SECONDS)
             .writeTimeout(20, TimeUnit.SECONDS)
@@ -193,15 +195,11 @@ object NetworkModule {
             .addConverterFactory(MoshiConverterFactory.create(moshi))
             .build()
 
-    // 인증 Api
     @Provides @Singleton
     fun provideUserApi(@AuthedRetrofit retrofit: Retrofit): UserApi =
         retrofit.create(UserApi::class.java)
 
-    // obseravtionSite용
-    @Provides
-    @Singleton
-    fun provideObservationSiteApi(@UnauthRetrofit retrofit: Retrofit): ObservationSiteApi {
-        return retrofit.create(ObservationSiteApi::class.java)
-    }
+    @Provides @Singleton
+    fun provideObservationSiteApi(@UnauthRetrofit retrofit: Retrofit): ObservationSiteApi =
+        retrofit.create(ObservationSiteApi::class.java)
 }

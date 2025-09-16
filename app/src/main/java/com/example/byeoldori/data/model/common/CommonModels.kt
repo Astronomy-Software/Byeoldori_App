@@ -7,7 +7,7 @@ import com.squareup.moshi.JsonClass
 data class ApiResponse<T>(
     val success: Boolean,
     val message: String,
-    val data: T
+    val data: T?
 )
 
 @JsonClass(generateAdapter = true)

@@ -174,7 +174,7 @@ class LoginViewModel(
 
 // ──────────────────────────────────────────────────────────────────────────────
 @Composable
-fun LoginScreen(vm: LoginViewModel) {
+fun TestLoginScreen(vm: LoginViewModel) {
     val uiState by vm.uiState.collectAsState()
     val focus = LocalFocusManager.current
 

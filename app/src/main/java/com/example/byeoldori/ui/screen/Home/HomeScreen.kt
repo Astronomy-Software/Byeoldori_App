@@ -18,9 +18,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.byeoldori.data.AuthRepository
-import com.example.byeoldori.data.LoginScreen
 import com.example.byeoldori.data.LoginViewModel
 import com.example.byeoldori.data.Network
+import com.example.byeoldori.data.Test2LoginScreen
+import com.example.byeoldori.data.TestUserScreen
 import com.example.byeoldori.ui.screen.TestObservationSiteScreen
 
 @Composable
@@ -54,13 +55,16 @@ fun HomeScreen() {
         }
 
         item {
-            LoginScreen(vm = loginVm)
-            Spacer(Modifier.height(16.dp))
+            Test2LoginScreen()
         }
 
         // 관측지 리스트
         item {
             TestObservationSiteScreen()
+        }
+
+        item {
+            TestUserScreen()
         }
     }
 }

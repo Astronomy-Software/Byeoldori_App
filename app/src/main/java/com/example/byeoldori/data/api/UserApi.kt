@@ -2,7 +2,9 @@
 package com.example.byeoldori.data.api
 
 import com.example.byeoldori.data.model.common.ApiResponse
-import com.squareup.moshi.JsonClass
+import com.example.byeoldori.data.model.dto.UpdateUserProfile
+import com.example.byeoldori.data.model.dto.UserProfile
+import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.PATCH
@@ -13,17 +15,13 @@ interface UserApi {
     suspend fun getMyProfile(): ApiResponse<UserProfile>
 
     @PATCH("users/me")
-    suspend fun updateMe(): ApiResponse<Unit?>
+    suspend fun updateMe(
+        @Body body : UpdateUserProfile
+    ): ApiResponse<Any?>
 
     @DELETE("users/me")
-    suspend fun resign(): ApiResponse<Unit?>
+    suspend fun resign(): ApiResponse<Any?>
 
     @POST("users/logout")
-    suspend fun logOut(): ApiResponse<Unit?>
+    suspend fun logOut(): ApiResponse<Any?>
 }
-
-@JsonClass(generateAdapter = true)
-data class UserProfile(
-    val nickname: String?,
-    val birthdate: String? // yyyy-MM-dd
-)

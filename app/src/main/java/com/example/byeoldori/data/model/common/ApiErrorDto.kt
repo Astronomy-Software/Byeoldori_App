@@ -1,4 +1,4 @@
-package com.example.byeoldori.data.model.dto
+package com.example.byeoldori.data.model.common
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass

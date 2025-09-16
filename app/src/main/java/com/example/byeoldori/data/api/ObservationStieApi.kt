@@ -1,16 +1,8 @@
+
 package com.example.byeoldori.data.api
 
-
-import com.example.byeoldori.data.model.dto.ObservationSite
-import com.example.byeoldori.data.model.dto.ObservationSiteRegisterRequest
-import com.example.byeoldori.data.model.dto.ObservationSiteUpdateRequest
-import com.example.byeoldori.data.model.dto.ObservationSitesRecommendRequest
-import retrofit2.http.Body
-import retrofit2.http.DELETE
-import retrofit2.http.GET
-import retrofit2.http.POST
-import retrofit2.http.PUT
-import retrofit2.http.Path
+import com.example.byeoldori.data.model.dto.*
+import retrofit2.http.*
 
 interface ObservationSiteApi {
     @GET("observationsites")
