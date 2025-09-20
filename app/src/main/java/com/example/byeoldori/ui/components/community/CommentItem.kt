@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.*
 import com.example.byeoldori.R
 import com.example.byeoldori.ui.theme.*
 import com.example.byeoldori.viewmodel.Community.ReviewComment
+import com.example.byeoldori.viewmodel.dummyFreeComments
 
 @Composable
 private fun formatCommentTime(createdAt: Long): String = try {
@@ -36,7 +37,8 @@ fun CommentItem(
     onEdit: (ReviewComment) -> Unit = {},
     onDelete: (ReviewComment) -> Unit = {},
     canEditDelete: (ReviewComment) -> Boolean = { false },
-    isLiked: Boolean = false
+    isLiked: Boolean = false,
+    showCommentCount: Boolean = true
 ) {
     val likeTint by animateColorAsState(
         targetValue = if (isLiked) Purple500 else Color.Unspecified,
@@ -123,22 +125,63 @@ fun CommentItem(
             }
             Spacer(Modifier.width(12.dp))
 
-            Icon(
-                painter = painterResource(R.drawable.ic_comment),
-                contentDescription = "대댓글",
-                tint = Color.Unspecified,
-                modifier = Modifier
-                    .size(17.dp)
-                    .clickable{onReply(comment)}
-            )
-            Spacer(Modifier.width(8.dp))
-            Text(
-                "${comment.commentCount}",
-                style = MaterialTheme.typography.bodySmall,
-                color = Color.White,
-                //modifier = Modifier.alignByBaseline()
-            )
+            if(showCommentCount) { //대댓글에 댓글 수를 표시할 필요가 없으니까
+                Icon(
+                    painter = painterResource(R.drawable.ic_comment),
+                    contentDescription = "대댓글",
+                    tint = Color.Unspecified,
+                    modifier = Modifier
+                        .size(17.dp)
+                        .clickable { onReply(comment) }
+                )
+                Spacer(Modifier.width(8.dp))
+                val replyCount = dummyFreeComments.count { it.parentId == comment.id }
+                Text(
+                    "$replyCount",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.White,
+                    //modifier = Modifier.alignByBaseline()
+                )
+            }
         }
+    }
+}
+
+@Composable
+fun CommentReplyItem(
+    comment: ReviewComment,
+    onLike: (ReviewComment) -> Unit = {},
+    onReply: (ReviewComment) -> Unit = {},
+    onEdit: (ReviewComment) -> Unit = {},
+    onDelete: (ReviewComment) -> Unit = {},
+    canEditDelete: (ReviewComment) -> Boolean = { false },
+    isLiked: Boolean = false
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 10.dp),
+        verticalAlignment = Alignment.Top
+    ) {
+        Icon(
+            painter = painterResource(R.drawable.ic_reply),
+            contentDescription = "대댓글 화살표",
+            tint = Color.Unspecified,
+            modifier = Modifier
+                .size(30.dp)
+                .offset(y=10.dp)
+        )
+        Spacer(Modifier.width(8.dp))
+        CommentItem(
+            comment = comment,
+            onLike = onLike,
+            onReply = onReply,
+            onEdit = onEdit,
+            onDelete = onDelete,
+            canEditDelete = canEditDelete,
+            isLiked = isLiked,
+            showCommentCount = false
+        )
     }
 }
 
@@ -154,8 +197,28 @@ private fun Preview_CommentItem() {
             content = "색다른 곳 있으면 알려주세요~",
             likeCount = 3,
             commentCount = 1,
-            createdAt = System.currentTimeMillis()
+            createdAt = System.currentTimeMillis(),
+            parentId = null
         )
         CommentItem(comment = sample)
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFF241860)
+@Composable
+private fun Preview_ReplyItem() {
+    MaterialTheme {
+        val reply = ReviewComment(
+            id = "c2",
+            reviewId = "r1",
+            author = "astro_user",
+            profile = R.drawable.profile1,
+            content = "저도 궁금합니다!",
+            likeCount = 1,
+            commentCount = 0,
+            createdAt = System.currentTimeMillis(),
+            parentId = "c1" // 부모 댓글 id
+        )
+        CommentReplyItem(comment = reply)
     }
 }

@@ -40,8 +40,7 @@ fun <T> SortBar(
     }
 }
 
-
-@Preview(showBackground = true, backgroundColor = 0xFF000000)
+@Preview(showBackground = true, backgroundColor = 0xFF241860)
 @Composable
 private fun Preview_SortBar() {
     var selected by remember { mutableStateOf(ReviewSort.Latest) }
@@ -51,7 +50,7 @@ private fun Preview_SortBar() {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Purple800) // 원하는 배경 색
+                    .background(Blue800)
                     .padding(12.dp)
             ) {
                 SortBar(

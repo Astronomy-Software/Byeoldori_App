@@ -11,17 +11,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
+import com.example.byeoldori.ui.components.community.toShortDate
 import com.example.byeoldori.ui.theme.TextDisabled
 import com.example.byeoldori.ui.theme.TextHighlight
-
-fun String.toShortDate(): String {
-    return try {
-        val parts = split("-") // "2025-10-29"
-        "%02d.%02d.%02d".format(parts[0].takeLast(2).toInt(), parts[1].toInt(), parts[2].toInt())
-    } catch (e: Exception) {
-        this
-    }
-}
 
 @Composable
 fun ReviewInput (
@@ -69,7 +61,6 @@ fun ReviewInput (
                 )
             }
         }
-
         Row(
             modifier = Modifier
                 .fillMaxWidth()

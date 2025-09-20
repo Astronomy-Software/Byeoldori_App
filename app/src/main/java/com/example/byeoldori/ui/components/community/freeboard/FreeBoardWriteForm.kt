@@ -4,26 +4,18 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.*
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.*
 import androidx.compose.ui.*
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
 import com.example.byeoldori.R
 import com.example.byeoldori.ui.components.community.*
 import com.example.byeoldori.ui.components.community.review.*
-import com.example.byeoldori.ui.theme.*
 import com.example.byeoldori.viewmodel.Community.*
-import com.example.byeoldori.viewmodel.Observatory.*
 
 
 @Composable
@@ -74,7 +66,6 @@ fun FreeBoardWriteForm (
         val hasContent = items.any { it is EditorItem.Paragraph && it.value.text.isNotBlank() }
         return hasTitle && hasContent
     }
-
 
     Box(Modifier.fillMaxSize()) {
         LazyColumn(

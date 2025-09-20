@@ -13,7 +13,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalDensity
 
-
+//ImePadding 이중 패딩 문제 해결
 fun Modifier.advancedImePadding(): Modifier = composed {
     var consumePaddingPx by remember { mutableStateOf(0) }
     val density = LocalDensity.current

@@ -4,20 +4,19 @@ import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.*
 import com.example.byeoldori.ui.components.community.*
-import com.example.byeoldori.ui.components.community.freeboard.FreeBoardSection
-import com.example.byeoldori.ui.components.community.program.EduProgramSection
-import com.example.byeoldori.ui.components.community.review.ReviewDetail
-import com.example.byeoldori.ui.components.community.review.ReviewSection
-import com.example.byeoldori.ui.components.community.review.ReviewWriteForm
+import com.example.byeoldori.ui.components.community.program.*
 import com.example.byeoldori.ui.theme.*
 import com.example.byeoldori.viewmodel.Observatory.*
-import com.example.byeoldori.ui.components.community.freeboard.FreeBoardDetail
-import com.example.byeoldori.ui.components.community.freeboard.FreeBoardWriteForm
+import com.example.byeoldori.ui.components.community.freeboard.*
+import com.example.byeoldori.ui.components.community.review.CommuReviewSection
+import com.example.byeoldori.ui.components.community.review.ReviewDetail
+import com.example.byeoldori.viewmodel.Community.EduProgram
+import com.example.byeoldori.viewmodel.*
+import com.example.byeoldori.ui.components.community.review.ReviewWriteForm
 
 // --- 탭 정의 ---
 enum class CommunityTab(val label: String, val routeSeg: String) {
@@ -30,8 +29,7 @@ enum class CommunityTab(val label: String, val routeSeg: String) {
 @Composable
 fun CommunityScreen(
     tab: CommunityTab,
-    onSelectTab: (CommunityTab) -> Unit,
-    onOpenPost: (String) -> Unit = {},
+    onSelectTab: (CommunityTab) -> Unit
 ) {
     val tabs = CommunityTab.entries
     var showWriteForm by remember { mutableStateOf(false) }
@@ -40,10 +38,10 @@ fun CommunityScreen(
     var lastSubmittedReview by remember { mutableStateOf<Review?>(null) }
     var selectedReview by remember { mutableStateOf<Review?>(null) }
     var selectedFreePost by remember { mutableStateOf<String?>(null) }
+    var selectedProgram by remember { mutableStateOf<EduProgram?>(null) }
     val currentUser = "헤이헤이"
     var showFreeBoardWriteForm by remember { mutableStateOf(false) }
     var successMessage by remember { mutableStateOf("") }
-
 
     when {
         showWriteForm -> {
@@ -55,13 +53,14 @@ fun CommunityScreen(
                 onTempSave = {},
                 onMore = { /* 더보기 */ },
                 onSubmitReview = { newReview ->
-                    reviews.add(0, newReview)    // 최신 리뷰가 맨 위로
-                    dummyReviews.add(0, newReview) //더미 데이터에도 추가
+                    if (reviews.none { it.id == newReview.id }) {
+                        reviews.add(0, newReview)
+                    }
                     lastSubmittedReview = newReview
                     showWriteForm = false        // 작성창 닫기
                     showSuccessDialog = true
                 },
-                initialReview = lastSubmittedReview
+                initialReview = null
             )
 
         }
@@ -87,13 +86,22 @@ fun CommunityScreen(
                 }
             )
         }
-
-
         selectedReview != null -> {
             ReviewDetail(
                 review = selectedReview!!,
                 onBack = { selectedReview = null },  // 뒤로가기 누르면 다시 목록으로
-                currentUser = currentUser
+                currentUser = currentUser,
+                onSyncReviewLikeCount = { id, next ->
+                    val idx = reviews.indexOfFirst { it.id == id }
+                    if (idx >= 0) {
+                        reviews[idx] = reviews[idx].copy(likeCount = next)
+                    }
+                    //dummyReviews도 같이 갱신
+                    val j = dummyReviews.indexOfFirst { it.id == id }
+                    if (j >= 0) {
+                        dummyReviews[j] = dummyReviews[j].copy(likeCount = next)
+                    }
+                }
             )
         }
         selectedFreePost != null -> {
@@ -106,6 +114,13 @@ fun CommunityScreen(
 
                 )
             }
+        }
+        selectedProgram != null -> {
+            EduProgramDetail(
+                program = selectedProgram!!,
+                onBack = { selectedProgram = null },
+                currentUser = currentUser
+            )
         }
 
         else -> {
@@ -141,34 +156,52 @@ fun CommunityScreen(
                 }
                 when (tab) {
                     CommunityTab.Review -> {
-                        ReviewSection(
+                        CommuReviewSection(
                             reviewsAll = reviews,
                             onWriteClick = { showWriteForm = true },
-                            onReviewClick = { review ->
-                                selectedReview = review
+                            onReviewClick = { review -> selectedReview = review },
+                            onSyncReviewLikeCount = { id, next ->
+                                val i = reviews.indexOfFirst { it.id == id }
+                                if (i >= 0) reviews[i] = reviews[i].copy(likeCount = next)
+
+                                //추가: 초기 소스도 함께 갱신
+                                val j = dummyReviews.indexOfFirst { it.id == id }
+                                if (j >= 0) dummyReviews[j] = dummyReviews[j].copy(likeCount = next)
                             }
                         )
                     }
 
                     CommunityTab.Program -> {
-                        EduProgramSection(eduProgramsAll = dummyPrograms, onWriteClick = {})
+                        EduProgramSection(
+                            eduProgramsAll = dummyPrograms,
+                            onWriteClick = {}, //추후 추가
+                            onClickProgram = { id ->
+                                val program = dummyPrograms.find { it.id == id }
+                                if (program != null) selectedProgram = program
+                            }
+                        )
                     }
 
                     CommunityTab.Home -> {
-                        val recentReviews by remember {
-                            derivedStateOf { reviews.sortedByDescending { it.createdAt }.take(8) }
-                        }
-                        val recentPrograms =
-                            remember { dummyPrograms.sortedByDescending { it.createdAt }.take(8) }
-                        val popularFreePost =
-                            remember { dummyFreePosts.sortedByDescending { it.likeCount }.take(8) }
+                        val recentReviews by remember { derivedStateOf { reviews.sortedByDescending { it.createdAt }.take(8) } }
+                        val recentPrograms = remember { dummyPrograms.sortedByDescending { it.createdAt }.take(8) }
+                        val popularFreePost = remember { dummyFreePosts.sortedByDescending { it.likeCount }.take(8) }
 
                         HomeSection(
                             recentReviews = recentReviews,
                             recentEduPrograms = recentPrograms,
                             popularFreePosts = popularFreePost,
                             onReviewClick = { selectedReview = it },
-                            onFreePostClick = { selectedFreePost = it.id }
+                            onProgramClick = { selectedProgram = it },
+                            onFreePostClick = { selectedFreePost = it.id },
+                            onSyncReviewLikeCount = { id, next ->
+                                val i = reviews.indexOfFirst { it.id == id }
+                                if (i >= 0) reviews[i] = reviews[i].copy(likeCount = next)
+
+                                // (옵션) 초기 더미도 같이 갱신
+                                val j = dummyReviews.indexOfFirst { it.id == id }
+                                if (j >= 0) dummyReviews[j] = dummyReviews[j].copy(likeCount = next)
+                            }
                         )
                     }
 
@@ -192,7 +225,13 @@ fun CommunityScreen(
                 }
             },
             title = { Text("알림",color = Color.Black) },
-            text = {  Text(successMessage) }
+            text = {
+                Column {
+                    Text("정상적으로 등록되었습니다.", color = Color.Black)
+                    Spacer(Modifier.height(8.dp))
+                    Text(successMessage, color = Color.DarkGray)
+                }
+            }
         )
     }
 }

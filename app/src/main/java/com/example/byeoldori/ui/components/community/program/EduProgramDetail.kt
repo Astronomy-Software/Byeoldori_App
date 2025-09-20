@@ -1,7 +1,8 @@
-package com.example.byeoldori.ui.components.community.freeboard
+package com.example.byeoldori.ui.components.community.program
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.*
@@ -17,17 +18,18 @@ import com.example.byeoldori.ui.components.community.*
 import com.example.byeoldori.ui.components.community.review.*
 import com.example.byeoldori.ui.theme.*
 import com.example.byeoldori.viewmodel.Community.*
-import com.example.byeoldori.viewmodel.dummyFreeComments
-import com.example.byeoldori.viewmodel.dummyFreePosts
+import com.example.byeoldori.viewmodel.dummyProgramComments
+import com.example.byeoldori.viewmodel.dummyPrograms
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FreeBoardDetail (
-    post: FreePost,
+fun EduProgramDetail(
+    program: EduProgram,
     onBack: () -> Unit,
     onShare: () -> Unit = {},
     onMore: () -> Unit = {},
-    currentUser: String
+    currentUser: String,
+    onStartProgram: () -> Unit = {}
 ) {
     var input by rememberSaveable { mutableStateOf("") }
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -35,7 +37,7 @@ fun FreeBoardDetail (
     var editingTarget by remember { mutableStateOf<ReviewComment?>(null) }
     var requestKeyboard by remember { mutableStateOf(false) }
     var liked by rememberSaveable { mutableStateOf(setOf<String>()) }
-    var postLikeCount by rememberSaveable { mutableStateOf(post.likeCount) }
+    var postLikeCount by rememberSaveable { mutableStateOf(program.likeCount) }
     var parent by remember { mutableStateOf<ReviewComment?>(null) }
 
     LaunchedEffect(requestKeyboard) {
@@ -44,6 +46,14 @@ fun FreeBoardDetail (
             keyboardController?.show()
             requestKeyboard = false  // 한 번만 실행
         }
+    }
+
+    // 화면 들어올 때 LikeState → 로컬 liked 로 반영
+    LaunchedEffect(program.id) {
+        liked = LikeState.ids
+            .filter { it.startsWith("programComment:") }
+            .map { it.removePrefix("programComment:") } //접두사를 제거해서 댓글 고유의 ID만 남김
+            .toSet()
     }
 
     Scaffold(
@@ -100,21 +110,19 @@ fun FreeBoardDetail (
                     val t = raw.trim()
                     val target = editingTarget
                     if (target != null) {
-                        val idx = dummyFreeComments.indexOfFirst { it.id == target.id }
+                        val idx =  dummyProgramComments.indexOfFirst { it.id == target.id }
                         if (idx >= 0) {
-                            dummyFreeComments[idx] = target.copy(content = t)
+                            dummyProgramComments[idx] = target.copy(content = t)
                         }
                         // 모드 종료 + 입력 비우기
                         editingTarget = null
                         input = ""
                         return@CommentInput
                     }
-
-                    // 자유게시판 댓글도 ReviewComment 더미를 재사용 (키는 post.id)
-                    dummyFreeComments.add(
+                    dummyProgramComments.add(
                         ReviewComment(
-                            id = "c${System.currentTimeMillis()}",
-                            reviewId = post.id,
+                            id = "pc${System.currentTimeMillis()}",
+                            reviewId = program.id,
                             author = currentUser,
                             profile = R.drawable.profile1,
                             content = t,
@@ -125,12 +133,12 @@ fun FreeBoardDetail (
                         )
                     )
                     //대댓글
-                    if(parent != null) {
-                        val idx = dummyFreeComments.indexOfFirst { it.id == parent?.id }
+                    parent?.let { p ->
+                        val idx = dummyProgramComments.indexOfFirst { it.id == p?.id }
                         if (idx >= 0) { //부모 댓글 찾으면
-                            val cur = dummyFreeComments[idx]
+                            val cur = dummyProgramComments[idx]
                             val next = cur.copy(commentCount = cur.commentCount + 1)
-                            dummyFreeComments[idx] = next
+                            dummyProgramComments[idx] = next
                         }
                         parent = null //대댓글 모드 해제
                     }
@@ -151,12 +159,12 @@ fun FreeBoardDetail (
         ) {
             item {
                 Spacer(Modifier.height(10.dp))
-                Text(text = post.title, fontSize = 24.sp, color = TextHighlight) //제목
+                Text(text = program.title, fontSize = 24.sp, color = TextHighlight) //제목
                 Spacer(Modifier.height(10.dp))
 
                 Row(verticalAlignment = Alignment.CenterVertically
                 ) {
-                    val profilePainter = post.profile
+                    val profilePainter = program.profile
                         ?.let { painterResource(id = it) }
                         ?: painterResource(id = R.drawable.profile1)
 
@@ -168,10 +176,10 @@ fun FreeBoardDetail (
                     )
                     Spacer(Modifier.width(8.dp))
                     Column { //작성자
-                        Text(text = post.author, fontSize = 17.sp, color = TextHighlight)
+                        Text(text = program.author, fontSize = 17.sp, color = TextHighlight)
                         Spacer(Modifier.height(4.dp))
                         Text( //작성일
-                            text = post.createdAt.toShortDate(),
+                            text = program.createdAt.toShortDate(),
                             style = MaterialTheme.typography.bodySmall.copy(color = TextDisabled),
                             fontSize = 17.sp
                         )
@@ -179,7 +187,7 @@ fun FreeBoardDetail (
                 }
                 Spacer(Modifier.height(16.dp))
                 ContentInput( //내용 입력(텍스트 + 이미지)
-                    items = post.contentItems,
+                    items = program.contentItems,
                     onItemsChange = {},
                     onPickImages = {},
                     onSubmit = {},
@@ -187,31 +195,47 @@ fun FreeBoardDetail (
                     readOnly = true
                 )
                 Spacer(Modifier.height(16.dp))
-
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Button(
+                        onClick = onStartProgram,
+                        modifier = Modifier.width(350.dp).height(50.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Purple700)
+                    ) {
+                        Text(
+                            text = "지금 바로 교육 시청하기",
+                            color = TextHighlight,
+                            fontSize = 20.sp
+                        )
+                    }
+                }
+                Spacer(Modifier.height(16.dp))
                 //좋아요 + 댓글바
                 LikeCommentBar(
-                    key = likedKeyFree(post.id),
+                    key = likedKeyProgram(program.id),
                     likeCount = postLikeCount,
                     onLikeCountChange = { postLikeCount = it },
                     onSyncLikeCount = { next ->
                         // 목록 원본 동기화(정렬/표시 일치)
-                        val idx = dummyFreePosts.indexOfFirst { it.id == post.id }
-                        if (idx >= 0) dummyFreePosts[idx] = dummyFreePosts[idx].copy(likeCount = next)
+                        val idx = dummyPrograms.indexOfFirst { it.id == program.id }
+                        if (idx >= 0) dummyPrograms[idx] = dummyPrograms[idx].copy(likeCount = next)
                     },
-                    commentCount = dummyFreeComments.count { it.reviewId == post.id }
+                    commentCount = dummyProgramComments.count { it.reviewId == program.id }
                 )
-
                 //댓글 + 대댓글
                 CommentList(
-                    postId = post.id,
+                    postId = program.id,
                     currentUser = currentUser,
-                    comments = dummyFreeComments,
-                    liked = LikeState.ids.filter { it.startsWith("freeComment:") }
-                        .map { it.removePrefix("freeComment:") }.toSet(),
-                    onLikedChange = { newLocal ->
-                        // 로컬 댓글ID set을 전역 키 set으로 반영
-                        val base = LikeState.ids.filterNot { it.startsWith("freeComment:") }.toSet()
-                        LikeState.ids = base + newLocal.map { likedKeyFreeComment(it) }
+                    comments = dummyProgramComments,
+                    liked = liked,
+                    onLikedChange = { newLikedIds ->
+                        liked = newLikedIds
+                        val base = LikeState.ids.filterNot { it.startsWith("programComment:") }.toSet()
+                        val withComments = base + newLikedIds.map { likedKeyProgramComment(it) }
+                        LikeState.ids = withComments
                     },
                     onLike = {},
                     onReply = { target ->
@@ -224,8 +248,8 @@ fun FreeBoardDetail (
                         requestKeyboard = true
                     },
                     onDelete = { del ->
-                        val idx = dummyFreeComments.indexOfFirst { it.id == del.id }
-                        if (idx >= 0) dummyFreeComments.removeAt(idx)
+                        val idx = dummyProgramComments.indexOfFirst { it.id == del.id }
+                        if (idx >= 0) dummyProgramComments.removeAt(idx)
                     }
                 )
             }
@@ -235,10 +259,10 @@ fun FreeBoardDetail (
 
 @Preview(showBackground = true, backgroundColor = 0xFF241860, widthDp = 420, heightDp = 840)
 @Composable
-private fun Preview_FreeBoardDetail() {
-    val sample = remember { dummyFreePosts.first() }
-    FreeBoardDetail(
-        post = sample,
+private fun Preview_EduProgramDetail() {
+    val sample = remember { dummyPrograms.first() }
+    EduProgramDetail(
+        program = sample,
         onBack = {},
         onShare = {},
         onMore = {},

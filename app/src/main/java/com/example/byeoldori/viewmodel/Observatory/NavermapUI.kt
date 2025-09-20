@@ -15,6 +15,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.byeoldori.R
 import com.example.byeoldori.ui.components.observatory.CurrentLocationButton
 import com.example.byeoldori.viewmodel.NaverMapViewModel
+import com.example.byeoldori.viewmodel.observatoryList
 import com.google.android.gms.location.LocationServices
 import com.naver.maps.geometry.LatLng
 import com.naver.maps.map.*

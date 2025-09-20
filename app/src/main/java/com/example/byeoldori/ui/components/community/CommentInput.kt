@@ -53,7 +53,6 @@ fun CommentInput(
             )
         )
         Spacer(Modifier.width(8.dp))
-
         IconButton(
             onClick = {
                 if (canSend) {
@@ -80,7 +79,7 @@ private fun Preview_CommentInput() {
         CommentInput(
             text = text,
             onTextChange = { text = it },
-            onSend = { /* 전송 테스트 */ }
+            onSend = {}
         )
     }
 }

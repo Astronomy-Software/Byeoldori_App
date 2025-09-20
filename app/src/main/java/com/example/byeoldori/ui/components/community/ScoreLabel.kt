@@ -11,7 +11,6 @@ import androidx.compose.ui.unit.*
 import com.example.byeoldori.ui.theme.*
 import androidx.compose.ui.window.Dialog
 
-
 @Composable
 fun ScoreLabel (
     show: Boolean,

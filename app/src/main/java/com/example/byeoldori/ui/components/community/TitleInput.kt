@@ -57,7 +57,6 @@ fun TitleInput (
 }
 
 @Preview(name = "TitleInput", showBackground = true, backgroundColor = 0xFF241860, widthDp = 500)
-
 @Composable
 private fun Preview_TextInput() {
     MaterialTheme {

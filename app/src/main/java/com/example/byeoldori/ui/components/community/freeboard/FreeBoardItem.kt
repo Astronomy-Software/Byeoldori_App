@@ -1,9 +1,9 @@
 package com.example.byeoldori.ui.components.community.freeboard
 
-import androidx.compose.runtime.Composable
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -11,15 +11,20 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
 import com.example.byeoldori.R
-import com.example.byeoldori.ui.components.community.EditorItem
+import com.example.byeoldori.ui.components.community.*
 import com.example.byeoldori.ui.theme.*
 import com.example.byeoldori.viewmodel.Community.FreePost
 
 @Composable
-fun FreeBoardItem(
+fun FreeBoardItem( //게시글 UI
     post: FreePost,
+    likeCount: Int = post.likeCount,
+    commentCount: Int,
     onClick: () -> Unit = {}
 ) {
+   // val isLiked by remember { derivedStateOf { likedKeyFree(post.id) in FreeBoardState.likedPostIds } }
+    val isLiked by remember { derivedStateOf { likedKeyFree(post.id) in LikeState.ids } }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -64,11 +69,11 @@ fun FreeBoardItem(
                 Icon(
                     painter = painterResource(R.drawable.ic_thumbs_up),
                     contentDescription = null,
-                    tint = Color.White,
+                    tint = if(isLiked) Purple500 else Color.White,
                     modifier = Modifier.size(25.dp)
                 )
                 Spacer(Modifier.width(2.dp))
-                Text("${post.likeCount}", fontSize = 15.sp, color = Color.White)
+                Text("$likeCount", fontSize = 15.sp, color = Color.White)
 
                 Spacer(Modifier.width(8.dp))
 
@@ -79,9 +84,8 @@ fun FreeBoardItem(
                     modifier = Modifier.size(25.dp)
                 )
                 Spacer(Modifier.width(2.dp))
-                Text("${post.commentCount}", fontSize = 15.sp, color = Color.White)
+                Text("$commentCount", fontSize = 15.sp, color = Color.White)
             }
-
         }
     }
 }
@@ -110,7 +114,7 @@ private fun Preview_FreeBoardItem() {
     )
     MaterialTheme {
         Surface(color = Blue800) {
-            FreeBoardItem(post = sample, onClick = {})
+            FreeBoardItem(post = sample, onClick = {}, commentCount = 21)
         }
     }
 }

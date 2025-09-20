@@ -49,21 +49,14 @@ fun SearchBar(
     }
 }
 
-@Preview(
-    name = "SearchBar",
-    showBackground = true,
-    backgroundColor = 0xFF000000
-)
-
+@Preview(name = "SearchBar", showBackground = true, backgroundColor = 0xFF241860)
 @Composable
 private fun Preview_SearchBar() {
     MaterialTheme {
-        Surface(color = Color.Black) {
-            SearchBar(
-                searchQuery = "",
-                onSearch = {}
-            )
-        }
+        SearchBar(
+            searchQuery = "",
+            onSearch = {}
+        )
     }
 }
 

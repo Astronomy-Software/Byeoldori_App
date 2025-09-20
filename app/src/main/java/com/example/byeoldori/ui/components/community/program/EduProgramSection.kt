@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.grid.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -21,18 +22,17 @@ import com.example.byeoldori.ui.components.observatory.ReviewCard
 import com.example.byeoldori.ui.theme.*
 import com.example.byeoldori.viewmodel.Community.EduProgram
 import com.example.byeoldori.viewmodel.Observatory.Review
-import kotlinx.serialization.json.JsonNull.content
-
+import com.example.byeoldori.viewmodel.dummyProgramComments
 
 // EduProgram → Review 변환 (임시 어댑터)
 fun EduProgram.asReview(): Review =
     Review(
-        id = id,
+        id = "program:$id",
         title = title,
         author = author,
-        rating = 0,
+        rating = rating.toInt(),
         likeCount = likeCount,
-        commentCount = commentCount,
+        commentCount = dummyProgramComments.count { it.reviewId == id },
         profile = R.drawable.profile1,
         viewCount = viewCount,
         createdAt = createdAt,
@@ -43,10 +43,7 @@ fun EduProgram.asReview(): Review =
         startTime = "",
         endTime = "",
         siteScore = 0,
-        contentItems = buildList {
-            add(EditorItem.Paragraph(value = TextFieldValue(content ?: "")))
-            imageRes?.let { add(EditorItem.Photo(model = it)) }
-        }
+        contentItems =  contentItems
     )
 
 // 정렬 타입
@@ -95,9 +92,7 @@ fun EduProgramSection(
                 searchQuery = searchText,
                 onSearch = { searchText = it }
             )
-
             Spacer(Modifier.height(10.dp))
-
             // 정렬 칩
             Row(
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
@@ -111,9 +106,7 @@ fun EduProgramSection(
                     onSelect = { sort = it }
                 )
             }
-
             Spacer(Modifier.height(12.dp))
-
             // 2열 그리드
             LazyVerticalGrid(
                 state = gridState,
@@ -126,12 +119,14 @@ fun EduProgramSection(
                     items = filtered,
                     key = { it.id }
                 ) { eduProgram ->
-                    ReviewCard(eduProgram.asReview())   //어댑터 사용해서 ReviewCard 재사용
+                    ReviewCard(
+                        review = eduProgram.asReview(),
+                        modifier = Modifier.clickable { onClickProgram(eduProgram.id) }
+                    )
                 }
                 item { Spacer(Modifier.height(60.dp)) }
             }
         }
-
         //작성 버튼
         Box(
             modifier = Modifier
@@ -173,8 +168,13 @@ private fun Preview_EduProgramSection_Default() {
                     likeCount = 40 + i * 3,
                     commentCount = 8 + i,
                     viewCount = 200 + i * 15,
-                    imageRes = R.drawable.img_dummy,
-                    createdAt = 202510290000L - i // Long 더미
+                    profile = R.drawable.profile1,
+                    createdAt = 202510290000L - i, // Long 더미
+                    contentItems = listOf(
+                        EditorItem.Paragraph(
+                            value = TextFieldValue("이 강의는 망원경 기초와 관측 매너를 다룹니다.")
+                        )
+                    )
                 )
             }
         }

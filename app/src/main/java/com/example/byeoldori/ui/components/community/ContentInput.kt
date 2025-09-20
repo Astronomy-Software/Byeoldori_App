@@ -37,7 +37,6 @@ sealed class EditorItem(open val id: String) {
     ) : EditorItem(id)
 }
 
-
 @Composable
 fun ContentInput(
     items: List<EditorItem>,
@@ -72,7 +71,6 @@ fun ContentInput(
     }
 
     Column(modifier = modifier.fillMaxWidth()) {
-
         if (!readOnly) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -129,7 +127,6 @@ fun ContentInput(
                         }
                     }
                 }
-
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -181,7 +178,6 @@ fun ContentInput(
                                 )
                             }
                         }
-
                         is EditorItem.Photo -> {
                             Box {
                                 if (item.model is Int) {

@@ -10,14 +10,18 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
 import com.example.byeoldori.R
 import com.example.byeoldori.ui.components.community.EditorItem
+import com.example.byeoldori.ui.components.community.LikeState
 import com.example.byeoldori.ui.components.community.SortBar
+import com.example.byeoldori.ui.components.community.likedKeyFree
 import com.example.byeoldori.ui.theme.*
 import com.example.byeoldori.viewmodel.Community.FreePost
 import com.example.byeoldori.viewmodel.Observatory.Review
+import com.example.byeoldori.viewmodel.dummyFreeComments
+import com.example.byeoldori.viewmodel.dummyFreePosts
 
 enum class FreeBoardSort(val label: String) {
     Latest("최신순"), Like("좋아요순"), View("조회수순")
@@ -25,7 +29,7 @@ enum class FreeBoardSort(val label: String) {
 
 fun FreePost.asReview(): Review =
     Review(
-        id = id,
+        id = likedKeyFree(this.id),
         title = title,
         author = author,
         rating = 0,              // 자유게시판엔 별점이 없으니 0으로
@@ -55,7 +59,7 @@ fun FreeBoardSection(
     val listState = rememberLazyListState()
 
     // 검색 + 정렬 적용
-    val filtered = remember(searchText, sort, freeBoardsAll) {
+    val filtered = remember(searchText, sort, freeBoardsAll, LikeState.ids) {
         val q = searchText.trim() //양끝 공백 제거
         val base = if (q.isEmpty()) freeBoardsAll //검색어가 비어있으면 전체 리스트 사용
         else {
@@ -112,9 +116,12 @@ fun FreeBoardSection(
                 modifier = Modifier.fillMaxSize()
             ) {
                 items(filtered, key = { it.id }) { post ->
+                    val liveCommentCount = dummyFreeComments.count { it.reviewId == post.id }
                     Column {
                         FreeBoardItem(
                             post = post,
+                            commentCount = liveCommentCount,
+                            likeCount = post.likeCount,
                             onClick = { onClickProgram(post.id) }
                         )
                         Divider(
@@ -138,10 +145,21 @@ fun FreeBoardSection(
             Icon(
                 painter = painterResource(R.drawable.ic_notebook_pen),
                 contentDescription = "글쓰기",
-                tint = Color.White,    // 아이콘 흰색
+                tint = Color.White,
                 modifier = Modifier.size(20.dp)
             )
         }
     }
 }
 
+@Preview(showBackground = true, backgroundColor = 0xFF241860, widthDp = 420, heightDp = 840)
+@Composable
+private fun Preview_FreeBoardSection_Empty() {
+    MaterialTheme {
+        FreeBoardSection(
+            freeBoardsAll = dummyFreePosts,
+            onWriteClick = {},
+            onClickProgram = {}
+        )
+    }
+}

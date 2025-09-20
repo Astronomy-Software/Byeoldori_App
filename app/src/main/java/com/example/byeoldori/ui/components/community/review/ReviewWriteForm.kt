@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import com.example.byeoldori.R
 import com.example.byeoldori.ui.components.community.*
 import com.example.byeoldori.viewmodel.Observatory.Review
+import java.util.UUID
 
 @Composable
 fun ReviewWriteForm(
@@ -32,8 +33,6 @@ fun ReviewWriteForm(
     var showCancelDialog by remember { mutableStateOf(false) }
     var showValidationDialog by remember { mutableStateOf(false) }
     var title by rememberSaveable { mutableStateOf("") }
-    val content = remember { mutableStateOf("") }
-
     var rating by rememberSaveable { mutableStateOf("") }
     var ratingInt by rememberSaveable { mutableStateOf(0) }
     var siteScore by rememberSaveable { mutableStateOf("") }
@@ -50,22 +49,21 @@ fun ReviewWriteForm(
 
     val pickImages = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickMultipleVisualMedia(maxItems = 10)
-    ) { uris ->
+    ) { uris -> //사진 선택 끝나면 전달받은 uri 리스트
         // ContentInput이 넘겨준 onPicked를 여기서 호출
         pendingOnPicked?.invoke(uris ?: emptyList())
         pendingOnPicked = null
     }
 
     var items by remember {
-        mutableStateOf(listOf<EditorItem>(EditorItem.Paragraph())) // 시작 문단 1개
+        mutableStateOf(listOf<EditorItem>(EditorItem.Paragraph())) //리뷰 본문
     }
     var date by rememberSaveable { mutableStateOf(initialReview?.date ?: "") }
-
 
     fun makeReview(): Review {
         val createdAt = now()
         return Review(
-            id = createdAt.toString(),
+            id = UUID.randomUUID().toString(),
             title = title,
             author = author,
             rating = ratingInt,
@@ -81,7 +79,7 @@ fun ReviewWriteForm(
             equipment = equipment,
             startTime = startTime,
             endTime = endTime,
-            contentItems = items                           // ★ 본문+이미지 전부 저장
+            contentItems = items
         )
     }
 
@@ -96,7 +94,6 @@ fun ReviewWriteForm(
     }
 
     Box(Modifier.fillMaxSize()) {
-        // === 본문 ===
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -109,7 +106,7 @@ fun ReviewWriteForm(
                 WriteBar(
                     onSubmit = {
                         if(validateRequirement()) {
-                            onSubmitReview(makeReview())
+                            onSubmitReview(makeReview()) //입력된 값을 모아서 Review객체 생성
                             onSubmit()
                         } else {
                             showValidationDialog = true
@@ -120,7 +117,6 @@ fun ReviewWriteForm(
                     onMore = onMore
                 )
             }
-
             item {
                 Divider(
                     color = Color.White.copy(alpha = 0.6f),
@@ -128,14 +124,12 @@ fun ReviewWriteForm(
                     modifier = Modifier.offset(y = (-15).dp)
                 )
             }
-
             item {
                 TitleInput(
                     title = title,
                     onValueChange = { title = it }
                 )
             }
-
             item {
                 ReviewInput(
                     target = target,
@@ -155,7 +149,6 @@ fun ReviewWriteForm(
                     date = date,
                     onDateChange = { picked -> date = picked }
                 ) }
-
             item {
                 ContentInput(
                     items = items,
@@ -163,15 +156,14 @@ fun ReviewWriteForm(
                     onPickImages = { onPicked ->
                         // ContentInput이 넘겨준 onPicked를 보관했다가,
                         pendingOnPicked = onPicked
-                        // 시스템 픽커 실행
-                        pickImages.launch(
+                        // 시스템 픽커 실행(선택된 이미지 uri리스트를 받아 item에 반영)
+                        pickImages.launch( //갤러리 실행 런처를 실행
                             PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
                         )
                     },
                     onSubmit = {
                         onSubmitReview(makeReview())
                         onSubmit()
-
                     },
                     onChecklist = {
                         // TODO: 체크리스트 열기 등 원하는 동작
@@ -179,8 +171,6 @@ fun ReviewWriteForm(
                 )
             }
         }
-
-        // === 다이얼로그 & 피커(항상 Box의 '형제'로, Surface 밖에!) ===
         if (showCancelDialog) {
             AlertDialog(
                 onDismissRequest = { showCancelDialog = false },
@@ -196,12 +186,11 @@ fun ReviewWriteForm(
                 }
             )
         }
-
         if (showRatingPicker) {
             ScoreLabel(
                 show = showRatingPicker,
                 score = ratingInt,
-                onSelected = { n ->
+                onSelected = { n -> //별점 선택
                     ratingInt = n
                     rating = "$n/5"
                     showRatingPicker = false
@@ -209,8 +198,7 @@ fun ReviewWriteForm(
                 onDismiss = { showRatingPicker = false }
             )
         }
-
-        if (showSiteScorePicker) {
+        if (showSiteScorePicker) { //관측지 점수 선택
             ScoreLabel(
                 show = showSiteScorePicker,
                 score = siteScoreInt,
@@ -234,9 +222,6 @@ fun ReviewWriteForm(
     }
 }
 
-
-
-/* ===== 프리뷰 ===== */
 @Preview(showBackground = true, backgroundColor = 0xFF241860, widthDp = 360, heightDp = 720)
 @Composable
 private fun Preview_ReviewWriteForm_Box() {

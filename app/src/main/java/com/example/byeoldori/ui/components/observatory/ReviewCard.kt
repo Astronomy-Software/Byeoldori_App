@@ -3,6 +3,7 @@ package com.example.byeoldori.ui.components.observatory
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -20,26 +21,32 @@ import coil.compose.AsyncImage
 import com.example.byeoldori.R
 import com.example.byeoldori.ui.theme.*
 import com.example.byeoldori.viewmodel.Observatory.Review
-import com.example.byeoldori.viewmodel.Observatory.dummyReviews
+import com.example.byeoldori.viewmodel.dummyReviews
 import com.google.accompanist.pager.*
 import kotlinx.coroutines.launch
 import com.example.byeoldori.ui.components.community.EditorItem
-
+import com.example.byeoldori.ui.components.community.LikeState
+import com.example.byeoldori.ui.components.community.likedKeyFree
+import com.example.byeoldori.ui.components.community.likedKeyProgram
+import com.example.byeoldori.ui.components.community.likedKeyReview
+import com.example.byeoldori.viewmodel.dummyReviewComments
 
 
 // TODO : 리뷰섹션 좌우 드래그able하게 변경
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ReviewSection(
     title: String,
     reviews: List<Review>,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onSyncReviewLikeCount: (id: String, next: Int) -> Unit
 ) {
     // ----- 페이징 상태 -----
     val pageSize = 4
     val pageCount = if (reviews.isEmpty()) 1 else ((reviews.size - 1) / pageSize + 1)
     val pagerState = rememberPagerState(initialPage = 0) // 페이지 상태를 저장
     val scope = rememberCoroutineScope()
+
+
 
     Column(modifier = modifier.fillMaxWidth()) {
         // 타이틀 + 페이지 컨트롤
@@ -97,7 +104,13 @@ fun ReviewSection(
                 modifier = Modifier.fillMaxSize()
             ) {
                 itemsIndexed(pageItems, key = { idx, item -> "${item.id}#$start+$idx" }) { _, review ->
-                    ReviewCard(review)
+                    ReviewCard(
+                        review = review,
+                        commentCount = dummyReviewComments.count { it.reviewId == review.id },
+                        onSyncLikeCount = { next ->                //추가
+                            onSyncReviewLikeCount(review.id, next)  // 상위로 전파
+                        }
+                    )
                 }
             }
         }
@@ -107,8 +120,22 @@ fun ReviewSection(
 @Composable
 fun ReviewCard(
     review: Review,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    commentCount: Int = review.commentCount,
+    onSyncLikeCount: (Int) -> Unit = {}
 ) {
+    //좋아요 수 동기화 하기 위함
+//    val likeKey = when {
+//        ':' in review.id -> review.id                // "review:xxx" / "program:xxx" / "free:xxx"
+//        else             -> likedKeyReview(review.id) // 접두사 없으면 리뷰로 간주
+//    }
+//    val isLiked = likeKey in LikeState.ids
+    val likeKey = if (':' in review.id) review.id else likedKeyReview(review.id)
+    val isLiked = likeKey in LikeState.ids
+    var likeCount by remember { mutableStateOf(review.likeCount) }
+
+    LaunchedEffect(review.likeCount) { likeCount = review.likeCount }
+
     Card(
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Blue800),
@@ -173,15 +200,23 @@ fun ReviewCard(
                     Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.clickable {
+                            val newCount = if (likeKey in LikeState.ids) likeCount - 1 else likeCount + 1
+                            LikeState.ids = if (likeKey in LikeState.ids) LikeState.ids - likeKey else LikeState.ids + likeKey
+                            likeCount = newCount
+                            onSyncLikeCount(newCount)  //상위 reviews 동기화 → 탭 전환해도 유지
+                        }
+                    ) {
                         Icon(
                             painter = painterResource(R.drawable.ic_thumbs_up),
                             contentDescription = null,
-                            tint = TextHighlight,
+                            tint = if (isLiked) Purple500 else TextHighlight,
                             modifier = Modifier.size(18.dp)
                         )
                         Spacer(Modifier.width(4.dp))
-                        Text("${review.likeCount}", color = TextHighlight, fontSize = 14.sp)
+                        Text("$likeCount", color = TextHighlight, fontSize = 14.sp)
                     }
                     Row(verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.offset(x=(-8).dp)
@@ -193,7 +228,7 @@ fun ReviewCard(
                             modifier = Modifier.size(18.dp)
                         )
                         Spacer(Modifier.width(4.dp))
-                        Text("${review.commentCount}", color = TextHighlight, fontSize = 14.sp)
+                        Text("$commentCount", color = TextHighlight, fontSize = 14.sp)
                     }
                 }
             }
@@ -226,7 +261,11 @@ private fun Preview_ReviewSection_Grid() {
         Surface(color = Color.Black) {
             ReviewSection(
                 title = "해당 관측지에서 진행한 관측후기",
-                reviews = dummyReviews
+                reviews = dummyReviews,
+                onSyncReviewLikeCount = { id, next ->
+                    val idx = dummyReviews.indexOfFirst { it.id == id }
+                    if (idx >= 0) dummyReviews[idx] = dummyReviews[idx].copy(likeCount = next)
+                }
             )
         }
     }

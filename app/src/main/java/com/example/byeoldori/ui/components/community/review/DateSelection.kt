@@ -29,8 +29,6 @@ fun DateSelection(
     val h = cal.get(Calendar.HOUR_OF_DAY)
     val min = cal.get(Calendar.MINUTE)
 
-
-
     // UI 출력할 때 변환
     val displayDate = try {
         val parts = date.split("-")
@@ -38,7 +36,6 @@ fun DateSelection(
     } catch (e: Exception) {
         date // 실패하면 원본 그대로
     }
-
     Column {
         Text(
             label,

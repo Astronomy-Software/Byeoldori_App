@@ -12,6 +12,10 @@ import androidx.compose.ui.unit.*
 import com.example.byeoldori.R
 import com.example.byeoldori.ui.theme.*
 import com.example.byeoldori.viewmodel.Observatory.*
+import com.example.byeoldori.viewmodel.dummyCurrentWeather
+import com.example.byeoldori.viewmodel.dummyDailyForecasts
+import com.example.byeoldori.viewmodel.dummyHourlyForecasts
+import com.example.byeoldori.viewmodel.dummyReviews
 
 @Composable
 fun ObservatoryInfoCard(
@@ -65,7 +69,11 @@ fun ObservatoryInfoCard(
                 item { // TODO : 이런 데이터들은 컴포넌트 내부에서 작성하지말고 변수같은느낌으로 만들어서 하기
                     ReviewSection(
                         title = "해당 관측지에서 진행한 관측후기",
-                        reviews = dummyReviews
+                        reviews = dummyReviews,
+                        onSyncReviewLikeCount = { id, next ->
+                            val i = dummyReviews.indexOfFirst { it.id == id }
+                            if (i >= 0) dummyReviews[i] = dummyReviews[i].copy(likeCount = next)
+                        }
                     )
                     Spacer(Modifier.height(40.dp))
                 }

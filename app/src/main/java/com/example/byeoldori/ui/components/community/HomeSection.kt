@@ -1,6 +1,5 @@
 package com.example.byeoldori.ui.components.community
 
-import androidx.compose.runtime.Composable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.*
 import androidx.compose.foundation.pager.*
@@ -16,9 +15,9 @@ import com.example.byeoldori.ui.components.community.freeboard.asReview
 import com.example.byeoldori.ui.components.community.program.asReview
 import com.example.byeoldori.ui.components.observatory.ReviewCard
 import com.example.byeoldori.ui.theme.*
-import com.example.byeoldori.viewmodel.Community.EduProgram
-import com.example.byeoldori.viewmodel.Community.FreePost
+import com.example.byeoldori.viewmodel.Community.*
 import com.example.byeoldori.viewmodel.Observatory.Review
+import com.example.byeoldori.viewmodel.*
 import kotlinx.coroutines.launch
 
 @Composable
@@ -28,7 +27,8 @@ fun HomeSection(
     popularFreePosts: List<FreePost>,
     onReviewClick: (Review) -> Unit = {},
     onProgramClick: (EduProgram) -> Unit = {},
-    onFreePostClick: (FreePost) -> Unit = {}
+    onFreePostClick: (FreePost) -> Unit = {},
+    onSyncReviewLikeCount: (id: String, next: Int) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -41,7 +41,13 @@ fun HomeSection(
             items = recentReviews,
             itemContent = { review: Review ->
                 Box(Modifier.clickable { onReviewClick(review) }) {
-                    ReviewCard(review)
+                    ReviewCard(
+                        review = review,
+                        commentCount = dummyReviewComments.count { it.reviewId == review.id },
+                        onSyncLikeCount = { next ->
+                            onSyncReviewLikeCount(review.id, next)
+                        }
+                    )
                 }
             }
         )
@@ -49,24 +55,26 @@ fun HomeSection(
             title = "새로운 교육 프로그램",
             items = recentEduPrograms,
             itemContent = { program: EduProgram ->
-                ReviewCard(program.asReview()) //추후 추가
+                Box(Modifier.clickable { onProgramClick(program) }) {
+                    ReviewCard(review = program.asReview())
+                }
             }
         )
-
         PagerSection(
             title = "인기 자유게시판 게시물",
             items = popularFreePosts,
             itemContent = { post: FreePost ->
                 Box(Modifier.clickable { onFreePostClick(post) }) {
-                    ReviewCard(post.asReview())
+                    ReviewCard(
+                        review = post.asReview(),
+                        commentCount = dummyFreeComments.count { it.reviewId == post.id }
+                    )
                 }
             }
         )
-
         Spacer(modifier = Modifier.height(16.dp))
     }
 }
-
 
 @Composable
 fun <T> PagerSection(
@@ -87,7 +95,6 @@ fun <T> PagerSection(
 
     Column(modifier.fillMaxWidth()) {
         Text(title,color= TextHighlight, fontSize = 16.sp)
-
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -114,7 +121,6 @@ fun <T> PagerSection(
                     }
                 }
             }
-
             //이전 버튼
             IconButton(
                 onClick = {
@@ -135,7 +141,6 @@ fun <T> PagerSection(
                     tint = if (prevEnabled) Color.White else Color.Gray
                 )
             }
-
             //다음 버튼
             IconButton(
                 onClick = {
