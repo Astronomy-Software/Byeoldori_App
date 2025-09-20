@@ -87,8 +87,9 @@ object NetworkModule {
     @Provides @Singleton
     fun provideLogging(): HttpLoggingInterceptor =
         HttpLoggingInterceptor().apply {
-            level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY
-            else HttpLoggingInterceptor.Level.BASIC
+            level = HttpLoggingInterceptor.Level.HEADERS
+//            level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY
+//            else HttpLoggingInterceptor.Level.BASIC
         }
 
     // ───────── (1) 비인증용 Unauth ─────────

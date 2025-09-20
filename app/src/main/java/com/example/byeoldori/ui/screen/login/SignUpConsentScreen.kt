@@ -1,4 +1,5 @@
-package com.example.byeoldori.ui.screen.Login
+// ui/screen/login/SignUpConsentScreen.kt
+package com.example.byeoldori.ui.screen.login
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -26,17 +27,20 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.byeoldori.ui.components.AgreementCheckBox
 import com.example.byeoldori.ui.components.MarkdownViewer
 import com.example.byeoldori.ui.components.WideButton
 import com.example.byeoldori.ui.theme.Background
 import com.example.byeoldori.ui.theme.Purple500
+import com.example.byeoldori.viewmodel.SignUpViewModel
 
 @Composable
 fun SignUpConsentScreen(
-    onSubmit: (policy: Boolean, profile: Boolean, location: Boolean, marketing: Boolean) -> Unit = { _,_,_,_ -> }
+    onNext: () -> Unit,
+    onBack: () -> Unit,
+    vm: SignUpViewModel = hiltViewModel()
 ) {
-    // 동의 상태
     var agreePolicy by remember { mutableStateOf(false) }     // (필수)
     var agreeProfile by remember { mutableStateOf(false) }    // (필수)
     var agreeLocation by remember { mutableStateOf(false) }   // (선택)
@@ -66,8 +70,6 @@ fun SignUpConsentScreen(
                     .background(Color.White)
                     .padding(10.dp)
             ) {
-                // MarkdownViewer 자체는 wrapContentHeight이므로,
-                // 외곽 Box에 높이 제한 + 스크롤을 걸어 상자 안에서만 스크롤되게 함
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -83,7 +85,7 @@ fun SignUpConsentScreen(
 
             Spacer(Modifier.height(16.dp))
 
-            // 동의 체크들
+            // 체크박스들
             AgreementCheckBox(
                 checked = agreePolicy,
                 onCheckedChange = { agreePolicy = it },
@@ -116,25 +118,42 @@ fun SignUpConsentScreen(
             )
 
             Spacer(Modifier.height(16.dp))
-            // 제출 버튼 (필수 2개 체크 시만 활성화)
+
+            // 제출 버튼
             WideButton(
                 text = "회원 가입",
-                onClick = { onSubmit(agreePolicy, agreeProfile, agreeLocation, agreeMarketing) },
+                onClick = {
+                    vm.saveConsents(
+                        policy = agreePolicy,
+                        profile = agreeProfile,
+                        location = agreeLocation,
+                        marketing = agreeMarketing
+                    )
+                    onNext()
+                },
                 enabled = canSubmit,
                 backgroundColor = Purple500,
                 modifier = Modifier.width(contentWidth)
             )
 
             Spacer(Modifier.height(8.dp))
+
+            // 뒤로가기 버튼
+            WideButton(
+                text = "뒤로가기",
+                onClick = onBack,
+                backgroundColor = Color.Gray,
+                modifier = Modifier.width(contentWidth)
+            )
         }
     }
 }
 
-
 @Preview(showBackground = true, backgroundColor = 0xFFFFFFFF)
 @Composable
 fun SignUpConsentScreenPreview() {
-    // MarkdownViewer는 Preview에서 파일 접근이 어려우므로,
-    // 필요하면 MarkdownViewer(lines=샘플)로 오버로드해서 미리보기용으로 바꿔 호출하세요.
-    SignUpConsentScreen()
+    SignUpConsentScreen(
+        onNext = {},
+        onBack = {}
+    )
 }

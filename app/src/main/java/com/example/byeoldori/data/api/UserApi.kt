@@ -21,6 +21,6 @@ interface UserApi {
     @DELETE("users/me")
     suspend fun resign(): ApiResponse<Any?>
 
-    @POST("users/logout")
+    @POST("auth/logout")
     suspend fun logOut(): ApiResponse<Any?>
 }

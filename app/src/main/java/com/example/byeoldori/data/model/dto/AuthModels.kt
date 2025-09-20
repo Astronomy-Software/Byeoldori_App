@@ -12,9 +12,16 @@ data class SignUpRequest(
     val passwordConfirm: String,
     val name: String,
     val phone: String,
-    val nickname: String,
-//    val birthdate: String   // yyyy-MM-dd 형식
-)
+    val consents: Consents
+) {
+    @JsonClass(generateAdapter = true)
+    data class Consents(
+        val termsOfService: Boolean,
+        val privacyPolicy: Boolean,
+        val marketing: Boolean,
+        val location: Boolean
+    )
+}
 
 // 회원가입 응답은 data = null → Unit? 사용 가능
 typealias SignUpResponse = ApiResponse<Unit?>
@@ -50,4 +57,12 @@ data class ResetPasswordRequest(
 @JsonClass(generateAdapter = true)
 data class ResetPasswordToEmailRequest(
     val email: String
+)
+
+data class NicknameCheckResponse(
+    val exists: Boolean
+)
+
+data class EmailCheckResponse(
+    val exists: Boolean
 )

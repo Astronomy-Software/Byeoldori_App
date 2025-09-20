@@ -100,6 +100,9 @@ class TokenDataStore @Inject constructor(
         val type  = it[KEY_TOKEN_TYPE] ?: "Bearer"
         "$type $token"
     }
+    val isLoggedInFlow: Flow<Boolean> = context.dataStore.data.map {
+        it[KEY_ACCESS]?.isNotBlank() == true
+    }
 
     // ------------------------------
     // 동기 조회(Interceptor/Authenticator에서 가볍게 씀)

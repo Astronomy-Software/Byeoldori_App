@@ -26,7 +26,7 @@ sealed class Root(val route: String, val label: String) {
 }
 
 @Composable
-fun MainRoot(onSignOut: () -> Unit) {
+fun MainRoot() {
     val nav = rememberNavController()
 
     BackgroundScaffold(
