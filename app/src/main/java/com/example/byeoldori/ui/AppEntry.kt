@@ -2,12 +2,11 @@ package com.example.byeoldori.ui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.byeoldori.ui.screen.SplashScreen
 import com.example.byeoldori.viewmodel.AuthViewModel
 import kotlinx.coroutines.delay
@@ -30,12 +29,12 @@ fun AppEntry() {
     }
 
     // 로그인 분기 → MainRoot or AuthRoot
-    val authVm: AuthViewModel = viewModel()
-    val signedIn by authVm.isSignedIn.collectAsState()
+    val authVm: AuthViewModel = hiltViewModel() // ✅ Hilt ViewModelFactory 사용
+    val signedIn = true
 
     if (signedIn) {
         MainRoot(onSignOut = { authVm.signOut() })
     } else {
-        AuthRoot(onSignedIn = { authVm.signIn() })
+        AuthRoot(onSignedIn = {  })
     }
 }
