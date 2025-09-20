@@ -1,4 +1,3 @@
-// data/api/UserApi.kt
 package com.example.byeoldori.data.api
 
 import com.example.byeoldori.data.model.common.ApiResponse

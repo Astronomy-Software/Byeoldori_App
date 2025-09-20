@@ -5,7 +5,6 @@ import com.example.byeoldori.data.model.common.TokenData
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
-// data/model/auth/AuthModels.kt (혹은 SignUpModels.kt)
 @JsonClass(generateAdapter = true)
 data class SignUpRequest(
     val email: String,
@@ -35,3 +34,20 @@ data class LoginRequest(
 )
 
 typealias LoginResponse = ApiResponse<TokenData>
+
+@JsonClass(generateAdapter = true)
+data class FindEmailRequset(
+    val name: String,
+    val phone: String
+)
+
+@JsonClass(generateAdapter = true)
+data class ResetPasswordRequest(
+    val token: String,
+    val newPassword: String
+)
+
+@JsonClass(generateAdapter = true)
+data class ResetPasswordToEmailRequest(
+    val email: String
+)
