@@ -70,8 +70,8 @@ class AuthRepository @Inject constructor(
         tokenStore.saveTokens(
             access    = t.accessToken,
             refresh   = t.refreshToken,
-            atExp     = t.accessTokenExpiresAt,
-            rtExp     = t.refreshTokenExpiresAt,
+            atExp     = t.accessTokenExpiresAtMillis(),
+            rtExp     = t.refreshTokenExpiresAtMillis(),
             tokenType = "Bearer"
         )
     }
