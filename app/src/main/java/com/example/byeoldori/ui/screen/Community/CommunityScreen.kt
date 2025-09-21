@@ -1,192 +1,237 @@
 package com.example.byeoldori.ui.screen.Community
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import com.example.byeoldori.R
-import com.example.byeoldori.ui.theme.AppTheme
+import androidx.compose.foundation.*
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.*
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.*
+import com.example.byeoldori.ui.components.community.*
+import com.example.byeoldori.ui.components.community.program.*
+import com.example.byeoldori.ui.theme.*
+import com.example.byeoldori.viewmodel.Observatory.*
+import com.example.byeoldori.ui.components.community.freeboard.*
+import com.example.byeoldori.ui.components.community.review.CommuReviewSection
+import com.example.byeoldori.ui.components.community.review.ReviewDetail
+import com.example.byeoldori.viewmodel.Community.EduProgram
+import com.example.byeoldori.viewmodel.*
+import com.example.byeoldori.ui.components.community.review.ReviewWriteForm
 
 // --- 탭 정의 ---
 enum class CommunityTab(val label: String, val routeSeg: String) {
-    Feed("피드", "feed"),
-    Hot("인기", "hot"),
-    My("내 글", "my")
+    Home("홈","home"),
+    Program("교육 프로그램", "program"),
+    Review("관측 후기", "review"),
+    Board("자유게시판", "board")
 }
 
 @Composable
 fun CommunityScreen(
-    tab: CommunityTab,                       // 현재 탭 (라우트에서 결정)
-    onSelectTab: (CommunityTab) -> Unit,     // 탭 클릭 시 부모로 콜백
-    onOpenPost: (String) -> Unit = {}        // 게시글 클릭 콜백
+    tab: CommunityTab,
+    onSelectTab: (CommunityTab) -> Unit
 ) {
     val tabs = CommunityTab.entries
+    var showWriteForm by remember { mutableStateOf(false) }
+    val reviews = remember { mutableStateListOf<Review>().apply { addAll(dummyReviews) } }
+    var showSuccessDialog by remember { mutableStateOf(false) }
+    var lastSubmittedReview by remember { mutableStateOf<Review?>(null) }
+    var selectedReview by remember { mutableStateOf<Review?>(null) }
+    var selectedFreePost by remember { mutableStateOf<String?>(null) }
+    var selectedProgram by remember { mutableStateOf<EduProgram?>(null) }
+    val currentUser = "헤이헤이"
+    var showFreeBoardWriteForm by remember { mutableStateOf(false) }
+    var successMessage by remember { mutableStateOf("") }
 
-    Column(Modifier.fillMaxSize()) {
-        // 탭바
-        TabRow(selectedTabIndex = tabs.indexOf(tab)) {
-            tabs.forEach { t ->
-                Tab(
-                    selected = (t == tab),
-                    onClick = { if (t != tab) onSelectTab(t) },
-                    text = { Text(t.label) }
-                )
-            }
+    when {
+        showWriteForm -> {
+            // 작성 화면만 표시 (탭/목록 숨김)
+            ReviewWriteForm(
+                author = currentUser,
+                onCancel = { showWriteForm = false },   // 취소 → 다시 탭 화면으로
+                onSubmit = { showWriteForm = false },   // 등록 → 저장 처리 후 목록으로
+                onTempSave = {},
+                onMore = { /* 더보기 */ },
+                onSubmitReview = { newReview ->
+                    if (reviews.none { it.id == newReview.id }) {
+                        reviews.add(0, newReview)
+                    }
+                    lastSubmittedReview = newReview
+                    showWriteForm = false        // 작성창 닫기
+                    showSuccessDialog = true
+                },
+                initialReview = null
+            )
+
         }
-
-        // 탭별 더미 데이터
-        val posts = remember(tab) { samplePosts(tab) }
-
-        // 목록
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            items(posts, key = { it.id }) { post ->
-                PostItem(
+        showFreeBoardWriteForm -> {
+            FreeBoardWriteForm(
+                author = currentUser,
+                onCancel = {
+                    showFreeBoardWriteForm = false
+                    //successMessage = "작성 취소되었습니다"
+                    showSuccessDialog = true
+                },
+                onSubmit = {
+                    showFreeBoardWriteForm = false
+                    successMessage = "게시글이 등록되었습니다"
+                    showSuccessDialog = true
+                },
+                onTempSave = {},
+                onMore = {},
+                onSubmitPost = { newPost ->
+                    dummyFreePosts.add(0, newPost)
+                    showFreeBoardWriteForm = false
+                    showSuccessDialog = true
+                }
+            )
+        }
+        selectedReview != null -> {
+            ReviewDetail(
+                review = selectedReview!!,
+                onBack = { selectedReview = null },  // 뒤로가기 누르면 다시 목록으로
+                currentUser = currentUser,
+                onSyncReviewLikeCount = { id, next ->
+                    val idx = reviews.indexOfFirst { it.id == id }
+                    if (idx >= 0) {
+                        reviews[idx] = reviews[idx].copy(likeCount = next)
+                    }
+                    //dummyReviews도 같이 갱신
+                    val j = dummyReviews.indexOfFirst { it.id == id }
+                    if (j >= 0) {
+                        dummyReviews[j] = dummyReviews[j].copy(likeCount = next)
+                    }
+                }
+            )
+        }
+        selectedFreePost != null -> {
+            val post = dummyFreePosts.find { it.id == selectedFreePost }
+            if(post != null) {
+                FreeBoardDetail(
                     post = post,
-                    onClick = { onOpenPost(post.id) }
+                    onBack = { selectedFreePost = null },
+                    currentUser = currentUser
+
                 )
             }
-            item { Spacer(Modifier.height(24.dp)) }
         }
-    }
-}
+        selectedProgram != null -> {
+            EduProgramDetail(
+                program = selectedProgram!!,
+                onBack = { selectedProgram = null },
+                currentUser = currentUser
+            )
+        }
 
-// --- UI 구성 요소 ---
-private data class Post(
-    val id: String,
-    val title: String,
-    val author: String,
-    val like: Int,
-    val comment: Int,
-    val thumbnailRes: Int? = null
-)
-
-@Composable
-private fun PostItem(
-    post: Post,
-    onClick: () -> Unit
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.85f))
-    ) {
-        Row(
-            modifier = Modifier.padding(14.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            if (post.thumbnailRes != null) {
-                Image(
-                    painter = painterResource(id = post.thumbnailRes),
-                    contentDescription = null,
+        else -> {
+            Column(Modifier.fillMaxSize()) {
+                // 탭바
+                Column(
                     modifier = Modifier
-                        .size(56.dp)
-                        .padding(end = 12.dp)
-                )
-            } else {
-                Box(
-                    modifier = Modifier
-                        .size(56.dp)
-                        .padding(end = 12.dp),
-                    contentAlignment = Alignment.Center
+                        .background(Blue800)
                 ) {
-                    Text("📝")
+                    Spacer(Modifier.height(24.dp))
+                    ScrollableTabRow(
+                        selectedTabIndex = tabs.indexOf(tab),
+                        edgePadding = 0.dp,
+                        containerColor = Blue800,
+                        indicator = {} //강조선 제거
+                    ) {
+                        tabs.forEach { t ->
+                            Tab(
+                                selected = (t == tab),
+                                onClick = { if (t != tab) onSelectTab(t) },
+                                text = {
+                                    Text(
+                                        text = t.label,
+                                        maxLines = 1,
+                                        softWrap = false,
+                                        style = MaterialTheme.typography.labelMedium.copy(fontSize = 15.sp),
+                                        color = if (t == tab) TextHighlight else TextDisabled
+                                    )
+                                }
+                            )
+                        }
+                    }
+                }
+                when (tab) {
+                    CommunityTab.Review -> {
+                        CommuReviewSection(
+                            reviewsAll = reviews,
+                            onWriteClick = { showWriteForm = true },
+                            onReviewClick = { review -> selectedReview = review },
+                            onSyncReviewLikeCount = { id, next ->
+                                val i = reviews.indexOfFirst { it.id == id }
+                                if (i >= 0) reviews[i] = reviews[i].copy(likeCount = next)
+
+                                //추가: 초기 소스도 함께 갱신
+                                val j = dummyReviews.indexOfFirst { it.id == id }
+                                if (j >= 0) dummyReviews[j] = dummyReviews[j].copy(likeCount = next)
+                            }
+                        )
+                    }
+
+                    CommunityTab.Program -> {
+                        EduProgramSection(
+                            eduProgramsAll = dummyPrograms,
+                            onWriteClick = {}, //추후 추가
+                            onClickProgram = { id ->
+                                val program = dummyPrograms.find { it.id == id }
+                                if (program != null) selectedProgram = program
+                            }
+                        )
+                    }
+
+                    CommunityTab.Home -> {
+                        val recentReviews by remember { derivedStateOf { reviews.sortedByDescending { it.createdAt }.take(8) } }
+                        val recentPrograms = remember { dummyPrograms.sortedByDescending { it.createdAt }.take(8) }
+                        val popularFreePost = remember { dummyFreePosts.sortedByDescending { it.likeCount }.take(8) }
+
+                        HomeSection(
+                            recentReviews = recentReviews,
+                            recentEduPrograms = recentPrograms,
+                            popularFreePosts = popularFreePost,
+                            onReviewClick = { selectedReview = it },
+                            onProgramClick = { selectedProgram = it },
+                            onFreePostClick = { selectedFreePost = it.id },
+                            onSyncReviewLikeCount = { id, next ->
+                                val i = reviews.indexOfFirst { it.id == id }
+                                if (i >= 0) reviews[i] = reviews[i].copy(likeCount = next)
+
+                                // (옵션) 초기 더미도 같이 갱신
+                                val j = dummyReviews.indexOfFirst { it.id == id }
+                                if (j >= 0) dummyReviews[j] = dummyReviews[j].copy(likeCount = next)
+                            }
+                        )
+                    }
+
+                    CommunityTab.Board -> {
+                        FreeBoardSection(
+                            freeBoardsAll = dummyFreePosts,
+                            onClickProgram = { id -> selectedFreePost = id },
+                            onWriteClick = { showFreeBoardWriteForm = true }
+                        )
+                    }
                 }
             }
-
-            Column(Modifier.weight(1f)) {
-                Text(
-                    post.title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold
-                )
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    "${post.author} · 👍 ${post.like} · 💬 ${post.comment}",
-                    style = MaterialTheme.typography.bodySmall
-                )
-            }
         }
     }
-}
-
-// --- 샘플 데이터 ---
-private fun samplePosts(tab: CommunityTab): List<Post> = when (tab) {
-    CommunityTab.Feed -> List(10) {
-        Post(
-            id = "feed-$it",
-            title = "오늘 하늘 미쳤다 ${it + 1}",
-            author = "user$it",
-            like = (5..60).random(),
-            comment = (0..12).random(),
-            thumbnailRes = null
-        )
-    }
-    CommunityTab.Hot -> List(8) {
-        Post(
-            id = "hot-$it",
-            title = "🔥 이번 주 인기 관측 포인트 ${it + 1}",
-            author = "astro$it",
-            like = (50..300).random(),
-            comment = (10..80).random(),
-            thumbnailRes = R.drawable.ic_star
-        )
-    }
-    CommunityTab.My -> List(6) {
-        Post(
-            id = "my-$it",
-            title = "내 기록 ${it + 1}",
-            author = "나",
-            like = (0..20).random(),
-            comment = (0..10).random(),
-            thumbnailRes = null
+    if (showSuccessDialog) {
+        AlertDialog(
+            onDismissRequest = { showSuccessDialog = false },
+            confirmButton = {
+                TextButton(onClick = { showSuccessDialog = false }) {
+                    Text("확인")
+                }
+            },
+            title = { Text("알림",color = Color.Black) },
+            text = {
+                Column {
+                    Text("정상적으로 등록되었습니다.", color = Color.Black)
+                    Spacer(Modifier.height(8.dp))
+                    Text(successMessage, color = Color.DarkGray)
+                }
+            }
         )
     }
 }
-
-// --- 미리보기 ---
-@Preview(showBackground = true, widthDp = 360, heightDp = 640)
-@Composable
-private fun CommunityScreenPreview() {
-    AppTheme {
-        var current by remember { mutableStateOf(CommunityTab.Feed) }
-        CommunityScreen(
-            tab = current,
-            onSelectTab = { current = it },
-            onOpenPost = {}
-        )
-    }
-}
-
