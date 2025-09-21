@@ -115,15 +115,14 @@ fun NavBar(nav: NavHostController) {
     widthDp = 360,
     heightDp = 80
 )
+
 @Composable
 private fun NavBarPreview() {
     val nav = rememberNavController()
-
     // 기본적으로 NavController의 currentBackStackEntry는 null이므로
     // 미리 강제로 navigate 해서 선택 상태를 확인할 수 있음
     LaunchedEffect(Unit) {
         nav.navigate(Root.Home.route)
     }
-
     NavBar(nav = nav)
 }

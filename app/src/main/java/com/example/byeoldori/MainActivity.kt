@@ -7,7 +7,9 @@ import androidx.activity.enableEdgeToEdge
 import androidx.core.view.WindowCompat
 import com.example.byeoldori.ui.AppEntry
 import com.example.byeoldori.ui.theme.AppTheme
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

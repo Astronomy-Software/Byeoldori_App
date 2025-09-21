@@ -1,6 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    package="com.example.byeoldori">
+    xmlns:tools="http://schemas.android.com/tools">
 
     <!-- OpenGL ES 3.0 이상 사용 앱임을 명시 -->
     <uses-feature android:glEsVersion="0x00030002" android:required="true" />
@@ -20,7 +19,8 @@
         android:name=".MyApplication"
         android:icon="@mipmap/ic_launcher"
         android:label="Byeoldori_App"
-        android:theme="@style/Theme.Byeoldori">
+        android:theme="@style/Theme.Byeoldori"
+        android:networkSecurityConfig="@xml/network_security_config">
 
         <activity
             android:name=".MainActivity"
