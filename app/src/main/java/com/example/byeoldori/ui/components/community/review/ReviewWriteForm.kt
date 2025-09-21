@@ -161,10 +161,7 @@ fun ReviewWriteForm(
                             PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
                         )
                     },
-                    onSubmit = {
-                        onSubmitReview(makeReview())
-                        onSubmit()
-                    },
+                    onCheck = {},
                     onChecklist = {
                         // TODO: 체크리스트 열기 등 원하는 동작
                     }
