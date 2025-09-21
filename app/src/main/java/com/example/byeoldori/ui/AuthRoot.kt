@@ -1,5 +1,6 @@
 package com.example.byeoldori.ui
 
+import SignUpScreen
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -8,7 +9,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.byeoldori.ui.screen.login.LoginScreen
 import com.example.byeoldori.ui.screen.login.SignUpConsentScreen
-import com.example.byeoldori.ui.screen.login.SignUpScreen
 import com.example.byeoldori.ui.theme.Background
 
 // 🔹 AuthRoot에서 쓰일 Route 정의

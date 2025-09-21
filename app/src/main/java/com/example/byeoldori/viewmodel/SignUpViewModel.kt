@@ -1,5 +1,6 @@
 package com.example.byeoldori.viewmodel
 
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.byeoldori.data.model.dto.SignUpRequest
@@ -25,6 +26,10 @@ class SignUpViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow<SignUpUiState>(SignUpUiState.Idle)
     val uiState: StateFlow<SignUpUiState> = _uiState
+    var agreePolicy = mutableStateOf(false)
+    var agreeProfile = mutableStateOf(false)
+    var agreeLocation = mutableStateOf(false)
+    var agreeMarketing = mutableStateOf(false)
 
     // 동의 정보 저장용
     private var consents: SignUpRequest.Consents? = null

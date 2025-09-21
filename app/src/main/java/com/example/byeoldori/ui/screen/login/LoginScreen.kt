@@ -1,5 +1,7 @@
+// ui/screen/login/LoginScreen.kt
 package com.example.byeoldori.ui.screen.login
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -11,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.Divider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -21,6 +24,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -32,19 +36,40 @@ import com.example.byeoldori.ui.components.InputForm
 import com.example.byeoldori.ui.components.SecretInputForm
 import com.example.byeoldori.ui.components.WideButton
 import com.example.byeoldori.ui.theme.Background
+import com.example.byeoldori.ui.theme.TextHighlight
 import com.example.byeoldori.ui.theme.TextNormal
 import com.example.byeoldori.viewmodel.AuthViewModel
 import com.example.byeoldori.viewmodel.UiState
 
+// ✅ Wrapper (실제 앱 실행 시 사용)
 @Composable
 fun LoginScreen(
     onSignUp: () -> Unit,
     onFindAccount: () -> Unit,
     vm: AuthViewModel = hiltViewModel()
 ) {
+    val uiState by vm.state.collectAsState()
+
+    LoginContent(
+        uiState = uiState,
+        onLogin = { email, password -> vm.login(email, password) },
+        onSignUp = onSignUp,
+        onFindAccount = onFindAccount
+    )
+}
+
+// ✅ UI 전용 Content (Preview/Test 용)
+@Composable
+private fun LoginContent(
+    uiState: UiState = UiState.Idle,
+    onLogin: (String, String) -> Unit,
+    onSignUp: () -> Unit,
+    onFindAccount: () -> Unit
+) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    val uiState by vm.state.collectAsState()
+
+    val context = LocalContext.current
 
     Background(
         modifier = Modifier
@@ -61,7 +86,9 @@ fun LoginScreen(
             Image(
                 painter = painterResource(R.drawable.byeoldori),
                 contentDescription = "앱 로고",
-                modifier = Modifier.width(300.dp).height(300.dp)
+                modifier = Modifier
+                    .width(300.dp)
+                    .height(300.dp)
             )
 
             // 이메일 입력
@@ -87,22 +114,35 @@ fun LoginScreen(
             // 일반 로그인 버튼
             WideButton(
                 text = "일반 로그인",
-                onClick = { vm.login(email, password) },
+                onClick = { onLogin(email, password) },
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             )
 
             Spacer(Modifier.height(16.dp))
 
-            // Google 로그인 버튼 (TODO: 실제 구현 필요)
+            // Google 로그인 버튼
             WideButton(
                 text = "Google ID로 로그인 하기",
-                onClick = { /* TODO: Google OAuth 연동 */ },
+                onClick = {
+                    /* TODO: Google OAuth 연동 */
+                    Toast.makeText(context, "아직 미완성된 기능입니다.", Toast.LENGTH_SHORT).show()
+                },
                 icon = R.drawable.ic_google_logo,
                 iconDescription = "Google",
-                modifier = Modifier.align(Alignment.CenterHorizontally).width(330.dp)
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .width(330.dp)
             )
 
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(8.dp))
+
+            Divider(
+                modifier = Modifier.width(330.dp),
+                color = TextHighlight.copy(alpha = 0.5f),
+                thickness = 3.dp
+            )
+
+            Spacer(Modifier.height(8.dp))
 
             // 회원가입 / 계정찾기
             Row(
@@ -117,34 +157,38 @@ fun LoginScreen(
                     modifier = Modifier.clickable { onSignUp() }
                 )
                 Text(
-                    text = "ID/비밀번호 찾기",
+                    text = "Email/비밀번호 찾기",
                     color = TextNormal,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.clickable { onFindAccount() }
+                    modifier = Modifier.clickable {
+                        onFindAccount()
+                        // TODO : 이거 만들어야함
+                        Toast.makeText(context, "아직 미완성된 기능입니다.", Toast.LENGTH_SHORT).show()
+                    }
                 )
             }
 
             Spacer(Modifier.height(16.dp))
 
-            // 로그인 상태 메시지 표시
+            // 로그인 상태 메시지
             when (uiState) {
                 is UiState.Loading -> Text("⏳ 로그인 중...")
                 is UiState.Success -> Text("✅ 로그인 성공!", color = Color.Green)
-                is UiState.Error -> Text(
-                    "❌ ${(uiState as UiState.Error).message}",
-                    color = Color.Red
-                )
+                is UiState.Error -> Text("❌ ${uiState.message}", color = Color.Red)
                 else -> {}
             }
         }
     }
 }
 
-@Preview(showBackground = true, backgroundColor = 0xFF000000)
+// ✅ Preview는 Content만
+@Preview(showBackground = true, backgroundColor = 0xFFFFFFFF)
 @Composable
-fun LoginScreenPreview() {
-    LoginScreen(
+private fun LoginScreenPreview() {
+    LoginContent(
+        uiState = UiState.Idle,
+        onLogin = { _, _ -> },
         onSignUp = {},
         onFindAccount = {}
     )

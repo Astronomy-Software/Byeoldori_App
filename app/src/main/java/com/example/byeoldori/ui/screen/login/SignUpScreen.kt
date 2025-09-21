@@ -1,4 +1,3 @@
-package com.example.byeoldori.ui.screen.login
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -25,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.byeoldori.ui.components.InputForm
 import com.example.byeoldori.ui.components.SecretInputForm
+import com.example.byeoldori.ui.components.TopBar
 import com.example.byeoldori.ui.components.WideButton
 import com.example.byeoldori.ui.theme.Background
 import com.example.byeoldori.ui.theme.TextNormal
@@ -37,6 +37,25 @@ fun SignUpScreen(
     onBack: () -> Unit,
     vm: SignUpViewModel = hiltViewModel()
 ) {
+    val uiState by vm.uiState.collectAsState()
+
+    SignUpScreenContent(
+        onNext = onNext,
+        onBack = onBack,
+        uiState = uiState,
+        onCheckEmail = vm::checkEmail,
+        onSignUp = vm::signUp
+    )
+}
+
+@Composable
+fun SignUpScreenContent(
+    onNext: () -> Unit,
+    onBack: () -> Unit,
+    uiState: SignUpUiState = SignUpUiState.Idle,
+    onCheckEmail: (String) -> Unit = {},
+    onSignUp: (String, String, String, String, String) -> Unit = { _,_,_,_,_ -> }
+) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordConfirm by remember { mutableStateOf("") }
@@ -44,146 +63,116 @@ fun SignUpScreen(
     var name by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
 
-    val uiState by vm.uiState.collectAsState()
-
     Background(
         modifier = Modifier
             .fillMaxSize()
             .systemBarsPadding()
+            .imePadding()
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .imePadding()
-                .padding(top = 32.dp)
-                .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Top
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Email
-            InputForm(
-                label = "Email",
-                value = email,
-                onValueChange = { email = it },
-                placeholder = "내용을 입력해 주세요",
-                modifier = Modifier.width(330.dp)
+            // ✅ TopBar 고정
+            TopBar(
+                title = "회원정보 입력",
+                onBack = onBack
             )
 
-            Spacer(Modifier.height(16.dp))
+            // ✅ 입력 폼은 스크롤 가능
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 32.dp, vertical = 16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Top
+            ) {
+                InputForm(
+                    label = "Email",
+                    value = email,
+                    onValueChange = { email = it },
+                    placeholder = "내용을 입력해 주세요",
+                    modifier = Modifier.width(330.dp)
+                )
 
-            // 이메일 중복 확인 버튼
-            WideButton(
-                text = "이메일 중복 확인",
-                onClick = { vm.checkEmail(email) },
-                modifier = Modifier.align(Alignment.CenterHorizontally)
-            )
+                SecretInputForm(
+                    label = "Password",
+                    value = password,
+                    onValueChange = { password = it },
+                    placeholder = "내용을 입력해 주세요",
+                    modifier = Modifier.width(330.dp)
+                )
 
-            // Password
-            SecretInputForm(
-                label = "Password",
-                value = password,
-                onValueChange = { password = it },
-                placeholder = "내용을 입력해 주세요",
-                modifier = Modifier.width(330.dp)
-            )
+                SecretInputForm(
+                    label = "Password 확인",
+                    value = passwordConfirm,
+                    onValueChange = { passwordConfirm = it },
+                    placeholder = "내용을 입력해 주세요",
+                    modifier = Modifier.width(330.dp)
+                )
 
-            // Password 확인
-            SecretInputForm(
-                label = "Password 확인",
-                value = passwordConfirm,
-                onValueChange = { passwordConfirm = it },
-                placeholder = "내용을 입력해 주세요",
-                modifier = Modifier.width(330.dp)
-            )
+                InputForm(
+                    label = "이름",
+                    value = name,
+                    onValueChange = { name = it },
+                    placeholder = "이름을 입력해 주세요",
+                    modifier = Modifier.width(330.dp)
+                )
 
-            Spacer(Modifier.height(16.dp))
+                InputForm(
+                    label = "전화번호",
+                    value = phone,
+                    onValueChange = { phone = it },
+                    placeholder = "010-1234-5678",
+                    modifier = Modifier.width(330.dp)
+                )
 
-            // 이름
-            InputForm(
-                label = "이름",
-                value = name,
-                onValueChange = { name = it },
-                placeholder = "이름을 입력해 주세요",
-                modifier = Modifier.width(330.dp)
-            )
+                Spacer(Modifier.height(16.dp))
 
-            Spacer(Modifier.height(16.dp))
+                WideButton(
+                    text = "인증번호 받기",
+                    onClick = { /* TODO */ },
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                )
 
-            // 전화번호
-            InputForm(
-                label = "전화번호",
-                value = phone,
-                onValueChange = { phone = it },
-                placeholder = "010-1234-5678",
-                modifier = Modifier.width(330.dp)
-            )
+                InputForm(
+                    label = "Email 인증번호",
+                    value = verificationCode,
+                    onValueChange = { verificationCode = it },
+                    placeholder = "내용을 입력해 주세요",
+                    modifier = Modifier.width(330.dp)
+                )
 
-            Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(16.dp))
 
-            // 인증번호 요청 버튼
-            WideButton(
-                text = "인증번호 받기",
-                onClick = { /* TODO: 이메일 인증 API (메일 전송) */ },
-                modifier = Modifier.align(Alignment.CenterHorizontally)
-            )
+                WideButton(
+                    text = "회원가입 하기",
+                    onClick = {
+                        onSignUp(email, password, passwordConfirm, name, phone)
+                        onNext()
+                    },
+                    backgroundColor = Color(0xFFBDBDBD),
+                    contentColor = TextNormal,
+                    modifier = Modifier.width(330.dp)
+                )
 
-            // 인증번호 입력
-            InputForm(
-                label = "Email 인증번호",
-                value = verificationCode,
-                onValueChange = { verificationCode = it },
-                placeholder = "내용을 입력해 주세요",
-                modifier = Modifier.width(330.dp)
-            )
-
-            Spacer(Modifier.height(16.dp))
-
-            // 회원가입 버튼
-            WideButton(
-                text = "회원가입 하기",
-                onClick = {
-                    vm.signUp(
-                        email = email,
-                        password = password,
-                        passwordConfirm = passwordConfirm,
-                        name = name,
-                        phone = phone,
-                    )
-                    onNext()
-                },
-                backgroundColor = Color(0xFFBDBDBD),
-                contentColor = TextNormal,
-                modifier = Modifier.align(Alignment.CenterHorizontally)
-            )
-
-            Spacer(Modifier.height(8.dp))
-
-            WideButton(
-                text = "뒤로가기",
-                onClick = onBack,
-                backgroundColor = Color.Gray,
-                contentColor = Color.White,
-                modifier = Modifier.align(Alignment.CenterHorizontally)
-            )
-
-            // 상태 표시
-            when (uiState) {
-                is SignUpUiState.Loading -> {
-                    Spacer(Modifier.height(8.dp))
-                    androidx.compose.material3.Text("⏳ 처리 중...")
+                // 상태 표시
+                when (uiState) {
+                    is SignUpUiState.Loading ->
+                        androidx.compose.material3.Text("⏳ 처리 중...")
+                    is SignUpUiState.Success ->
+                        androidx.compose.material3.Text("✅ ${uiState.message}")
+                    is SignUpUiState.Error ->
+                        androidx.compose.material3.Text(
+                            "❌ ${uiState.message}",
+                            color = Color.Red
+                        )
+                    else -> {}
                 }
-                is SignUpUiState.Success -> {
-                    Spacer(Modifier.height(8.dp))
-                    androidx.compose.material3.Text("✅ ${(uiState as SignUpUiState.Success).message}")
-                }
-                is SignUpUiState.Error -> {
-                    Spacer(Modifier.height(8.dp))
-                    androidx.compose.material3.Text(
-                        "❌ ${(uiState as SignUpUiState.Error).message}",
-                        color = Color.Red
-                    )
-                }
-                else -> {}
+                
+                Spacer(Modifier.height(8.dp))
+
             }
         }
     }
@@ -191,8 +180,10 @@ fun SignUpScreen(
 
 @Preview(showBackground = true)
 @Composable
-fun SignUpScreenPreview() {
-    Background {
-        SignUpScreen(onNext = {}, onBack = {})
-    }
+fun SignUpScreenContentPreview() {
+    SignUpScreenContent(
+        onNext = {},
+        onBack = {},
+        uiState = SignUpUiState.Idle
+    )
 }
