@@ -18,9 +18,9 @@ interface UserApi {
         @Body body : UpdateUserProfile
     ): ApiResponse<Any?>
 
-    @DELETE("users/me")
+    @DELETE("users/me") // 회원 탈퇴
     suspend fun resign(): ApiResponse<Any?>
 
-    @POST("auth/logout")
+    @POST("users/logout")
     suspend fun logOut(): ApiResponse<Any?>
 }

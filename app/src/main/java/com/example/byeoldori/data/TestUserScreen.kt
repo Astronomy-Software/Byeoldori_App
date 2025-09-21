@@ -97,7 +97,7 @@ class UserViewModel @Inject constructor(
 
     fun logOut() = viewModelScope.launch {
         try {
-            val res = repo.logOut()
+            repo.logOut()
             tokenStore.clear()
             _uiState.value = UserUiState.Success("로그아웃 완료")
         } catch (e: Exception) {
