@@ -148,7 +148,6 @@ fun TestObservationSiteScreen(
                     }
                 }
             }
-
             else -> { Text("Error")}
         }
 

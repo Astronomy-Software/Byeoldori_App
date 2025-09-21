@@ -24,6 +24,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.byeoldori.ui.components.InputForm
+import com.example.byeoldori.ui.components.SecretInputForm
 import com.example.byeoldori.ui.components.WideButton
 import com.example.byeoldori.ui.theme.Background
 import com.example.byeoldori.ui.theme.TextNormal
@@ -78,7 +79,7 @@ fun SignUpScreen(
             )
 
             // Password
-            InputForm(
+            SecretInputForm(
                 label = "Password",
                 value = password,
                 onValueChange = { password = it },
@@ -87,7 +88,7 @@ fun SignUpScreen(
             )
 
             // Password 확인
-            InputForm(
+            SecretInputForm(
                 label = "Password 확인",
                 value = passwordConfirm,
                 onValueChange = { passwordConfirm = it },

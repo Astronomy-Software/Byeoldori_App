@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.byeoldori.R
 import com.example.byeoldori.ui.components.InputForm
+import com.example.byeoldori.ui.components.SecretInputForm
 import com.example.byeoldori.ui.components.WideButton
 import com.example.byeoldori.ui.theme.Background
 import com.example.byeoldori.ui.theme.TextNormal
@@ -43,7 +44,6 @@ fun LoginScreen(
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-
     val uiState by vm.state.collectAsState()
 
     Background(
@@ -74,7 +74,7 @@ fun LoginScreen(
             )
 
             // 비밀번호 입력
-            InputForm(
+            SecretInputForm(
                 label = "Password",
                 value = password,
                 onValueChange = { password = it },
