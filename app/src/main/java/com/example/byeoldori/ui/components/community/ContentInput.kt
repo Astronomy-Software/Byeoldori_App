@@ -41,7 +41,7 @@ sealed class EditorItem(open val id: String) {
 fun ContentInput(
     items: List<EditorItem>,
     onItemsChange: (List<EditorItem>) -> Unit,
-    onSubmit: () -> Unit = {},
+    onCheck: () -> Unit = {},
     onPickImages: (onPicked: (List<Uri>) -> Unit) -> Unit,
     onChecklist: () -> Unit = {},
     modifier: Modifier = Modifier,
@@ -81,8 +81,8 @@ fun ContentInput(
                 }) {
                     Icon(painterResource(R.drawable.ic_photo), contentDescription = "이미지", tint = Color.Unspecified)
                 }
-                IconButton(onClick = onSubmit) {
-                    Icon(painterResource(R.drawable.ic_check), contentDescription = "등록", tint = Color.Unspecified)
+                IconButton(onClick = onCheck) {
+                    Icon(painterResource(R.drawable.ic_check), contentDescription = "체크", tint = Color.Unspecified)
                 }
                 IconButton(onClick = onChecklist) {
                     Icon(painterResource(R.drawable.ic_checklist), contentDescription = "체크리스트", tint = Color.Unspecified)
