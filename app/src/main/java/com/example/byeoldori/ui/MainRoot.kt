@@ -40,10 +40,11 @@ fun MainRoot() {
             composable(Root.Home.route)        { HomeScreen() }
             composable(Root.StarMap.route)     { SkyMapScreen() }
             composable(Root.Observatory.route) { ObservatoryScreen() }
-            navigation(startDestination = "community/feed", route = Root.Community.route) {
-                composable("community/feed") { CommunityScreen(tab = CommunityTab.Feed, onSelectTab = { t -> nav.navigate("community/$t") }) }
-                composable("community/hot")  { CommunityScreen(tab = CommunityTab.Hot,  onSelectTab = { t -> nav.navigate("community/$t") }) }
-                composable("community/my")   { CommunityScreen(tab = CommunityTab.My,   onSelectTab = { t -> nav.navigate("community/$t") }) }
+            navigation(startDestination = "community/home", route = Root.Community.route) {
+                composable("community/home") { CommunityScreen(tab = CommunityTab.Home, onSelectTab = { t -> nav.navigate("community/$t") }) }
+                composable("community/review")  { CommunityScreen(tab = CommunityTab.Review,  onSelectTab = { t -> nav.navigate("community/$t") }) }
+                composable("community/board")   { CommunityScreen(tab = CommunityTab.Board,   onSelectTab = { t -> nav.navigate("community/$t") }) }
+                composable("community/program")   { CommunityScreen(tab = CommunityTab.Program,   onSelectTab = { t -> nav.navigate("community/$t") }) }
             }
             composable(Root.MyPage.route)      { MyPageScreen() }
         }

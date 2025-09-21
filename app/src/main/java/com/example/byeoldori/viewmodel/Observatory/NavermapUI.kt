@@ -4,21 +4,9 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.location.Geocoder
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.toArgb
+import androidx.compose.foundation.layout.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.*
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -26,17 +14,12 @@ import androidx.core.app.ActivityCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.byeoldori.R
 import com.example.byeoldori.ui.components.observatory.CurrentLocationButton
-import com.example.byeoldori.ui.components.observatory.LocationInfoBox
-import com.example.byeoldori.ui.theme.ErrorRed
 import com.example.byeoldori.viewmodel.NaverMapViewModel
+import com.example.byeoldori.viewmodel.observatoryList
 import com.google.android.gms.location.LocationServices
 import com.naver.maps.geometry.LatLng
-import com.naver.maps.map.CameraUpdate
-import com.naver.maps.map.LocationTrackingMode
-import com.naver.maps.map.MapView
-import com.naver.maps.map.NaverMap
-import com.naver.maps.map.overlay.Marker
-import com.naver.maps.map.overlay.OverlayImage
+import com.naver.maps.map.*
+import com.naver.maps.map.overlay.*
 import java.util.Locale
 
 @Composable
@@ -177,45 +160,6 @@ fun NaverMapWithSearchUI(
                                     position = currentLatLng
                                     map = naverMap
                                     iconTintColor = Color.BLACK
-
-                                    setOnClickListener {
-                                        selectedMarker?.iconTintColor = Color.BLACK
-                                        this.iconTintColor = ErrorRed.toArgb()
-                                        selectedMarker = this
-
-                                        viewModel.updateSelectedLatLng(currentLatLng)
-                                        val address = getAddressFromLatLng(
-                                            geocoder,
-                                            currentLatLng.latitude,
-                                            currentLatLng.longitude
-                                        )
-                                        viewModel.updateSelectedAddress(address)
-                                        true
-                                    }
-                                }
-                            }
-                        }
-
-                        naverMap.setOnMapClickListener { point, coord ->
-                            // 지도 클릭하니까 새 마커 생성
-                            Marker().apply {
-                                position = coord
-                                map = naverMap
-                                iconTintColor = Color.BLACK
-
-                                setOnClickListener {
-                                    selectedMarker?.iconTintColor = Color.BLACK
-                                    this.iconTintColor = ErrorRed.toArgb()
-                                    selectedMarker = this
-
-                                    viewModel.updateSelectedLatLng(coord)
-                                    val address = getAddressFromLatLng(
-                                        geocoder,
-                                        coord.latitude,
-                                        coord.longitude
-                                    )
-                                    viewModel.updateSelectedAddress(address)
-                                    true
                                 }
                             }
                         }
@@ -224,18 +168,6 @@ fun NaverMapWithSearchUI(
             },
             modifier = Modifier.fillMaxSize() //박스가 전체화면 채우도록
         )
-
-        selectedLatLng?.let { latLng ->
-            selectedAddress?.let { address ->
-                    LocationInfoBox(
-                        latLng = latLng,
-                        address = address,
-                        modifier = Modifier
-                            .align(Alignment.TopStart)
-                            .offset(x=20.dp, y=120.dp)
-                    )
-            }
-        }
 
         CurrentLocationButton(
             context = context,

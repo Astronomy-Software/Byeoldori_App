@@ -93,6 +93,9 @@ dependencies {
     implementation(libs.naver.map.compose)
     implementation(libs.play.services.location)
     implementation(libs.accompanist.permissions)
+    implementation(libs.accompanist.pager)
+    implementation(libs.accompanist.pager.indicators)
+
 
     // ✅ Hilt 본체
     implementation(libs.hilt.android)
@@ -118,7 +121,7 @@ dependencies {
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
     androidTestImplementation(libs.ui.test.junit4)
-
+    
     // ✅ Hilt 계측 테스트를 실제로 쓰면 아래 2줄 유지
     androidTestImplementation(libs.hilt.android.testing)
     kspTest(libs.hilt.compiler)

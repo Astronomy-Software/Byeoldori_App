@@ -2,48 +2,17 @@
 
 package com.example.byeoldori.ui.screen.Observatory
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.BottomSheetDefaults
-import androidx.compose.material3.BottomSheetScaffold
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.SheetValue
-import androidx.compose.material3.Text
-import androidx.compose.material3.rememberBottomSheetScaffoldState
-import androidx.compose.material3.rememberStandardBottomSheetState
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.example.byeoldori.ui.components.observatory.MarkerCardWithGradient
-import com.example.byeoldori.ui.components.observatory.ObservatoryInfoCard
-import com.example.byeoldori.ui.theme.Blue500
-import com.example.byeoldori.ui.theme.Blue800
-import com.example.byeoldori.ui.theme.Purple500
-import com.example.byeoldori.ui.theme.TextHighlight
-import com.example.byeoldori.viewmodel.Observatory.MarkerInfo
-import com.example.byeoldori.viewmodel.Observatory.SearchBox
+import androidx.compose.ui.*
+import androidx.compose.ui.unit.*
+import com.example.byeoldori.ui.components.observatory.*
+import com.example.byeoldori.ui.theme.*
+import com.example.byeoldori.viewmodel.Observatory.*
 import com.naver.maps.geometry.LatLng
 import kotlinx.coroutines.launch
 
@@ -56,7 +25,7 @@ fun ObservatoryScreen(
     var showOverlay by rememberSaveable { mutableStateOf(false) }
     var selectedLatLng  by rememberSaveable { mutableStateOf<LatLng?>(null) }
     var selectedAddress by rememberSaveable { mutableStateOf<String?>(null) }
-    var selectedInfo by remember { mutableStateOf<MarkerInfo?>(null) } // ✅ 시트에 표시할 데이터
+    var selectedInfo by remember { mutableStateOf<MarkerInfo?>(null) } //시트에 표시할 데이터
     val onSearch: (String)->Unit = { query -> searchQuery = query}
     val listState: LazyListState = rememberLazyListState()
     //추가
@@ -87,7 +56,7 @@ fun ObservatoryScreen(
 
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
-        sheetPeekHeight = 350.dp, // TODO : 이거 길이에따라 달라지는데 그 알아서 잘맞추세요
+        sheetPeekHeight = 280.dp, // TODO : 이거 길이에따라 달라지는데 그 알아서 잘맞추세요
         sheetDragHandle = { BottomSheetDefaults.DragHandle() }, //이 부분이 드래그 핸들 추가 코드
         //sheetDragHandle = null,
         sheetShape = if (sheetState.currentValue == SheetValue.Expanded) RoundedCornerShape(0.dp) else RoundedCornerShape(24.dp),
@@ -151,21 +120,14 @@ fun ObservatoryScreen(
                     }
                 }
                 // TODO : 버튼 컴포넌트로 수정하기
-                Button(
-                    onClick = { showOverlay = !showOverlay },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if (showOverlay) Blue500 else Purple500, // 파란색 ↔ 보라색
-                        contentColor = TextHighlight
-                    ),
-                    shape = RoundedCornerShape(16.dp),
+                LightPollutionButton(
+                    checked = showOverlay,
+                    onCheckedChange = { showOverlay = it },
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
                         .offset(y = (-10).dp)
                         .padding(16.dp)
-                        .height(50.dp)
-                ) {
-                    Text(if (showOverlay) "광공해 끄기" else "광공해 보기", fontSize = 12.sp)
-                }
+                )
             }
         }
     )
