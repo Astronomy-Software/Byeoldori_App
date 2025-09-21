@@ -50,6 +50,7 @@ class AuthRepository @Inject constructor(
     suspend fun logout(): ApiResponse<String> {
         return try {
             // 1. 서버 로그아웃 호출
+
             val res = authApi.logout()
             // 2. 로컬 토큰 제거
             tokenStore.clear()
