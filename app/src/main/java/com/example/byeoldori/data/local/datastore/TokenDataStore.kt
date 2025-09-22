@@ -79,6 +79,19 @@ class TokenDataStore @Inject constructor(
             prefs.remove(KEY_AT_EXPIRES)
             prefs.remove(KEY_RT_EXPIRES)
         }
+        // 🔥 디버그 로그: 삭제 직후 상태 출력
+        val access = runBlocking { accessTokenFlow.first() }
+        val refresh = runBlocking { refreshTokenFlow.first() }
+        val type = runBlocking { tokenTypeFlow.first() }
+        val atExp = runBlocking { accessTokenExpiresAtFlow.first() }
+        val rtExp = runBlocking { refreshTokenExpiresAtFlow.first() }
+
+        println("🔥 TokenDataStore.clear() called")
+        println("   accessToken = $access")
+        println("   refreshToken = $refresh")
+        println("   tokenType = $type")
+        println("   accessTokenExpiresAt = $atExp")
+        println("   refreshTokenExpiresAt = $rtExp")
     }
 
     // ------------------------------
@@ -99,6 +112,9 @@ class TokenDataStore @Inject constructor(
         val token = it[KEY_ACCESS] ?: return@map null
         val type  = it[KEY_TOKEN_TYPE] ?: "Bearer"
         "$type $token"
+    }
+    val isLoggedInFlow: Flow<Boolean> = context.dataStore.data.map {
+        it[KEY_ACCESS]?.isNotBlank() == true
     }
 
     // ------------------------------

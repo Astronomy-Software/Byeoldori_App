@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.byeoldori.data.local.datastore.TokenDataStore
 import com.example.byeoldori.data.model.common.ApiResponse
 import com.example.byeoldori.data.model.dto.UpdateUserProfile
 import com.example.byeoldori.data.model.dto.UserProfile
@@ -45,7 +46,8 @@ sealed class UserUiState {
 
 @HiltViewModel
 class UserViewModel @Inject constructor(
-    private val repo: UserRepository
+    private val repo: UserRepository,
+    private val tokenStore: TokenDataStore
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<UserUiState>(UserUiState.Idle)
@@ -94,16 +96,13 @@ class UserViewModel @Inject constructor(
     }
 
     fun logOut() = viewModelScope.launch {
-        _uiState.value = UserUiState.Loading
         try {
-            val res = repo.logOut()
-            if (res.success) {
-                _uiState.value = UserUiState.Success("로그아웃 완료")
-            } else {
-                _uiState.value = UserUiState.Error(res.message)
-            }
+            repo.logOut()
+            tokenStore.clear()
+            _uiState.value = UserUiState.Success("로그아웃 완료")
         } catch (e: Exception) {
-            _uiState.value = UserUiState.Error(e.message ?: "알 수 없는 오류")
+            tokenStore.clear()
+            _uiState.value = UserUiState.Error(e.message ?: "로그아웃 실패")
         }
     }
 }

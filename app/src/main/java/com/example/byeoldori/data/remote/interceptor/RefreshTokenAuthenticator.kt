@@ -34,8 +34,8 @@ class RefreshTokenAuthenticator @Inject constructor(
                     tokenStore.saveTokens(
                         access = res.data.accessToken,
                         refresh = res.data.refreshToken,
-                        atExp = res.data.accessTokenExpiresAt,
-                        rtExp = res.data.refreshTokenExpiresAt
+                        atExp = res.data.accessTokenExpiresAtMillis(),
+                        rtExp = res.data.refreshTokenExpiresAtMillis()
                     )
                     res.data.accessToken
                 } else null
