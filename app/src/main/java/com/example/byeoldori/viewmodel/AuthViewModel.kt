@@ -57,9 +57,4 @@ class AuthViewModel @Inject constructor(
             _state.value = UiState.Error(e.message ?: "토큰 갱신에 실패했습니다.")
         }
     }
-
-    fun signOut() = viewModelScope.launch {
-        authRepo.logout() // clear() → isLoggedInFlow false
-        _state.value = UiState.Idle
-    }
 }

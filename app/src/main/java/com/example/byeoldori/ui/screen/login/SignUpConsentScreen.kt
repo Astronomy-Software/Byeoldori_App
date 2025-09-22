@@ -4,7 +4,6 @@ package com.example.byeoldori.ui.screen.login
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
@@ -140,7 +139,7 @@ fun SignUpConsentContent(
                     onClick = onSubmit,
                     enabled = canSubmit,
                     backgroundColor = Purple500,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.width(contentWidth)
                 )
 
                 Spacer(Modifier.height(16.dp))

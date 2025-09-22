@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.Divider
@@ -147,26 +148,54 @@ private fun LoginContent(
             // 회원가입 / 계정찾기
             Row(
                 modifier = Modifier.width(330.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
+                // 회원가입 (왼쪽)
                 Text(
                     text = "회원가입",
                     color = TextNormal,
-                    fontSize = 18.sp,
+                    fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.clickable { onSignUp() }
                 )
-                Text(
-                    text = "Email/비밀번호 찾기",
-                    color = TextNormal,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.clickable {
-                        onFindAccount()
-                        // TODO : 이거 만들어야함
-                        Toast.makeText(context, "아직 미완성된 기능입니다.", Toast.LENGTH_SHORT).show()
-                    }
-                )
+
+                // 오른쪽 묶음 (이메일 찾기 | 비밀번호 찾기)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Email 찾기",
+                        color = TextNormal,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.clickable {
+                            onFindAccount()
+                            Toast.makeText(context, "아직 미완성된 기능입니다.", Toast.LENGTH_SHORT).show()
+                        }
+                    )
+
+                    // 작은 구분선 (세로선처럼)
+                    Divider(
+                        modifier = Modifier
+                            .padding(horizontal = 8.dp)
+                            .height(14.dp) // 텍스트 높이랑 비슷하게
+                            .width(1.dp),
+                        color = TextHighlight,
+                        thickness = 2.dp
+                    )
+
+                    Text(
+                        text = "비밀번호 찾기",
+                        color = TextNormal,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.clickable {
+                            onFindAccount()
+                            Toast.makeText(context, "아직 미완성된 기능입니다.", Toast.LENGTH_SHORT).show()
+                        }
+                    )
+                }
             }
 
             Spacer(Modifier.height(16.dp))

@@ -11,7 +11,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.byeoldori.data.Test2LoginScreen
 import com.example.byeoldori.data.TestUserScreen
 import com.example.byeoldori.ui.screen.TestObservationSiteScreen
 
@@ -27,11 +26,6 @@ fun HomeScreen() {
             Text("홈화면이에요", fontSize = 28.sp)
             Spacer(Modifier.height(16.dp))
         }
-
-        item {
-            Test2LoginScreen()
-        }
-
         // 관측지 리스트
         item {
             TestObservationSiteScreen()

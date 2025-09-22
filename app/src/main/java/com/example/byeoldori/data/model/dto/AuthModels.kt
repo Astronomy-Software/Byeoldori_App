@@ -23,8 +23,7 @@ data class SignUpRequest(
     )
 }
 
-// 회원가입 응답은 data = null → Unit? 사용 가능
-typealias SignUpResponse = ApiResponse<Unit?>
+typealias SignUpResponse = ApiResponse<Any?>
 
 @JsonClass(generateAdapter = true)
 data class RefreshRequest(
