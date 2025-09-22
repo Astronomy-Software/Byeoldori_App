@@ -26,8 +26,8 @@ import com.example.byeoldori.ui.components.TopBar
 import com.example.byeoldori.ui.components.WideButton
 import com.example.byeoldori.ui.theme.Background
 import com.example.byeoldori.ui.theme.TextNormal
-import com.example.byeoldori.viewmodel.SignUpUiState
-import com.example.byeoldori.viewmodel.SignUpViewModel
+import com.example.byeoldori.viewmodel.Login.SignUpUiState
+import com.example.byeoldori.viewmodel.Login.SignUpViewModel
 
 @Composable
 fun SignUpScreen(

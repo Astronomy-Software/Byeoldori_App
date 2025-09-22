@@ -46,7 +46,8 @@ import com.example.byeoldori.viewmodel.UiState
 @Composable
 fun LoginScreen(
     onSignUp: () -> Unit,
-    onFindAccount: () -> Unit,
+    onFindEmail: () -> Unit,
+    onResetPassword: () -> Unit,
     vm: AuthViewModel = hiltViewModel()
 ) {
     val uiState by vm.state.collectAsState()
@@ -55,7 +56,8 @@ fun LoginScreen(
         uiState = uiState,
         onLogin = { email, password -> vm.login(email, password) },
         onSignUp = onSignUp,
-        onFindAccount = onFindAccount
+        onFindEmail = onFindEmail,
+        onResetPassword = onResetPassword,
     )
 }
 
@@ -65,7 +67,8 @@ private fun LoginContent(
     uiState: UiState = UiState.Idle,
     onLogin: (String, String) -> Unit,
     onSignUp: () -> Unit,
-    onFindAccount: () -> Unit
+    onFindEmail: () -> Unit,
+    onResetPassword : () -> Unit,
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -169,10 +172,7 @@ private fun LoginContent(
                         color = TextNormal,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier.clickable {
-                            onFindAccount()
-                            Toast.makeText(context, "아직 미완성된 기능입니다.", Toast.LENGTH_SHORT).show()
-                        }
+                        modifier = Modifier.clickable { onFindEmail() }
                     )
 
                     // 작은 구분선 (세로선처럼)
@@ -190,10 +190,7 @@ private fun LoginContent(
                         color = TextNormal,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier.clickable {
-                            onFindAccount()
-                            Toast.makeText(context, "아직 미완성된 기능입니다.", Toast.LENGTH_SHORT).show()
-                        }
+                        modifier = Modifier.clickable { onResetPassword() }
                     )
                 }
             }
@@ -219,6 +216,7 @@ private fun LoginScreenPreview() {
         uiState = UiState.Idle,
         onLogin = { _, _ -> },
         onSignUp = {},
-        onFindAccount = {}
+        onFindEmail = {},
+        onResetPassword = {},
     )
 }

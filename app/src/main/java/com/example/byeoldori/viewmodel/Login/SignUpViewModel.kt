@@ -1,4 +1,4 @@
-package com.example.byeoldori.viewmodel
+package com.example.byeoldori.viewmodel.Login
 
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel

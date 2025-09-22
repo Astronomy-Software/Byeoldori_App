@@ -23,7 +23,7 @@ import com.example.byeoldori.ui.components.TopBar
 import com.example.byeoldori.ui.components.WideButton
 import com.example.byeoldori.ui.theme.Background
 import com.example.byeoldori.ui.theme.Purple500
-import com.example.byeoldori.viewmodel.SignUpViewModel
+import com.example.byeoldori.viewmodel.Login.SignUpViewModel
 
 // 👉 ViewModel을 실제로 붙이는 Wrapper
 @Composable

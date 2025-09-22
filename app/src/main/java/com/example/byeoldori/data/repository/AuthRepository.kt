@@ -2,12 +2,10 @@ package com.example.byeoldori.data.repository
 
 import com.example.byeoldori.data.api.AuthApi
 import com.example.byeoldori.data.api.RefreshApi
-import com.example.byeoldori.data.api.UserApi
 import com.example.byeoldori.data.local.datastore.TokenDataStore
 import com.example.byeoldori.data.model.common.TokenData
 import com.example.byeoldori.data.model.dto.LoginRequest
 import com.example.byeoldori.data.model.dto.RefreshRequest
-import com.example.byeoldori.data.model.dto.SignUpRequest
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -16,7 +14,6 @@ import javax.inject.Singleton
 class AuthRepository @Inject constructor(
     private val authApi: AuthApi,          // /auth/login, /auth/signup
     private val refreshApi: RefreshApi,    // /auth/token
-    private val userApi: UserApi,          // /users/logout
     private val tokenStore: TokenDataStore // 영속 저장
 ) {
 
@@ -31,11 +28,6 @@ class AuthRepository @Inject constructor(
         return t
     }
 
-    suspend fun signUp(req: SignUpRequest) {
-        val resp = authApi.signUp(req)
-        if (!resp.success) throw Exception(resp.message)
-    }
-
     suspend fun refresh(): TokenData {
         val rt = tokenStore.refreshToken() ?: throw Exception("리프레시 토큰 없음")
         val resp = refreshApi.refresh(RefreshRequest(rt))
@@ -45,6 +37,8 @@ class AuthRepository @Inject constructor(
         persistToken(t)
         return t
     }
+
+
 
     // ──────────────────────────────
     // private helper

@@ -25,10 +25,10 @@ interface AuthApi {
 
     @POST("auth/find-email")
     suspend fun findEmail(@Body body: FindEmailRequset): ApiResponse<String>
-
+    // TODO : 이건 User로 나중에 API 변경시 보내야함.
     @POST("auth/reset-password")
     suspend fun resetPassword(@Body body: ResetPasswordRequest): ApiResponse<String>
-
+    // TODO : ResetPasswordToEmail 이친구 보안성 약해서 수정해야함.
     @POST("auth/reset-password-r equest")
     suspend fun resetPasswordToEmail(@Body body:ResetPasswordToEmailRequest): ApiResponse<String>
 

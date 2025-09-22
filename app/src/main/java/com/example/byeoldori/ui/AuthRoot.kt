@@ -8,11 +8,13 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.byeoldori.ui.screen.login.EmailVerificationScreen
+import com.example.byeoldori.ui.screen.login.FindEmailScreen
 import com.example.byeoldori.ui.screen.login.LoginScreen
+import com.example.byeoldori.ui.screen.login.ResetPasswordScreen
 import com.example.byeoldori.ui.screen.login.SignUpConsentScreen
 import com.example.byeoldori.ui.screen.login.SignUpScreen
 import com.example.byeoldori.ui.theme.Background
-import com.example.byeoldori.viewmodel.SignUpViewModel
+import com.example.byeoldori.viewmodel.Login.SignUpViewModel
 
 // 🔹 AuthRoot에서 쓰일 Route 정의
 sealed class AuthRoute(val route: String) {
@@ -20,6 +22,8 @@ sealed class AuthRoute(val route: String) {
     data object Consent : AuthRoute("consent")
     data object SignUp  : AuthRoute("signup")
     data object EmailVerification : AuthRoute("email_verification")
+    data object FindEmail : AuthRoute("find_email")
+    data object ResetPassword : AuthRoute("reset_password")
 }
 
 @Composable
@@ -32,7 +36,8 @@ fun AuthRoot() {
             composable(AuthRoute.Login.route) {
                 LoginScreen(
                     onSignUp = { nav.navigate(AuthRoute.Consent.route) },
-                    onFindAccount = { /* TODO */ }
+                    onFindEmail = { nav.navigate(AuthRoute.FindEmail.route) },
+                    onResetPassword = { nav.navigate(AuthRoute.ResetPassword.route) }
                 )
             }
             composable(AuthRoute.Consent.route) {
@@ -54,6 +59,16 @@ fun AuthRoot() {
                     onLogin = { nav.navigate(AuthRoute.Login.route) },
                     onBack = { nav.popBackStack() },
                     vm = signupvm
+                )
+            }
+            composable(AuthRoute.FindEmail.route) {
+                FindEmailScreen(
+                    onBack = { nav.popBackStack() }
+                )
+            }
+            composable(AuthRoute.ResetPassword.route) {
+                ResetPasswordScreen(
+                    onBack = { nav.popBackStack() }
                 )
             }
         }
