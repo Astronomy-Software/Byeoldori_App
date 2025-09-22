@@ -56,6 +56,9 @@ fun CommunityScreen(
                     if (reviews.none { it.id == newReview.id }) {
                         reviews.add(0, newReview)
                     }
+                    if (dummyReviews.none { it.id == newReview.id }) {
+                        dummyReviews.add(0, newReview)
+                    }
                     lastSubmittedReview = newReview
                     showWriteForm = false        // 작성창 닫기
                     showSuccessDialog = true

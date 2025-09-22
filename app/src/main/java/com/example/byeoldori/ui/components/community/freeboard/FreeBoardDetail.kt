@@ -182,7 +182,7 @@ fun FreeBoardDetail (
                     items = post.contentItems,
                     onItemsChange = {},
                     onPickImages = {},
-                    onSubmit = {},
+                    onCheck = {},
                     onChecklist = {},
                     readOnly = true
                 )

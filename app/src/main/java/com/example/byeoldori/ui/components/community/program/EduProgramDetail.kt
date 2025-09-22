@@ -190,7 +190,7 @@ fun EduProgramDetail(
                     items = program.contentItems,
                     onItemsChange = {},
                     onPickImages = {},
-                    onSubmit = {},
+                    onCheck = {},
                     onChecklist = {},
                     readOnly = true
                 )

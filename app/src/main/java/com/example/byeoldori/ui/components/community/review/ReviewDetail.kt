@@ -225,7 +225,7 @@ fun ReviewDetail(
                 ContentInput(
                     items = review.contentItems,
                     onItemsChange = {},
-                    onSubmit = {},
+                    onCheck = {},
                     onPickImages = {},
                     onChecklist = {},
                     readOnly = true,

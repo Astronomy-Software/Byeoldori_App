@@ -115,10 +115,7 @@ fun FreeBoardWriteForm (
                             )
                         )
                     },
-                    onSubmit = {
-                        onSubmitPost(makePost())
-                        onSubmit()
-                    },
+                    onCheck = {},
                     onChecklist = { /* 자유게시판이면 생략 or 원하는 동작 */ }
                 )
             }
