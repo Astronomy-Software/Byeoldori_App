@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.*
 import com.example.byeoldori.ui.components.observatory.*
 import com.example.byeoldori.ui.theme.*
 import com.example.byeoldori.viewmodel.Observatory.*
+import com.example.byeoldori.viewmodel.observatoryList
 import com.naver.maps.geometry.LatLng
 import kotlinx.coroutines.launch
 

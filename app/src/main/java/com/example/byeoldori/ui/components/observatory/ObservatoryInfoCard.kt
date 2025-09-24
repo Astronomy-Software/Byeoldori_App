@@ -61,7 +61,7 @@ fun ObservatoryInfoCard(
 
                 //2-2) 일별 섹션 (더미 주입)
                 item {
-                    DailyForecastListSection(forecasts = dummyDailyForecasts)
+                    WeatherDailyPanel()
                     Spacer(Modifier.height(16.dp))
                 }
 

@@ -32,7 +32,7 @@ fun NaverMapWithSearchUI(
     onAddressUpdated: (String)->Unit,
     searchTrigger: Int,
     showOverlay: Boolean,
-    onMarkerClick: (MarkerInfo) -> Unit
+    onMarkerClick: (MarkerInfo) -> Unit,
 
 ) {
     //이 부분들은 UI에 종속적인 객체(viewModel사용 안함)

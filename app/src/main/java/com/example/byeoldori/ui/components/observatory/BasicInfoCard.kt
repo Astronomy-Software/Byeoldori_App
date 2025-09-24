@@ -124,7 +124,8 @@ private val previewMarkerInfo = MarkerInfo(
     rating = 4.3f,
     suitability = 87,
     address = "경기도 오산시 오산천로 254-5",
-    drawableRes = R.drawable.img_dummy
+    drawableRes = R.drawable.img_dummy,
+
 )
 
 @Preview(

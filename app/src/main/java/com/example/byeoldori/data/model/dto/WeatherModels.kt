@@ -7,29 +7,29 @@ data class ForecastResponse(
 )
 
 data class UltraForecast(
-    val fcstTm: String,
-    val tmn: Int,
-    val tmx: Int,
-    val wd1: Int,
-    val wd2: Int,
-    val reh: Int,
-    val rn1: Int,
+    val tmef: String,
+    val t1h: Int,
+    val vec: Int,
+    val wsd: Double,
     val pty: Int,
+    val rn1: Double,
+    val reh: Int,
     val sky: Int
 )
 
 data class ShortForecast(
-    val fcstTm: String,
+    val tmef: String,
     val tmp: Int,
-    val tmn: Int,
-    val tmx: Int,
-    val wd1: Int,
-    val wd2: Int,
-    val reh: Int,
-    val rn1: Int,
-    val pty: Int,
+    val tmx: Int?,
+    val tmn: Int?,
+    val vec: Double?,
+    val wsd: Double?,
     val sky: Int,
-    val pop: Int
+    val pty: Int,
+    val pop: Int,
+    val pcp: Double,
+    val sno: Double,
+    val reh: Int,
 )
 
 data class MidForecast(

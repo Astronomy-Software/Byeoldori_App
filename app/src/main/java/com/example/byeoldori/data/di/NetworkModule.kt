@@ -9,11 +9,13 @@ import com.example.byeoldori.data.api.AuthApi
 import com.example.byeoldori.data.api.ObservationSiteApi
 import com.example.byeoldori.data.api.RefreshApi
 import com.example.byeoldori.data.api.UserApi
+import com.example.byeoldori.data.api.WeatherApi
 import com.example.byeoldori.data.local.datastore.TokenDataStore
 import com.example.byeoldori.data.remote.interceptor.AuthInterceptor
 import com.example.byeoldori.data.remote.interceptor.NetworkCacheInterceptor
 import com.example.byeoldori.data.remote.interceptor.RefreshTokenAuthenticator
 import com.squareup.moshi.Moshi
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -82,7 +84,10 @@ object NetworkModule {
         AuthInterceptor(tokenStore)
 
     @Provides @Singleton
-    fun provideMoshi(): Moshi = Moshi.Builder().build()
+    fun provideMoshi(): Moshi =
+        Moshi.Builder()
+            .add(KotlinJsonAdapterFactory())
+            .build()
 
     @Provides @Singleton
     fun provideLogging(): HttpLoggingInterceptor =
@@ -203,4 +208,8 @@ object NetworkModule {
     @Provides @Singleton
     fun provideObservationSiteApi(@UnauthRetrofit retrofit: Retrofit): ObservationSiteApi =
         retrofit.create(ObservationSiteApi::class.java)
+
+    @Provides @Singleton
+    fun provideWeatherApi(@UnauthRetrofit retrofit: Retrofit): WeatherApi =
+        retrofit.create(WeatherApi::class.java)
 }

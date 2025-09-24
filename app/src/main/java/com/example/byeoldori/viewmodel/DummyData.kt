@@ -4,12 +4,14 @@ import com.example.byeoldori.R
 import com.example.byeoldori.viewmodel.Community.EduProgram
 import com.example.byeoldori.viewmodel.Community.FreePost
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.text.input.TextFieldValue
 import com.example.byeoldori.ui.components.community.EditorItem
 import com.example.byeoldori.viewmodel.Community.ReviewComment
 import com.example.byeoldori.viewmodel.Observatory.CurrentWeather
 import com.example.byeoldori.viewmodel.Observatory.DailyForecast
 import com.example.byeoldori.viewmodel.Observatory.HourlyForecast
+import com.example.byeoldori.viewmodel.Observatory.MarkerInfo
 import com.example.byeoldori.viewmodel.Observatory.Observatory
 import com.example.byeoldori.viewmodel.Observatory.ObservatoryType
 import com.example.byeoldori.viewmodel.Observatory.Review
@@ -57,6 +59,17 @@ val observatoryList = listOf(
         likeCount = 150,
         avgRating = 4.8f,
         address = "충북 청주시 상당구 문의면 덕유리",
+        imageRes = R.drawable.img_dummy,
+        suitability = 92
+    ),
+    Observatory(
+        name = "우암산 전망대",
+        type = ObservatoryType.POPULAR,
+        latLng = LatLng(36.65003430206848, 127.50494706148991),
+        reviewCount = 79,
+        likeCount = 150,
+        avgRating = 4.8f,
+        address = "충북 청주시 상당구 우암산로",
         imageRes = R.drawable.img_dummy,
         suitability = 92
     ),

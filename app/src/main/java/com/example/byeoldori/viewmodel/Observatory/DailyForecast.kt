@@ -1,5 +1,8 @@
 package com.example.byeoldori.viewmodel.Observatory
 
+import java.time.LocalDate
+
+
 data class DailyForecast(
     val date: String,
     val precipitation: String,
@@ -9,3 +12,4 @@ data class DailyForecast(
     val nightTemp: String,
     val suitability: String
 )
+

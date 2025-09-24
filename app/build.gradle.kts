@@ -36,6 +36,7 @@ android {
 
         buildConfigField("String", "NAVER_CLIENT_ID", "\"${localProperties.getProperty("NAVER_CLIENT_ID")}\"")
         buildConfigField("String", "NAVER_CLIENT_SECRET", "\"${localProperties.getProperty("NAVER_CLIENT_SECRET")}\"")
+        buildConfigField ("String", "BASE_URL", "http://43.202.235.27/")
 
         // ✅ Hilt 테스트 러너를 실제로 쓸 때만 유지. 아니면 아래 한 줄로 바꾸세요.
         testInstrumentationRunner = "com.example.byeoldori.HiltTestRunner"
@@ -59,7 +60,7 @@ android {
 
     buildTypes {
         debug {
-            val base = withTrailingSlash(prop("BASE_URL_DEBUG", "http://10.0.2.2:8080/"))
+            val base = withTrailingSlash(prop("BASE_URL_DEBUG", "http://43.202.235.27/"))
             buildConfigField("String", "BASE_URL", "\"$base\"")
         }
         release {
@@ -88,7 +89,7 @@ dependencies {
     implementation(libs.converter.moshi)
     implementation(libs.okhttp)
     implementation(libs.logging.interceptor)
-//    implementation(libs.moshi.kotlin)
+    implementation(libs.moshi.kotlin)
     // 네이버 맵 - 공식, compose
     implementation(libs.map.sdk)
     implementation(libs.naver.map.compose)
