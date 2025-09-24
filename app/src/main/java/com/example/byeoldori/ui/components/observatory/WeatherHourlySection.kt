@@ -6,18 +6,50 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.byeoldori.R
 import com.example.byeoldori.ui.theme.*
 import com.example.byeoldori.viewmodel.Observatory.HourlyForecast
+import com.example.byeoldori.viewmodel.Observatory.WeatherViewModel
+import java.time.format.DateTimeFormatter
+
+
+@Composable
+fun WeatherHourlyPanel(
+    viewModel: WeatherViewModel = hiltViewModel() //Hilt가 WeatherViewModel 객체를 만들어서 자동으로 넣어줌
+) {
+    val hourly by viewModel.hourly.collectAsState() //Compose State로 변환
+
+    // 최초 진입 시 우암산 좌표로 불러오기
+    LaunchedEffect(Unit) {
+        viewModel.getHourly()
+    }
+
+    // 로딩/빈 상태 간단 처리
+    if (hourly.isEmpty()) {
+        // 필요하면 로딩 UI 교체
+        Box(Modifier.fillMaxWidth().height(120.dp)) {
+            CircularProgressIndicator(Modifier.align(Alignment.Center))
+        }
+    } else {
+       WeatherHourlySection(forecasts = hourly)
+    }
+}
 
 @Composable
 fun WeatherHourlySection(forecasts: List<HourlyForecast>) {
     val grouped = forecasts.groupBy { it.date }.toList() // 날짜별로 그룹화
+    val dateFmt = remember { DateTimeFormatter.ofPattern("M.d") }
+    val timeFmt = remember { DateTimeFormatter.ofPattern("H시") }
 
     Box(
         modifier = Modifier

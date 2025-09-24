@@ -55,7 +55,7 @@ fun ObservatoryInfoCard(
                 }
                 //2-1) 시간별 섹션 (더미 주입)
                 item {
-                    WeatherHourlySection(forecasts = dummyHourlyForecasts)
+                    WeatherHourlyPanel()
                     Spacer(Modifier.height(12.dp))
                 }
 

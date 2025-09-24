@@ -7,6 +7,7 @@ import com.example.byeoldori.data.model.dto.ShortForecast
 import com.example.byeoldori.ui.components.observatory.midWeatherIcon
 import com.example.byeoldori.ui.components.observatory.shortWeatherIcon
 import com.example.byeoldori.viewmodel.Observatory.DailyForecast
+import com.example.byeoldori.viewmodel.Observatory.HourlyForecast
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -18,131 +19,104 @@ class WeatherRepository @Inject constructor( //Hilt가 WeatherApi 객체를 만�
     private val weatherApi: WeatherApi,
 ) {
     suspend fun getDaily(lat: Double, lon: Double): List<DailyForecast> {
-        val response = weatherApi.getForecastData(lat, lon) //좌표 기반으로 ForecastResponse JSON데이터를 가져옴
-
-        val shortDaily = mapShortToDaily(response)
-        val midDaily = mapMidToDaily(response)
-
-        val today = LocalDate.now()
-        val cutover = today.plusDays(3) //단기예보는 3일치만 보여주려고
-
-        fun String.toDate() = parseMonthDay(this)
-
-        // 단기가 비어있으면 그냥 중기만 사용
-        val shortOnly = if (shortDaily.isEmpty()) emptyList()
-        else shortDaily.filter { !it.date.toDate().isAfter(cutover) }
-
-        val midOnly = midDaily.filter { it.date.toDate().isAfter(cutover) }
-
-        return (shortOnly + midOnly)
-            .groupBy { it.date }
-            .map { (_, sameDates) -> sameDates.first() }
-            .sortedBy { parseMonthDay(it.date) }
-    }
-
-    private suspend fun fetchDaily(lat: Double, lon: Double): List<DailyForecast> {
-
         val response = weatherApi.getForecastData(lat, lon)
-        val shortDaily = mapShortToDaily(response) //단기 예보
-        val midDaily = mapMidToDaily(response) //중기 예보
-
-        val today = LocalDate.now()
-        val cutover = today.plusDays(3) //오늘부터 3일 뒤
-        fun String.toDate() = parseMonthDay(this)
-
-        val shortOnly = shortDaily.filter { it.date.toDate().isBefore(cutover) }
-        val midOnly = midDaily.filter { !it.date.toDate().isBefore(cutover) }
-
-        return (shortOnly + midOnly)
-            .groupBy { it.date } // 날짜별로 그룹화
-            .map{ it.value.first() }
-            .sortedBy { parseMonthDay(it.date) }
+        return mapMidToDaily(response)
     }
-    private fun geoKey(lat: Double, lon: Double): String { //좌표를 문자열 키로 변환
-        return "${(lat)}_${(lon)}"
+
+    suspend fun getHourly(lat: Double, lon: Double): List<HourlyForecast> {
+        val response = weatherApi.getForecastData(lat, lon)
+
+        val shortHourly = mapShortHourly(response)
+
+        fun HourlyForecast.toDateTime(): LocalDateTime {
+            val (m, d) = date.split(".").map { it.trim().toInt() }
+            val h = time.split("시")[0].trim().toInt()
+            return LocalDateTime.of(LocalDate.now().year,m, d, 1, h, 0)
+        }
+
+        return shortHourly.sortedBy { it.toDateTime() }
     }
 }
+
 
 // 날짜 포맷 정의
 private val DATE_FMT = DateTimeFormatter.ofPattern("yyyyMMdd")
 private val TM_FMT = DateTimeFormatter.ofPattern("yyyyMMddHHmm")
 private val OUT_DATE_FMT = DateTimeFormatter.ofPattern("M.d")
+private val HOUR_OUT_FMT = DateTimeFormatter.ofPattern("H시")
 
-private fun mapShortToDaily(response: ForecastResponse): List<DailyForecast> {
-    val items: List<ShortForecast> = response.shortForecastResponse //ForecastResponse에서 단기예보 리스트만 꺼냄
+//초단기 데이터
+private fun mapUltraHourly(response: ForecastResponse): List<HourlyForecast> {
+    val items = response.ultraForecastResponse
     if(items.isEmpty()) return emptyList()
 
-    //날짜별로 묶기
-    val byDate: Map<LocalDate, List<ShortForecast>> =
-        items.groupBy { LocalDateTime.parse(it.tmef,TM_FMT).toLocalDate() } //연-월-일 추출하고 같은 날짜끼리 묶음
-
-    return byDate.map { (date, list) ->
-        var tMax: Int? = null
-        var tMin: Int? = null
-        list.forEach { s ->
-            if(s.tmx != null) tMax = (tMax ?: s.tmx).let { max(it, s.tmx) }
-            if(s.tmn != null) tMin = (tMin ?: s.tmn).let { min(it, s.tmn) }
-        }
-        //혹시 null이면 리스트 안에서 최대최소를 뽑음
-        if(tMax == null) tMax = list.maxOfOrNull { it.tmp }
-        if(tMin == null) tMin = list.minOfOrNull { it.tmp }
-
-        val pop = list.maxOfOrNull { it.pop } //가장 높은 강수 확률 사용
-
-        val am = list.filter { LocalDateTime.parse(it.tmef, TM_FMT).hour in 6..11 }
-            .maxByOrNull { it.pop } ?: list.first()
-        val pm = list.filter { LocalDateTime.parse(it.tmef, TM_FMT).hour in 12..21 }
-            .maxByOrNull { it.pop } ?: list.first()
-
-        val amIcon = shortWeatherIcon(am.sky,am.pty, day = true)
-        val pmIcon = shortWeatherIcon(pm.sky, pm.pty, day = false)
-
-        DailyForecast(
-            date = date.format(OUT_DATE_FMT),
-            precipitation = "${pop ?: 0}%",
-            amIcon = amIcon,
-            pmIcon = pmIcon,
-            dayTemp = "${tMax ?: 0}°",
-            nightTemp = "${tMin ?: 0}°",
+    return items.map { u ->
+        val date = LocalDateTime.parse(u.tmef, TM_FMT)
+        HourlyForecast(
+            date = date.toLocalDate().format(OUT_DATE_FMT),
+            time = date.format(HOUR_OUT_FMT),
+            temperature = "${u.t1h}°",
+            iconName = shortWeatherIcon(u.sky ?: 1, u.pty ?: 0,day = true),
+            precipitation = "${u.rn1}mm",
             suitability = "-" //나중에
         )
-    }.sortedBy { it.date }
+    }.sortedBy { it.time }
 }
 
+//단기 데이터(1시간씩)
+private fun mapShortHourly(response: ForecastResponse): List<HourlyForecast> {
+    val items = response.shortForecastResponse
+    if(items.isEmpty()) return emptyList()
+
+    return items.map { s ->
+        val date = LocalDateTime.parse(s.tmef, TM_FMT)
+        val isDay = date.hour in 6..18
+        HourlyForecast(
+            date = date.toLocalDate().format(OUT_DATE_FMT),
+            time = date.format(HOUR_OUT_FMT),
+            temperature = "${s.tmp}°",
+            iconName = shortWeatherIcon(s.sky, s.pty, day = isDay),
+            precipitation = "${s.pop}%",
+            suitability = "-" //나중에
+        )
+    }.sortedBy { it.time }
+}
 
 //중기 데이터(12시간 간격)
 fun mapMidToDaily(response: ForecastResponse): List<DailyForecast> {
     val items = response.midCombinedForecastDTO
     if(items.isEmpty()) return emptyList()
 
-    fun MidForecast.toLocalDate(): LocalDate {
-        return LocalDate.parse(tmEf.substring(0, 8), DATE_FMT) //12시간 예보를 하루 단위로 묶을 준비
-    }
+    fun String.toLocalDate() = LocalDate.parse(substring(0, 8), DATE_FMT)
+    fun String.hour() = substring(8, 10).toInt()
 
-    return items.groupBy { it.toLocalDate() }
-        .map{ (date, list) -> //날짜별로 예보가 2개 있으니까 그룹화
-            val tMax = list.maxOfOrNull { it.max }
-            val tMin = list.minOfOrNull { it.min }
-            val rnSt = list.maxOfOrNull { it.rnSt }
+    return items
+        .groupBy { it.tmEf.toLocalDate() } // 날짜별로 묶기(오전/오후 2건)
+        .map { (date, list) ->
+            // 오전/오후 분리 (없을 수도 있으므로 fallback 준비)
+            val amItem = list.firstOrNull { it.tmEf.hour() < 12 } ?: list.minBy { it.tmEf }
+            val pmItem = list.firstOrNull { it.tmEf.hour() >= 12 } ?: list.maxBy { it.tmEf }
 
-            //가장 많이 등작한 값 선택
-            val skyCode = list.groupBy { it.sky }.maxByOrNull { it.value.size }?.key ?: "WB04"
-            val preCode = list.groupBy { it.pre }.maxByOrNull { it.value.size }?.key ?: "WB00"
+            // 아이콘: 오전/오후 각각의 sky/pre로 따로 계산
+            val amIcon = midWeatherIcon(amItem.sky, amItem.pre, day = true)
+            val pmIcon = midWeatherIcon(pmItem.sky, pmItem.pre, day = false)
 
-            val amIcon = midWeatherIcon(skyCode, preCode, day = true)
-            val pmIcon = midWeatherIcon(skyCode, preCode, day = false)
+            //하루 범위에서 최댓/최솟 사용
+            val tMax = list.mapNotNull { it.max }.maxOrNull()
+            val tMin = list.mapNotNull { it.min }.minOrNull()
+            val rnSt = list.maxOfOrNull { it.rnSt } //습도도 높은 거 기준으로
 
-            DailyForecast(
+        DailyForecast(
                 date = date.format(OUT_DATE_FMT),
-                precipitation = "${rnSt ?: 0}%",
+                precipitation = "${rnSt ?: ""}%",
                 amIcon = amIcon,
                 pmIcon = pmIcon,
-                dayTemp = "${tMax ?: 0}°",
-                nightTemp = "${tMin ?: 0}°",
+                dayTemp = "${tMax ?: ""}°",
+                nightTemp = "${tMin ?: ""}°",
                 suitability = "-" // 나중에
             )
         }
-        .sortedBy { it.date } //모든 날짜별 데이터를 리스트로 변환
+        .sortedBy { parseMonthDay(it.date) } //모든 날짜별 데이터를 리스트로 변환
 }
 
 //M.d 문자열을 LocalDate로 변환
