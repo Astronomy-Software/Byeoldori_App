@@ -23,5 +23,8 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "byeoldori"
+
 include(":app")
- 
+include(":live2d:Core")
+include(":live2d:Framework:framework")
+include(":live2d:Sample")

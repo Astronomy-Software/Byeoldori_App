@@ -15,6 +15,12 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
     }
+    // ✅ Sample과 맞추기
+    flavorDimensions "mode"
+    productFlavors {
+        Full { dimension "mode" }
+        Minimum { dimension "mode" }
+    }
 
     buildTypes {
         release {
@@ -23,16 +29,16 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_7
-        targetCompatibility JavaVersion.VERSION_1_7
+        sourceCompatibility JavaVersion.VERSION_21
+        targetCompatibility JavaVersion.VERSION_21
     }
 }
 
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(17)
-    }
-}
+//java {
+//    toolchain {
+//        languageVersion = JavaLanguageVersion.of(21)
+//    }
+//}
 
 dependencies {
     compileOnly(fileTree(dir: '../../Core/android', include: ['Live2DCubismCore.aar']))
