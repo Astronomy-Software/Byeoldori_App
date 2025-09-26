@@ -15,12 +15,6 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
     }
-    // ✅ Sample과 맞추기
-    flavorDimensions "mode"
-    productFlavors {
-        Full { dimension "mode" }
-        Minimum { dimension "mode" }
-    }
 
     buildTypes {
         release {
