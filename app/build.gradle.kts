@@ -75,6 +75,7 @@ android {
 
 dependencies {
     implementation(project(":live2d:Framework:framework"))
+    implementation(project(":live2d:live2dview"))
 //    implementation(fileTree(dir = "live2d/Core/android", include = ["Live2DCubismCore.aar"]))
 //    implementation(project(":live2d:Core"))
 //    implementation(project(":live2d:Sample"))
