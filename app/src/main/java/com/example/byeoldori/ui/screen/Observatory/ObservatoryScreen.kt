@@ -2,6 +2,7 @@
 
 package com.example.byeoldori.ui.screen.Observatory
 
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -16,6 +17,8 @@ import com.example.byeoldori.viewmodel.Observatory.*
 import com.example.byeoldori.viewmodel.observatoryList
 import com.naver.maps.geometry.LatLng
 import kotlinx.coroutines.launch
+
+private const val TAG_OBS = "ObservatoryScreen"
 
 
 @Composable
@@ -54,6 +57,12 @@ fun ObservatoryScreen(
             }
         }
     }
+    var currentLat by rememberSaveable { mutableStateOf<Double?>(null) }
+    var currentLon by rememberSaveable { mutableStateOf<Double?>(null) }
+
+    LaunchedEffect(currentLat, currentLon, selectedInfo) {
+        Log.d(TAG_OBS, "to card -> lat=$currentLat lon=$currentLon info=${selectedInfo?.name}")
+    }
 
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
@@ -69,6 +78,8 @@ fun ObservatoryScreen(
                 ObservatoryInfoCard(
                     info = selectedInfo!!,
                     listState = listState,
+                    currentLat = currentLat,
+                    currentLon = currentLon,
                     modifier = Modifier.fillMaxWidth()
                 )
             } else {
@@ -95,8 +106,15 @@ fun ObservatoryScreen(
                     onLatLngUpdated = { selectedLatLng = it },
                     onAddressUpdated = { selectedAddress = it },
                     searchTrigger = searchTrigger,
-                    onMarkerClick = onMarkerClick
+                    onMarkerClick = onMarkerClick,
+                    onCurrentLocated = { lat, lon ->
+                        currentLat = lat
+                        currentLon = lon
+                       //Log.d(TAG_SCREEN, "onCurrentLocated -> cur=($currentLat,$currentLon)")
+                    }
                 )
+
+
                 Box(
                     modifier = Modifier
                         .align(Alignment.TopStart)

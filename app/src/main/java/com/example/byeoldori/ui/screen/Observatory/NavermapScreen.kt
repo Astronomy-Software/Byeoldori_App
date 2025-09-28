@@ -1,6 +1,7 @@
 package com.example.byeoldori.ui.screen.Observatory
 
 import android.Manifest
+import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.*
@@ -13,6 +14,8 @@ import com.example.byeoldori.viewmodel.Observatory.NaverMapWithSearchUI
 import com.google.accompanist.permissions.*
 import com.naver.maps.geometry.LatLng
 
+private const val TAG_SCREEN = "NavermapScreen"
+
 @Composable
 fun NavermapScreen(
     searchQuery: String,
@@ -22,9 +25,10 @@ fun NavermapScreen(
     onLatLngUpdated: (LatLng)->Unit,     // 추가
     onAddressUpdated: (String)->Unit,
     onMarkerClick: (MarkerInfo) -> Unit,  // 추가
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onCurrentLocated: (Double, Double) -> Unit
 ) {
-    val navViewModel: NavigationViewModel = viewModel()
+
 
     RequestLocationPermission {
         Box(modifier = Modifier.fillMaxSize()) {
@@ -37,7 +41,11 @@ fun NavermapScreen(
                 onLatLngUpdated     = onLatLngUpdated,
                 onAddressUpdated    = onAddressUpdated,
                 showOverlay         = showOverlay,
-                onMarkerClick       = onMarkerClick
+                onMarkerClick       = onMarkerClick,
+                onCurrentLocated    = { lat, lon ->
+                    Log.d(TAG_SCREEN, "onCurrentLocated from UI: lat=$lat lon=$lon")
+                    onCurrentLocated(lat, lon) // 부모(ObservatoryScreen)로 그대로 전달
+                }
             )
         }
     }
@@ -46,19 +54,31 @@ fun NavermapScreen(
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun RequestLocationPermission(onPermissionGranted: @Composable () -> Unit) {
-    val permissionState = rememberPermissionState(Manifest.permission.ACCESS_FINE_LOCATION)
+    val permissions = rememberMultiplePermissionsState(
+        listOf(
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        )
+    )
 
-    when {
-        permissionState.status.isGranted -> {
+    LaunchedEffect(Unit) {
+        if (!permissions.permissions.any { it.status.isGranted }) {
+            permissions.launchMultiplePermissionRequest()
+        }
+    }
+
+    if (permissions.permissions.any { it.status.isGranted }) {
+        val grantedAny = permissions.permissions.any { it.status.isGranted }
+        if (grantedAny) {
+            val fine =
+                permissions.permissions.firstOrNull { it.permission == Manifest.permission.ACCESS_FINE_LOCATION }?.status?.isGranted == true
+            val coarse =
+                permissions.permissions.firstOrNull { it.permission == Manifest.permission.ACCESS_COARSE_LOCATION }?.status?.isGranted == true
+            Log.d(TAG_SCREEN, "Permissions granted -> fine=$fine, coarse=$coarse")
             onPermissionGranted()
-        }
-        permissionState.status.shouldShowRationale -> {
-            Text("이 앱은 현재 위치를 확인하기 위해 위치 권한이 필요합니다.")
-        }
-        else -> {
-            LaunchedEffect(Unit) {
-                permissionState.launchPermissionRequest()
-            }
+        } else if (permissions.shouldShowRationale) {
+            Log.w(TAG_SCREEN, "shouldShowRationale = true (user denied previously)")
+            Text("현재 위치를 확인하려면 위치 권한이 필요합니다.")
         }
     }
 }

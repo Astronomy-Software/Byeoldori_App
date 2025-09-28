@@ -80,7 +80,8 @@ val dummyCurrentWeather = CurrentWeather(
     temperature = "14°",
     humidity = "35%",
     windSpeed = "→ 3m/s",
-    suitability = "75%"
+    suitability = "75%",
+    windDirection = 75
 )
 
 //날씨 (시간별) 더미 데이터

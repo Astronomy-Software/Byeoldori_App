@@ -10,6 +10,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+private const val TAG_VM = "WeatherVM"
+
 @HiltViewModel
 class WeatherViewModel @Inject constructor (
     private val weatherRepository: WeatherRepository
@@ -26,6 +28,9 @@ class WeatherViewModel @Inject constructor (
 
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
+
+    private val _current = MutableStateFlow<CurrentWeather?>(null)
+    val current: StateFlow<CurrentWeather?> = _current
 
     // 임시 위치: 우암산 전망대
     private val testLat = 36.65003430206848
@@ -55,5 +60,22 @@ class WeatherViewModel @Inject constructor (
         } catch (e: Exception) {
             _error.value = e.message
         } finally { _isLoading.value = false }
+    }
+
+    fun getCurrent(lat: Double, lon: Double) = viewModelScope.launch {
+        _isLoading.value = true
+        _error.value = null
+        try {
+            Log.d(TAG_VM, "getCurrent(lat=$lat, lon=$lon) -> repo.getCurrent")
+            val result = weatherRepository.getCurrent(lat, lon)
+            Log.d(TAG_VM, "repo.getCurrent returned: $result")
+            _current.value = result
+        } catch (e: Exception) {
+            Log.e(TAG_VM, "getCurrent error: ${e.message}", e)
+            _error.value = e.message
+            _current.value = null
+        } finally {
+            _isLoading.value = false
+        }
     }
 }

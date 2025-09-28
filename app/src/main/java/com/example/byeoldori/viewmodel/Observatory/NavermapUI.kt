@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.location.Geocoder
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
@@ -22,6 +23,8 @@ import com.naver.maps.map.*
 import com.naver.maps.map.overlay.*
 import java.util.Locale
 
+private const val TAG_UI = "NavermapUI"
+
 @Composable
 fun NaverMapWithSearchUI(
     modifier: Modifier = Modifier,
@@ -33,7 +36,7 @@ fun NaverMapWithSearchUI(
     searchTrigger: Int,
     showOverlay: Boolean,
     onMarkerClick: (MarkerInfo) -> Unit,
-
+    onCurrentLocated: (Double, Double) -> Unit
 ) {
     //이 부분들은 UI에 종속적인 객체(viewModel사용 안함)
     val context = LocalContext.current
@@ -44,9 +47,8 @@ fun NaverMapWithSearchUI(
     var naverMapObj by remember { mutableStateOf<NaverMap?>(null) }
     var currentCoordinate by remember { mutableStateOf("127.0,37.0") }
 
-    //ViewModel사용
-    val selectedLatLng  by viewModel.selectedLatLng.collectAsState()
-    val selectedAddress by viewModel.selectedAddress.collectAsState()
+    var curLat by remember { mutableStateOf<Double?>(null) }
+    var curLon by remember { mutableStateOf<Double?>(null) }
 
 
     LaunchedEffect(showOverlay) {
@@ -136,11 +138,9 @@ fun NaverMapWithSearchUI(
                             }
                         }
 
-                        if (ActivityCompat.checkSelfPermission(
-                                context,
-                                Manifest.permission.ACCESS_FINE_LOCATION
-                            ) != PackageManager.PERMISSION_GRANTED
-                        ) return@getMapAsync
+                        val fine = ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                        val coarse = ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                        if (!fine && !coarse) return@getMapAsync
 
                         if (showOverlay) {
                             lightOverlay = addLightPollutionOverlay(context, naverMap)
@@ -161,6 +161,10 @@ fun NaverMapWithSearchUI(
                                     map = naverMap
                                     iconTintColor = Color.BLACK
                                 }
+                                onCurrentLocated(location.latitude, location.longitude)
+                                Log.d("NavermapUI", "initial lastLocation -> lat=${location.latitude}, lon=${location.longitude}")
+                            } else {
+                                Log.w("NavermapUI", "initial lastLocation is NULL")
                             }
                         }
                     }
@@ -173,9 +177,13 @@ fun NaverMapWithSearchUI(
             context = context,
             mapView = mapView,
             fusedLocationClient = fusedLocationClient,
+            onLocated = { lat, lon ->
+                Log.d(TAG_UI, "onLocated from button: lat=$lat lon=$lon")
+                onCurrentLocated(lat, lon)
+            },
             modifier = Modifier
                 .align(Alignment.BottomStart)
-                .offset(y = (-10).dp) // 아래에서 40dp 위로
+                .offset(y = (-10).dp)
                 .padding(16.dp)
         )
     }

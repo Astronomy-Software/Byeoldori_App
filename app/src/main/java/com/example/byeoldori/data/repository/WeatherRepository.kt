@@ -1,19 +1,17 @@
 package com.example.byeoldori.data.repository
 
+import android.util.Log
 import com.example.byeoldori.data.api.WeatherApi
-import com.example.byeoldori.data.model.dto.ForecastResponse
-import com.example.byeoldori.data.model.dto.MidForecast
-import com.example.byeoldori.data.model.dto.ShortForecast
-import com.example.byeoldori.ui.components.observatory.midWeatherIcon
-import com.example.byeoldori.ui.components.observatory.shortWeatherIcon
-import com.example.byeoldori.viewmodel.Observatory.DailyForecast
-import com.example.byeoldori.viewmodel.Observatory.HourlyForecast
-import java.time.LocalDate
-import java.time.LocalDateTime
+import com.example.byeoldori.data.model.dto.*
+import com.example.byeoldori.ui.components.observatory.*
+import com.example.byeoldori.viewmodel.Observatory.*
+import java.time.*
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
-import kotlin.math.max
-import kotlin.math.min
+import kotlin.coroutines.cancellation.CancellationException
+import kotlin.math.roundToInt
+
+private const val TAG_REPO = "WeatherRepo"
 
 class WeatherRepository @Inject constructor( //Hilt가 WeatherApi 객체를 만들어서 자동으로 넣어줌
     private val weatherApi: WeatherApi,
@@ -25,17 +23,30 @@ class WeatherRepository @Inject constructor( //Hilt가 WeatherApi 객체를 만�
 
     suspend fun getHourly(lat: Double, lon: Double): List<HourlyForecast> {
         val response = weatherApi.getForecastData(lat, lon)
-
         val shortHourly = mapShortHourly(response)
 
         fun HourlyForecast.toDateTime(): LocalDateTime {
             val (m, d) = date.split(".").map { it.trim().toInt() }
             val h = time.split("시")[0].trim().toInt()
-            return LocalDateTime.of(LocalDate.now().year,m, d, 1, h, 0)
+            return LocalDateTime.of(LocalDate.now().year,m, d, h, 0, 0)
         }
-
         return shortHourly.sortedBy { it.toDateTime() }
     }
+
+    suspend fun getCurrent(lat: Double, lon: Double): CurrentWeather? =
+        runCatching {
+            Log.d(TAG_REPO, "GET /weather/ForecastData?lat=$lat&long=$lon")
+            val res = weatherApi.getForecastData(lat, lon)
+            Log.d(TAG_REPO, "Response sizes: ultra=${res.ultraForecastResponse.size}, short=${res.shortForecastResponse.size}, mid=${res.midCombinedForecastDTO.size}")
+            val first = res.ultraForecastResponse.firstOrNull()
+            Log.d(TAG_REPO, "ultra.first = $first")
+            first?.toCurrentWeather()
+        }
+            .onFailure { e ->
+                if (e is CancellationException) throw e
+                Log.e(TAG_REPO, "getCurrent failed: ${e.message}", e)
+            }
+            .getOrNull()
 }
 
 
@@ -44,6 +55,7 @@ private val DATE_FMT = DateTimeFormatter.ofPattern("yyyyMMdd")
 private val TM_FMT = DateTimeFormatter.ofPattern("yyyyMMddHHmm")
 private val OUT_DATE_FMT = DateTimeFormatter.ofPattern("M.d")
 private val HOUR_OUT_FMT = DateTimeFormatter.ofPattern("H시")
+
 
 //초단기 데이터
 private fun mapUltraHourly(response: ForecastResponse): List<HourlyForecast> {
@@ -63,7 +75,24 @@ private fun mapUltraHourly(response: ForecastResponse): List<HourlyForecast> {
     }.sortedBy { it.time }
 }
 
-//단기 데이터(1시간씩)
+//현재 위치에 대한 날씨 데이터(초단기 사용)
+private fun UltraForecast.toCurrentWeather(): CurrentWeather = CurrentWeather(
+    temperature = "${t1h}°",
+    humidity = "${reh}%",
+    windSpeed = "${wsd.roundToInt()} m/s",
+    suitability ="-",
+    windDirection = Math.floorMod(vec, 360)
+)
+
+//vec: 풍향(도, 0–360). 0/360=북, 90=동, 180=남, 270=서
+private fun degreeToDirection(degree: Int): String {
+    val directions =  arrayOf("↑","↗","→","↘","↓","↙","←","↖")
+    val norm = Math.floorMod(degree, 360) // 0..359 보장
+    val idx = norm / 45
+    return directions[idx]
+}
+
+//단기 데이터(1시간씩-> 3시간마다 업데이트)
 private fun mapShortHourly(response: ForecastResponse): List<HourlyForecast> {
     val items = response.shortForecastResponse
     if(items.isEmpty()) return emptyList()
@@ -127,4 +156,3 @@ private fun parseMonthDay(dateStr: String): LocalDate {
     val year = LocalDate.now().year  // 올해 기준
     return LocalDate.of(year, month, day)
 }
-
