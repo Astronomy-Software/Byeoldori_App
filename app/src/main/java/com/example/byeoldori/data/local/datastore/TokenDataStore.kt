@@ -13,7 +13,6 @@ import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 import javax.inject.Singleton
 
-// ⚠️ 이 파일 하나에서만 선언하세요. (중복 선언 금지)
 private val Context.dataStore by preferencesDataStore(name = "auth_prefs")
 
 @Singleton
@@ -79,15 +78,15 @@ class TokenDataStore @Inject constructor(
             prefs.remove(KEY_AT_EXPIRES)
             prefs.remove(KEY_RT_EXPIRES)
         }
-        // 🔥 디버그 로그: 삭제 직후 상태 출력
+
         val access = runBlocking { accessTokenFlow.first() }
         val refresh = runBlocking { refreshTokenFlow.first() }
         val type = runBlocking { tokenTypeFlow.first() }
         val atExp = runBlocking { accessTokenExpiresAtFlow.first() }
         val rtExp = runBlocking { refreshTokenExpiresAtFlow.first() }
 
-        println("🔥 TokenDataStore.clear() called")
-        println("   accessToken = $access")
+        println("TokenDataStore.clear() called")
+        println("accessToken = $access")
         println("   refreshToken = $refresh")
         println("   tokenType = $type")
         println("   accessTokenExpiresAt = $atExp")
@@ -135,10 +134,6 @@ class TokenDataStore @Inject constructor(
 
     /** 리프레시 토큰 만료시각 (epochMillis 권장) */
     fun refreshTokenExpiresAt(): Long? = runBlocking { refreshTokenExpiresAtFlow.first() }
-
-    // ------------------------------
-    // (선택) 편의 함수
-    // ------------------------------
 
     /** 액세스 토큰이 만료되었는지(서버/클라 시계 오차 고려해 여유 ms 적용 가능) */
     fun isAccessTokenExpired(nowMillis: Long = System.currentTimeMillis(), leewayMs: Long = 5_000): Boolean {

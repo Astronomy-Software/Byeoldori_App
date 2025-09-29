@@ -26,6 +26,9 @@ fun HomeScreen() {
             Text("홈화면이에요", fontSize = 28.sp)
             Spacer(Modifier.height(16.dp))
         }
+        item{
+            Live2DComposeView()
+        }
         // 관측지 리스트
         item {
             TestObservationSiteScreen()
