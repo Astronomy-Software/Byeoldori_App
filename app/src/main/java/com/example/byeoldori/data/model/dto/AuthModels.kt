@@ -42,26 +42,21 @@ data class LoginRequest(
 typealias LoginResponse = ApiResponse<TokenData>
 
 @JsonClass(generateAdapter = true)
-data class FindEmailRequset(
+data class FindEmailRequest(
     val name: String,
     val phone: String
 )
 
+typealias FindEmailResponse = ApiResponse<FindEmailData>
+
 @JsonClass(generateAdapter = true)
-data class ResetPasswordRequest(
-    val token: String,
-    val newPassword: String
+data class FindEmailData(
+    val ids: List<String>
 )
 
 @JsonClass(generateAdapter = true)
 data class ResetPasswordToEmailRequest(
-    val email: String
-)
-
-data class NicknameCheckResponse(
-    val exists: Boolean
-)
-
-data class EmailCheckResponse(
-    val exists: Boolean
+    val email: String,
+    val name: String,
+    val phone: String
 )

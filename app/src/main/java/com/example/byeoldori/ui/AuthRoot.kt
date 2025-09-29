@@ -14,9 +14,8 @@ import com.example.byeoldori.ui.screen.login.ResetPasswordScreen
 import com.example.byeoldori.ui.screen.login.SignUpConsentScreen
 import com.example.byeoldori.ui.screen.login.SignUpScreen
 import com.example.byeoldori.ui.theme.Background
-import com.example.byeoldori.viewmodel.Login.SignUpViewModel
+import com.example.byeoldori.viewmodel.login.SignUpViewModel
 
-// 🔹 AuthRoot에서 쓰일 Route 정의
 sealed class AuthRoute(val route: String) {
     data object Login   : AuthRoute("login")
     data object Consent : AuthRoute("consent")
