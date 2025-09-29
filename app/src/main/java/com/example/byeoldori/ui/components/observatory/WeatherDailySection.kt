@@ -22,13 +22,15 @@ import com.example.byeoldori.viewmodel.Observatory.WeatherViewModel
 
 @Composable
 fun WeatherDailyPanel(
+    lat: Double,
+    lon: Double,
     viewModel: WeatherViewModel = hiltViewModel() //Hilt가 WeatherViewModel 객체를 만들어서 자동으로 넣어줌
 ) {
     val daily by viewModel.daily.collectAsState() //Compose State로 변환
 
     // 최초 진입 시 우암산 좌표로 불러오기
-    LaunchedEffect(Unit) {
-        viewModel.getDaily()
+    LaunchedEffect(lat, lon) {
+        viewModel.getDaily(lat, lon)  // ← 좌표 기반 API 호출
     }
 
     // 로딩/빈 상태 간단 처리

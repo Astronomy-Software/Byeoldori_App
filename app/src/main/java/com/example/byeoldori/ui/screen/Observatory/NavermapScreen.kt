@@ -7,10 +7,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.byeoldori.viewmodel.Observatory.MarkerInfo
 import com.example.byeoldori.viewmodel.NavigationViewModel
 import com.example.byeoldori.viewmodel.Observatory.NaverMapWithSearchUI
+import com.example.byeoldori.viewmodel.Observatory.ObservatoryMapViewModel
 import com.google.accompanist.permissions.*
 import com.naver.maps.geometry.LatLng
 
@@ -26,9 +28,10 @@ fun NavermapScreen(
     onAddressUpdated: (String)->Unit,
     onMarkerClick: (MarkerInfo) -> Unit,  // 추가
     modifier: Modifier = Modifier,
-    onCurrentLocated: (Double, Double) -> Unit
+    onCurrentLocated: (Double, Double) -> Unit,
+    vm: ObservatoryMapViewModel = hiltViewModel()
 ) {
-
+    val sites = vm.sites
 
     RequestLocationPermission {
         Box(modifier = Modifier.fillMaxSize()) {
@@ -45,7 +48,8 @@ fun NavermapScreen(
                 onCurrentLocated    = { lat, lon ->
                     Log.d(TAG_SCREEN, "onCurrentLocated from UI: lat=$lat lon=$lon")
                     onCurrentLocated(lat, lon) // 부모(ObservatoryScreen)로 그대로 전달
-                }
+                },
+                sites = sites
             )
         }
     }

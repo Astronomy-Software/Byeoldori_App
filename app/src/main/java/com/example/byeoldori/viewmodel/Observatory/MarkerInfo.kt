@@ -8,5 +8,7 @@ data class MarkerInfo(
     val rating: Float,
     val suitability: Int,
     val address: String,
-    val drawableRes: Int
+    val drawableRes: Int,
+    val latitude: Double,
+    val longitude: Double
 )

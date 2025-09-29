@@ -32,31 +32,28 @@ class WeatherViewModel @Inject constructor (
     private val _current = MutableStateFlow<CurrentWeather?>(null)
     val current: StateFlow<CurrentWeather?> = _current
 
-    // 임시 위치: 우암산 전망대
-    private val testLat = 36.65003430206848
-    private val testLon = 127.50494706148991
 
-    fun getDaily() = viewModelScope.launch {
+    fun getDaily(lat: Double, lon: Double) = viewModelScope.launch {
         _isLoading.value = true
         _error.value = null//이전 에러 초기화
         try {
-            Log.d("WeatherVM", "repo.getDaily call: lat=$testLat lon=$testLon")
-            val data = weatherRepository.getDaily(testLat, testLon)
-            Log.d("WeatherVM", "repo.getDaily returned: size=${data.size}")
+            Log.d(TAG_VM, "repo.getDaily call: lat=$lat lon=$lon")
+            val data = weatherRepository.getDaily(lat, lon)
+            Log.d(TAG_VM, "repo.getDaily returned: size=${data.size}")
             _daily.value = data //데이터를 UI상테에 반영
         } catch (e: Exception) {
-            Log.e("WeatherVM", "repo.getDaily error: ${e.message}", e)
+            Log.e(TAG_VM, "repo.getDaily error: ${e.message}", e)
             _error.value = e.message
         } finally {
             _isLoading.value = false
         }
     }
 
-    fun getHourly() = viewModelScope.launch {
+    fun getHourly(lat: Double, lon: Double) = viewModelScope.launch {
         _isLoading.value = true
         _error.value = null
         try {
-            _hourly.value = weatherRepository.getHourly(testLat, testLon)
+            _hourly.value = weatherRepository.getHourly(lat, lon)
         } catch (e: Exception) {
             _error.value = e.message
         } finally { _isLoading.value = false }

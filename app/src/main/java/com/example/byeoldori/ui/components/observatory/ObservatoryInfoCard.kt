@@ -65,13 +65,19 @@ fun ObservatoryInfoCard(
                 }
                 //2-1) 시간별 섹션 (더미 주입)
                 item {
-                    WeatherHourlyPanel()
+                    WeatherHourlyPanel(
+                        lat = info.latitude,
+                        lon = info.longitude
+                    )
                     Spacer(Modifier.height(12.dp))
                 }
 
                 //2-2) 일별 섹션 (더미 주입)
                 item {
-                    WeatherDailyPanel()
+                    WeatherDailyPanel(
+                        lat = info.latitude,
+                        lon = info.longitude
+                    )
                     Spacer(Modifier.height(16.dp))
                 }
 
@@ -112,7 +118,9 @@ private fun Preview_ObservatoryInfoCard() {
         rating = 4.3f,
         suitability = 87,
         address = "경기도 오산시 오산천로 254-5",
-        drawableRes = R.drawable.img_dummy
+        drawableRes = R.drawable.img_dummy,
+        latitude = 37.33,
+        longitude = 126.23
     )
 
     MaterialTheme {

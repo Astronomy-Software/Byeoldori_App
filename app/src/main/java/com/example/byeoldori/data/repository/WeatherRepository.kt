@@ -30,7 +30,11 @@ class WeatherRepository @Inject constructor( //Hilt가 WeatherApi 객체를 만�
             val h = time.split("시")[0].trim().toInt()
             return LocalDateTime.of(LocalDate.now().year,m, d, h, 0, 0)
         }
-        return shortHourly.sortedBy { it.toDateTime() }
+        val now  = LocalDateTime.now()
+
+        return shortHourly
+            .filter{ it.toDateTime().isAfter(now) }
+            .sortedBy { it.toDateTime() }
     }
 
     suspend fun getCurrent(lat: Double, lon: Double): CurrentWeather? =
@@ -79,18 +83,10 @@ private fun mapUltraHourly(response: ForecastResponse): List<HourlyForecast> {
 private fun UltraForecast.toCurrentWeather(): CurrentWeather = CurrentWeather(
     temperature = "${t1h}°",
     humidity = "${reh}%",
-    windSpeed = "${wsd.roundToInt()} m/s",
+    windSpeed = "${wsd?.roundToInt()} m/s",
     suitability ="-",
-    windDirection = Math.floorMod(vec, 360)
+    windDirection = Math.floorMod((vec ?: 0), 360)
 )
-
-//vec: 풍향(도, 0–360). 0/360=북, 90=동, 180=남, 270=서
-private fun degreeToDirection(degree: Int): String {
-    val directions =  arrayOf("↑","↗","→","↘","↓","↙","←","↖")
-    val norm = Math.floorMod(degree, 360) // 0..359 보장
-    val idx = norm / 45
-    return directions[idx]
-}
 
 //단기 데이터(1시간씩-> 3시간마다 업데이트)
 private fun mapShortHourly(response: ForecastResponse): List<HourlyForecast> {
@@ -104,7 +100,7 @@ private fun mapShortHourly(response: ForecastResponse): List<HourlyForecast> {
             date = date.toLocalDate().format(OUT_DATE_FMT),
             time = date.format(HOUR_OUT_FMT),
             temperature = "${s.tmp}°",
-            iconName = shortWeatherIcon(s.sky, s.pty, day = isDay),
+            iconName = shortWeatherIcon(s.sky ?: 0, s.pty ?: 0, day = isDay),
             precipitation = "${s.pop}%",
             suitability = "-" //나중에
         )
@@ -120,20 +116,20 @@ fun mapMidToDaily(response: ForecastResponse): List<DailyForecast> {
     fun String.hour() = substring(8, 10).toInt()
 
     return items
-        .groupBy { it.tmEf.toLocalDate() } // 날짜별로 묶기(오전/오후 2건)
+        .groupBy { it.tmEf!!.toLocalDate() } // 날짜별로 묶기(오전/오후 2건)
         .map { (date, list) ->
             // 오전/오후 분리 (없을 수도 있으므로 fallback 준비)
-            val amItem = list.firstOrNull { it.tmEf.hour() < 12 } ?: list.minBy { it.tmEf }
-            val pmItem = list.firstOrNull { it.tmEf.hour() >= 12 } ?: list.maxBy { it.tmEf }
+            val amItem = list.firstOrNull { it.tmEf!!.hour() < 12 } ?: list.minBy { it.tmEf!! }
+            val pmItem = list.firstOrNull { it.tmEf!!.hour() >= 12 } ?: list.maxBy { it.tmEf!! }
 
             // 아이콘: 오전/오후 각각의 sky/pre로 따로 계산
-            val amIcon = midWeatherIcon(amItem.sky, amItem.pre, day = true)
-            val pmIcon = midWeatherIcon(pmItem.sky, pmItem.pre, day = false)
+            val amIcon = midWeatherIcon(amItem.sky ?: "", amItem.pre ?: "", day = true)
+            val pmIcon = midWeatherIcon(pmItem.sky ?: "", pmItem.pre ?: "", day = false)
 
             //하루 범위에서 최댓/최솟 사용
             val tMax = list.mapNotNull { it.max }.maxOrNull()
             val tMin = list.mapNotNull { it.min }.minOrNull()
-            val rnSt = list.maxOfOrNull { it.rnSt } //습도도 높은 거 기준으로
+            val rnSt = list.maxOfOrNull { it.rnSt ?: 0 } //습도도 높은 거 기준으로
 
         DailyForecast(
                 date = date.format(OUT_DATE_FMT),

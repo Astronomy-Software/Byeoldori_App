@@ -25,13 +25,15 @@ import java.time.format.DateTimeFormatter
 
 @Composable
 fun WeatherHourlyPanel(
+    lat: Double,
+    lon: Double,
     viewModel: WeatherViewModel = hiltViewModel() //Hilt가 WeatherViewModel 객체를 만들어서 자동으로 넣어줌
 ) {
     val hourly by viewModel.hourly.collectAsState() //Compose State로 변환
 
     // 최초 진입 시 우암산 좌표로 불러오기
-    LaunchedEffect(Unit) {
-        viewModel.getHourly()
+    LaunchedEffect(lat,lon) {
+        viewModel.getHourly(lat,lon)
     }
 
     // 로딩/빈 상태 간단 처리

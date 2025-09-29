@@ -100,14 +100,13 @@ fun BasicInfoCard(
                     Text(
                         "도로명 주소",
                         color = TextHighlight,
-                        modifier = Modifier.weight(2f),
-                        maxLines = 1
+                        modifier = Modifier.weight(2f)                        //maxLines = 2
                     )
                     Text(
                         text = info.address,
                         color = TextHighlight,
                         modifier = Modifier.weight(5f),
-                        maxLines = 1,
+                        maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
                 }
@@ -125,7 +124,8 @@ private val previewMarkerInfo = MarkerInfo(
     suitability = 87,
     address = "경기도 오산시 오산천로 254-5",
     drawableRes = R.drawable.img_dummy,
-
+    latitude = 36.23,
+    longitude = 127.23
 )
 
 @Preview(
