@@ -17,9 +17,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.byeoldori.ui.components.InputForm
 import com.example.byeoldori.ui.components.TopBar
@@ -28,10 +28,9 @@ import com.example.byeoldori.ui.theme.Background
 import com.example.byeoldori.ui.theme.ErrorRed
 import com.example.byeoldori.ui.theme.SuccessGreen
 import com.example.byeoldori.ui.theme.WarningYellow
+import com.example.byeoldori.viewmodel.UiState
 import com.example.byeoldori.viewmodel.login.SignUpViewModel
-import com.example.byeoldori.viewmodel.login.VerificationUiState
 
-// ✅ Wrapper (실제 실행 시 VM 연결)
 @Composable
 fun EmailVerificationScreen(
     onBack: () -> Unit,
@@ -39,7 +38,7 @@ fun EmailVerificationScreen(
     vm: SignUpViewModel = hiltViewModel()
 ) {
     val uiState by vm.verificationState.collectAsState()
-    val email = vm.getEmail() ?: ""   // ✅ VM에서 이메일 가져오기
+    val email = vm.getEmail()
 
     EmailVerificationContent(
         email = email,
@@ -52,12 +51,11 @@ fun EmailVerificationScreen(
     )
 }
 
-// ✅ UI 전용 Content
 @Composable
 fun EmailVerificationContent(
     email: String,
     code: String,
-    uiState: VerificationUiState = VerificationUiState.Idle,
+    uiState: UiState<String> = UiState.Idle,
     onCodeChange: (String) -> Unit,
     onVerify: (String) -> Unit,
     onBack: () -> Unit,
@@ -88,9 +86,10 @@ fun EmailVerificationContent(
                     .padding(32.dp)
             ) {
                 Text(
-                    text = "입력하신 이메일\n${email}\n로 인증코드를 발송했습니다.",
-                    color = Color.Gray,
-                    modifier = Modifier.padding(bottom = 24.dp)
+                    text = "입력하신 이메일\"${email}\"로 인증코드를 발송했습니다.\n 이메일에서 인증번호를 복사해 넣어주시거나, \n 이메일의 링크를 클릭해주세요.",
+                    color = SuccessGreen,
+                    modifier = Modifier.padding(bottom = 24.dp),
+                    fontSize = 14.sp,
                 )
                 InputForm(
                     label = "이메일 인증번호",
@@ -111,9 +110,9 @@ fun EmailVerificationContent(
 
                 Spacer(Modifier.height(16.dp))
                 when (uiState) {
-                    is VerificationUiState.Loading -> Text("인증 중...", color = WarningYellow)
-                    is VerificationUiState.Success -> Text(uiState.message, color = SuccessGreen)
-                    is VerificationUiState.Error -> Text(uiState.message, color = ErrorRed)
+                    is UiState.Loading -> Text("인증 중...", color = WarningYellow)
+                    is UiState.Success -> Text(uiState.data, color = SuccessGreen)
+                    is UiState.Error -> Text(uiState.message, color = ErrorRed)
                     else -> {}
                 }
                 Spacer(Modifier.height(16.dp))
@@ -127,13 +126,13 @@ fun EmailVerificationContent(
     }
 }
 
-@Preview(showBackground = true, backgroundColor = 0xFFFFFFFF)
+@Preview(showBackground = true)
 @Composable
 fun EmailVerificationScreenPreview() {
     EmailVerificationContent(
         email = "test@example.com",
         code = "",
-        uiState = VerificationUiState.Idle,
+        uiState = UiState.Idle,
         onCodeChange = {},
         onVerify = {},
         onBack = {},

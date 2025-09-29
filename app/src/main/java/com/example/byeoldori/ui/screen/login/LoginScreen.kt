@@ -13,8 +13,9 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -43,7 +44,6 @@ import com.example.byeoldori.ui.theme.WarningYellow
 import com.example.byeoldori.viewmodel.AuthViewModel
 import com.example.byeoldori.viewmodel.UiState
 
-// ✅ Wrapper (실제 앱 실행 시 사용)
 @Composable
 fun LoginScreen(
     onSignUp: () -> Unit,
@@ -62,10 +62,9 @@ fun LoginScreen(
     )
 }
 
-// ✅ UI 전용 Content (Preview/Test 용)
 @Composable
 private fun LoginContent(
-    uiState: UiState = UiState.Idle,
+    uiState: UiState<Any?> = UiState.Idle,
     onLogin: (String, String) -> Unit,
     onSignUp: () -> Unit,
     onFindEmail: () -> Unit,
@@ -141,10 +140,10 @@ private fun LoginContent(
 
             Spacer(Modifier.height(8.dp))
 
-            Divider(
+            HorizontalDivider(
                 modifier = Modifier.width(330.dp),
-                color = TextHighlight.copy(alpha = 0.5f),
-                thickness = 3.dp
+                thickness = 3.dp,
+                color = TextHighlight.copy(alpha = 0.5f)
             )
 
             Spacer(Modifier.height(8.dp))
@@ -177,13 +176,13 @@ private fun LoginContent(
                     )
 
                     // 작은 구분선 (세로선처럼)
-                    Divider(
+                    VerticalDivider(
                         modifier = Modifier
                             .padding(horizontal = 8.dp)
-                            .height(14.dp) // 텍스트 높이랑 비슷하게
+                            .height(14.dp)
                             .width(1.dp),
-                        color = TextHighlight,
-                        thickness = 2.dp
+                        thickness = 2.dp,
+                        color = TextHighlight
                     )
 
                     Text(
@@ -198,7 +197,6 @@ private fun LoginContent(
 
             Spacer(Modifier.height(16.dp))
 
-            // 로그인 상태 메시지
             when (uiState) {
                 is UiState.Loading -> Text("로그인 중...", color = WarningYellow)
                 is UiState.Success -> Text("로그인 성공!", color = SuccessGreen)

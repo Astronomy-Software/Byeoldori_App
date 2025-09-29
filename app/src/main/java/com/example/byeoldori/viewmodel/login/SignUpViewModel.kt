@@ -4,6 +4,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.byeoldori.data.model.dto.SignUpRequest
 import com.example.byeoldori.data.repository.AuthRepository
 import com.example.byeoldori.viewmodel.BaseViewModel
+import com.example.byeoldori.viewmodel.UiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,39 +14,22 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-// 회원가입 상태
-sealed class SignUpUiState {
-    data object Idle : SignUpUiState()
-    data object Loading : SignUpUiState()
-    data class Error(val message: String) : SignUpUiState()
-}
-
-// 이메일 인증 상태
-sealed class VerificationUiState {
-    data object Idle : VerificationUiState()
-    data object Loading : VerificationUiState()
-    data class Success(val message: String) : VerificationUiState()
-    data class Error(val message: String) : VerificationUiState()
-}
-
 @HiltViewModel
 class SignUpViewModel @Inject constructor(
     private val repo: AuthRepository
 ) : BaseViewModel() {
 
-    // ✅ 일회성 이벤트
     private val _consentEvent = MutableSharedFlow<Unit>()
     val consentEvent: SharedFlow<Unit> = _consentEvent
 
-    private val _signUpEvent = MutableSharedFlow<String>() // 성공 메시지 이벤트
+    private val _signUpEvent = MutableSharedFlow<String>()
     val signUpEvent: SharedFlow<String> = _signUpEvent
 
-    // ✅ 상태
-    private val _uiState = MutableStateFlow<SignUpUiState>(SignUpUiState.Idle)
-    val uiState: StateFlow<SignUpUiState> = _uiState.asStateFlow()
+    private val _signUpState = MutableStateFlow<UiState<String>>(UiState.Idle)
+    val signUpState: StateFlow<UiState<String>> = _signUpState.asStateFlow()
 
-    private val _verificationState = MutableStateFlow<VerificationUiState>(VerificationUiState.Idle)
-    val verificationState: StateFlow<VerificationUiState> = _verificationState.asStateFlow()
+    private val _verificationState = MutableStateFlow<UiState<String>>(UiState.Idle)
+    val verificationState: StateFlow<UiState<String>> = _verificationState.asStateFlow()
 
     // 입력 값
     val email = MutableStateFlow("")
@@ -76,27 +60,27 @@ class SignUpViewModel @Inject constructor(
             location = agreeLocation.value,
             marketing = agreeMarketing.value
         )
-        _consentEvent.emit(Unit) // ✅ 이벤트 발행
+        _consentEvent.emit(Unit)
     }
 
     /** 이메일 인증 처리 */
     fun verifyEmail(token: String) = viewModelScope.launch {
-        _verificationState.value = VerificationUiState.Loading
+        _verificationState.value = UiState.Loading
         try {
             val resp = repo.verifyEmail(token)
             if (resp.success) {
-                _verificationState.value = VerificationUiState.Success(resp.message)
+                _verificationState.value = UiState.Success(resp.message)
             } else {
-                _verificationState.value = VerificationUiState.Error(resp.message)
+                _verificationState.value = UiState.Error(resp.message)
             }
         } catch (e: Exception) {
-            _verificationState.value = VerificationUiState.Error(handleException(e))
+            _verificationState.value = UiState.Error(handleException(e))
         }
     }
 
     /** 회원가입 */
     fun signUp() = viewModelScope.launch {
-        _uiState.value = SignUpUiState.Loading
+        _signUpState.value = UiState.Loading
         try {
             val req = SignUpRequest(
                 email = email.value,
@@ -110,12 +94,13 @@ class SignUpViewModel @Inject constructor(
             val resp = repo.signUp(req)
             if (resp.success) {
                 _signUpEvent.emit(resp.message)
-                _uiState.value = SignUpUiState.Idle
+                _signUpState.value = UiState.Success(resp.message)
             } else {
-                _uiState.value = SignUpUiState.Error(resp.message)
+                _signUpState.value = UiState.Error(resp.message)
             }
         } catch (e: Exception) {
-            _uiState.value = SignUpUiState.Error(handleException(e))
+            _signUpState.value = UiState.Error(handleException(e))
         }
     }
 }
+

@@ -32,10 +32,9 @@ import com.example.byeoldori.ui.theme.ErrorRed
 import com.example.byeoldori.ui.theme.SuccessGreen
 import com.example.byeoldori.ui.theme.TextNormal
 import com.example.byeoldori.ui.theme.WarningYellow
-import com.example.byeoldori.viewmodel.login.FindEmailUiState
+import com.example.byeoldori.viewmodel.UiState
 import com.example.byeoldori.viewmodel.login.FindEmailViewModel
 
-// ✅ 실제 실행 시 사용하는 Screen (VM 연결)
 @Composable
 fun FindEmailScreen(
     onBack: () -> Unit,
@@ -53,7 +52,7 @@ fun FindEmailScreen(
 @Composable
 fun FindEmailContent(
     onBack: () -> Unit,
-    state: FindEmailUiState = FindEmailUiState.Idle,
+    state: UiState<List<String>> = UiState.Idle,
     onSubmit: (String, String) -> Unit = { _, _ -> }
 ) {
     var name by remember { mutableStateOf("") }
@@ -114,14 +113,14 @@ fun FindEmailContent(
                 Spacer(Modifier.height(16.dp))
 
                 when (state) {
-                    FindEmailUiState.Idle ->
+                    UiState.Idle ->
                         Text("이름과 전화번호를 입력하세요", color = TextNormal)
 
-                    FindEmailUiState.Loading ->
+                    UiState.Loading ->
                         Text("이메일을 찾는 중...", color = WarningYellow)
 
-                    is FindEmailUiState.Success -> {
-                        if (state.emails.isNotEmpty()) {
+                    is UiState.Success -> {
+                        if (state.data.isNotEmpty()) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text(
                                     "가입된 이메일 목록:",
@@ -130,7 +129,7 @@ fun FindEmailContent(
                                     fontWeight = Bold
                                 )
                                 Spacer(Modifier.height(8.dp))
-                                state.emails.forEach { email ->
+                                state.data.forEach { email ->
                                     Text(
                                         email,
                                         color = TextNormal,
@@ -143,7 +142,7 @@ fun FindEmailContent(
                             Text("이메일을 찾을 수 없습니다.", color = ErrorRed)
                         }
                     }
-                    is FindEmailUiState.Error -> Text(state.message, color = ErrorRed)
+                    is UiState.Error -> Text(state.message, color = ErrorRed)
                 }
             }
         }
@@ -155,7 +154,7 @@ fun FindEmailContent(
 fun FindEmailScreenPreview() {
     FindEmailContent(
         onBack = {},
-        state = FindEmailUiState.Success(listOf()),
+        state = UiState.Success(listOf()),
         onSubmit = { _, _ -> }
     )
 }

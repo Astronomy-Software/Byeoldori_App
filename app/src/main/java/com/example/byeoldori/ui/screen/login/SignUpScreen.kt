@@ -33,7 +33,7 @@ import com.example.byeoldori.ui.components.WideButton
 import com.example.byeoldori.ui.theme.Background
 import com.example.byeoldori.ui.theme.ErrorRed
 import com.example.byeoldori.ui.theme.TextNormal
-import com.example.byeoldori.viewmodel.login.SignUpUiState
+import com.example.byeoldori.viewmodel.UiState
 import com.example.byeoldori.viewmodel.login.SignUpViewModel
 
 @Composable
@@ -42,7 +42,7 @@ fun SignUpScreen(
     onBack: () -> Unit,
     vm: SignUpViewModel = hiltViewModel()
 ) {
-    val uiState = vm.uiState.collectAsState().value
+    val uiState = vm.signUpState.collectAsState().value
 
     var showSuccessDialog by remember { mutableStateOf(false) }
     var successMessage by remember { mutableStateOf("") }
@@ -100,7 +100,7 @@ fun SignUpScreenContent(
     onNameChange: (String) -> Unit,
     phone: String,
     onPhoneChange: (String) -> Unit,
-    uiState: SignUpUiState = SignUpUiState.Idle,
+    uiState: UiState<String> = UiState.Idle,
     onSignUp: () -> Unit,
     onBack: () -> Unit,
 ) {
@@ -183,9 +183,9 @@ fun SignUpScreenContent(
                 Spacer(Modifier.height(12.dp))
 
                 when (uiState) {
-                    is SignUpUiState.Loading ->
+                    is UiState.Loading ->
                         Text("회원가입 처리 중...")
-                    is SignUpUiState.Error ->
+                    is UiState.Error ->
                         Text(uiState.message, color = ErrorRed)
                     else -> {}
                 }
@@ -208,7 +208,7 @@ fun SignUpScreenContentPreview() {
         onNameChange = {},
         phone = "",
         onPhoneChange = {},
-        uiState = SignUpUiState.Idle,
+        uiState = UiState.Idle,
         onSignUp = {},
         onBack = {}
     )

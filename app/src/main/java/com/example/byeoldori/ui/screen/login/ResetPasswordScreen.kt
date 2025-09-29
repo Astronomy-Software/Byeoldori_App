@@ -30,7 +30,7 @@ import com.example.byeoldori.ui.theme.ErrorRed
 import com.example.byeoldori.ui.theme.SuccessGreen
 import com.example.byeoldori.ui.theme.TextNormal
 import com.example.byeoldori.ui.theme.WarningYellow
-import com.example.byeoldori.viewmodel.login.ResetPasswordUiState
+import com.example.byeoldori.viewmodel.UiState
 import com.example.byeoldori.viewmodel.login.ResetPasswordViewModel
 
 @Composable
@@ -50,7 +50,7 @@ fun ResetPasswordScreen(
 @Composable
 fun ResetPasswordContent(
     onBack: () -> Unit,
-    state: ResetPasswordUiState = ResetPasswordUiState.Idle,
+    state: UiState<String> = UiState.Idle,
     onSubmit: (String, String, String) -> Unit = { _, _, _ -> }
 ) {
     var email by remember { mutableStateOf("") }
@@ -115,16 +115,16 @@ fun ResetPasswordContent(
                 Spacer(Modifier.height(16.dp))
 
                 when (state) {
-                    ResetPasswordUiState.Idle ->
+                    UiState.Idle ->
                         Text("이메일, 전화번호, 이름을 입력하세요", color = TextNormal)
 
-                    ResetPasswordUiState.Loading ->
+                    UiState.Loading ->
                         Text("요청 중...", color = WarningYellow)
 
-                    is ResetPasswordUiState.Success ->
-                        Text(state.message, color = SuccessGreen)
+                    is UiState.Success ->
+                        Text(state.data, color = SuccessGreen)
 
-                    is ResetPasswordUiState.Error ->
+                    is UiState.Error ->
                         Text(state.message, color = ErrorRed)
                 }
             }
@@ -137,6 +137,6 @@ fun ResetPasswordContent(
 fun ResetPasswordPreview() {
     ResetPasswordContent(
         onBack = {},
-        state = ResetPasswordUiState.Success("테스트: 재설정 메일 발송 완료")
+        state = UiState.Success("테스트: 재설정 메일 발송 완료")
     )
 }

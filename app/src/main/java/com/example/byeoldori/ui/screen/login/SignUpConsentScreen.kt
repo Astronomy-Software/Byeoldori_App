@@ -25,14 +25,12 @@ import com.example.byeoldori.ui.components.WideButton
 import com.example.byeoldori.ui.theme.Background
 import com.example.byeoldori.viewmodel.login.SignUpViewModel
 
-// 👉 ViewModel을 실제로 붙이는 Wrapper
 @Composable
 fun SignUpConsentScreen(
     onNext: () -> Unit,
     onBack: () -> Unit,
     vm: SignUpViewModel = hiltViewModel()
 ) {
-    // ✅ 이벤트 감지
     LaunchedEffect(Unit) {
         vm.consentEvent.collect {
             onNext()
@@ -80,16 +78,14 @@ fun SignUpConsentContent(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // ✅ 항상 고정되는 TopBar
             TopBar(
                 title = "약관 동의",
                 onBack = onBack
             )
 
-            // ✅ 스크롤 가능한 본문만 분리
             Column(
                 modifier = Modifier
-                    .weight(1f) // 남은 공간을 다 차지
+                    .weight(1f)
                     .verticalScroll(rememberScrollState())
                     .padding(horizontal = 32.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
