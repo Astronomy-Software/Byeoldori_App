@@ -1,4 +1,3 @@
-// data/remote/interceptor/RefreshTokenAuthenticator.kt
 package com.example.byeoldori.data.remote.interceptor
 
 import com.example.byeoldori.data.api.RefreshApi
