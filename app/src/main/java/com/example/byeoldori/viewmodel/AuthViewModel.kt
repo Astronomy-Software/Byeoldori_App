@@ -1,6 +1,5 @@
 package com.example.byeoldori.viewmodel
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.byeoldori.data.repository.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -14,16 +13,16 @@ import javax.inject.Inject
 
 // UI 상태
 sealed class UiState {
-    object Idle : UiState()
-    object Loading : UiState()
-    object Success : UiState()
+    data object Idle : UiState()
+    data object Loading : UiState()
+    data object Success : UiState()
     data class Error(val message: String) : UiState()
 }
 
 @HiltViewModel
 class AuthViewModel @Inject constructor(
     private val authRepo: AuthRepository
-) : ViewModel() {
+) : BaseViewModel() {
 
     // 화면 상태
     private val _state = MutableStateFlow<UiState>(UiState.Idle)
@@ -44,7 +43,7 @@ class AuthViewModel @Inject constructor(
             authRepo.login(email, pw) // 토큰 저장 → isLoggedInFlow 자동 true
             _state.value = UiState.Success
         } catch (e: Exception) {
-            _state.value = UiState.Error(e.message ?: "알 수 없는 로그인 오류가 발생했습니다.")
+            _state.value = UiState.Error(handleException(e))
         }
     }
 

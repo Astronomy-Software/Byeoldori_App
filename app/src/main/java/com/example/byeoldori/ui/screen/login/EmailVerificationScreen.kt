@@ -27,6 +27,7 @@ import com.example.byeoldori.ui.components.WideButton
 import com.example.byeoldori.ui.theme.Background
 import com.example.byeoldori.ui.theme.ErrorRed
 import com.example.byeoldori.ui.theme.SuccessGreen
+import com.example.byeoldori.ui.theme.WarningYellow
 import com.example.byeoldori.viewmodel.login.SignUpViewModel
 import com.example.byeoldori.viewmodel.login.VerificationUiState
 
@@ -110,9 +111,9 @@ fun EmailVerificationContent(
 
                 Spacer(Modifier.height(16.dp))
                 when (uiState) {
-                    is VerificationUiState.Loading -> Text("인증 중...")
-                    is VerificationUiState.Success -> Text("인증 성공 ${uiState.message}", color = SuccessGreen)
-                    is VerificationUiState.Error -> Text("인증 실패 ${uiState.message}", color = ErrorRed)
+                    is VerificationUiState.Loading -> Text("인증 중...", color = WarningYellow)
+                    is VerificationUiState.Success -> Text(uiState.message, color = SuccessGreen)
+                    is VerificationUiState.Error -> Text(uiState.message, color = ErrorRed)
                     else -> {}
                 }
                 Spacer(Modifier.height(16.dp))

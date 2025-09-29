@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -21,7 +23,6 @@ import com.example.byeoldori.ui.components.MarkdownViewer
 import com.example.byeoldori.ui.components.TopBar
 import com.example.byeoldori.ui.components.WideButton
 import com.example.byeoldori.ui.theme.Background
-import com.example.byeoldori.ui.theme.Purple500
 import com.example.byeoldori.viewmodel.login.SignUpViewModel
 
 // 👉 ViewModel을 실제로 붙이는 Wrapper
@@ -31,27 +32,27 @@ fun SignUpConsentScreen(
     onBack: () -> Unit,
     vm: SignUpViewModel = hiltViewModel()
 ) {
-    SignUpConsentContent(
-        agreePolicy = vm.agreePolicy.value,
-        onPolicyChange = { vm.agreePolicy.value = it },
-        agreeProfile = vm.agreeProfile.value,
-        onProfileChange = { vm.agreeProfile.value = it },
-        agreeLocation = vm.agreeLocation.value,
-        onLocationChange = { vm.agreeLocation.value = it },
-        agreeMarketing = vm.agreeMarketing.value,
-        onMarketingChange = { vm.agreeMarketing.value = it },
-        onSubmit = {
-            vm.saveConsents(
-                policy = vm.agreePolicy.value,
-                profile = vm.agreeProfile.value,
-                location = vm.agreeLocation.value,
-                marketing = vm.agreeMarketing.value
-            )
+    // ✅ 이벤트 감지
+    LaunchedEffect(Unit) {
+        vm.consentEvent.collect {
             onNext()
-        },
+        }
+    }
+
+    SignUpConsentContent(
+        agreePolicy = vm.agreePolicy.collectAsState().value,
+        onPolicyChange = { vm.agreePolicy.value = it },
+        agreeProfile = vm.agreeProfile.collectAsState().value,
+        onProfileChange = { vm.agreeProfile.value = it },
+        agreeLocation = vm.agreeLocation.collectAsState().value,
+        onLocationChange = { vm.agreeLocation.value = it },
+        agreeMarketing = vm.agreeMarketing.collectAsState().value,
+        onMarketingChange = { vm.agreeMarketing.value = it },
+        onSubmit = { vm.saveConsentsAndProceed() },
         onBack = onBack
     )
 }
+
 
 @Composable
 fun SignUpConsentContent(
@@ -134,10 +135,9 @@ fun SignUpConsentContent(
                 Spacer(Modifier.height(16.dp))
 
                 WideButton(
-                    text = "회원 가입",
+                    text = "다음으로",
                     onClick = onSubmit,
                     enabled = canSubmit,
-                    backgroundColor = Purple500,
                     modifier = Modifier.width(contentWidth)
                 )
 

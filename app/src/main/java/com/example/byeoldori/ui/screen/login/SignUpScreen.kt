@@ -11,12 +11,18 @@ import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -25,6 +31,7 @@ import com.example.byeoldori.ui.components.SecretInputForm
 import com.example.byeoldori.ui.components.TopBar
 import com.example.byeoldori.ui.components.WideButton
 import com.example.byeoldori.ui.theme.Background
+import com.example.byeoldori.ui.theme.ErrorRed
 import com.example.byeoldori.ui.theme.TextNormal
 import com.example.byeoldori.viewmodel.login.SignUpUiState
 import com.example.byeoldori.viewmodel.login.SignUpViewModel
@@ -37,22 +44,43 @@ fun SignUpScreen(
 ) {
     val uiState = vm.uiState.collectAsState().value
 
-    LaunchedEffect(uiState) {
-        if (uiState is SignUpUiState.Success) {
-            onNext()
+    var showSuccessDialog by remember { mutableStateOf(false) }
+    var successMessage by remember { mutableStateOf("") }
+
+    // ✅ 이벤트 수집
+    LaunchedEffect(Unit) {
+        vm.signUpEvent.collect { message ->
+            successMessage = message
+            showSuccessDialog = true
         }
     }
 
+    if (showSuccessDialog) {
+        AlertDialog(
+            onDismissRequest = { },
+            title = { Text("회원가입 완료") },
+            text = { Text(successMessage) },
+            confirmButton = {
+                TextButton(onClick = {
+                    showSuccessDialog = false
+                    onNext()
+                }) {
+                    Text("확인")
+                }
+            }
+        )
+    }
+
     SignUpScreenContent(
-        email = vm.email.value,
+        email = vm.email.collectAsState().value,
         onEmailChange = { vm.email.value = it },
-        password = vm.password.value,
+        password = vm.password.collectAsState().value,
         onPasswordChange = { vm.password.value = it },
-        passwordConfirm = vm.passwordConfirm.value,
+        passwordConfirm = vm.passwordConfirm.collectAsState().value,
         onPasswordConfirmChange = { vm.passwordConfirm.value = it },
-        name = vm.name.value,
+        name = vm.name.collectAsState().value,
         onNameChange = { vm.name.value = it },
-        phone = vm.phone.value,
+        phone = vm.phone.collectAsState().value,
         onPhoneChange = { vm.phone.value = it },
         uiState = uiState,
         onSignUp = { vm.signUp() },
@@ -60,7 +88,6 @@ fun SignUpScreen(
     )
 }
 
-// 👉 UI 전용 Content
 @Composable
 fun SignUpScreenContent(
     email: String,
@@ -93,13 +120,8 @@ fun SignUpScreenContent(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // ✅ TopBar
-            TopBar(
-                title = "회원가입",
-                onBack = onBack
-            )
+            TopBar(title = "회원가입", onBack = onBack)
 
-            // ✅ 입력 폼 (스크롤 가능)
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -158,27 +180,20 @@ fun SignUpScreenContent(
                     enabled = isFormValid
                 )
 
-                // ✅ 상태 표시
+                Spacer(Modifier.height(12.dp))
+
                 when (uiState) {
                     is SignUpUiState.Loading ->
-                        androidx.compose.material3.Text("⏳ 처리 중...")
-                    is SignUpUiState.Success ->
-                        androidx.compose.material3.Text("✅ ${uiState.message}")
+                        Text("회원가입 처리 중...")
                     is SignUpUiState.Error ->
-                        androidx.compose.material3.Text(
-                            "❌ ${uiState.message}",
-                            color = Color.Red
-                        )
+                        Text(uiState.message, color = ErrorRed)
                     else -> {}
                 }
-
-                Spacer(Modifier.height(8.dp))
             }
         }
     }
 }
 
-// 👉 Preview는 Content만 테스트
 @Preview(showBackground = true)
 @Composable
 fun SignUpScreenContentPreview() {

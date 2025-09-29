@@ -43,7 +43,7 @@ fun ResetPasswordScreen(
     ResetPasswordContent(
         onBack = onBack,
         state = state,
-        onSubmit = { email,phone,name -> vm.resetPassword(email, phone, name) }
+        onSubmit = { email,name,phone -> vm.resetPassword(email, name, phone) }
     )
 }
 
@@ -106,7 +106,7 @@ fun ResetPasswordContent(
                 Spacer(Modifier.height(24.dp))
                 WideButton(
                     text = "재설정 메일 보내기",
-                    onClick = { onSubmit(email,phone,name) },
+                    onClick = { onSubmit(email,name,phone) },
                     contentColor = TextNormal,
                     modifier = Modifier.width(330.dp),
                     enabled = isFormValid

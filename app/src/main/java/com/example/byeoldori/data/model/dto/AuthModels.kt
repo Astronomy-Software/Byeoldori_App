@@ -47,7 +47,12 @@ data class FindEmailRequest(
     val phone: String
 )
 
-typealias FindEmailResponse = ApiResponse<List<String>>
+typealias FindEmailResponse = ApiResponse<FindEmailData>
+
+@JsonClass(generateAdapter = true)
+data class FindEmailData(
+    val ids: List<String>
+)
 
 @JsonClass(generateAdapter = true)
 data class ResetPasswordToEmailRequest(

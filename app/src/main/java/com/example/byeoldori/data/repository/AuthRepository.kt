@@ -6,7 +6,6 @@ import com.example.byeoldori.data.local.datastore.TokenDataStore
 import com.example.byeoldori.data.model.common.ApiResponse
 import com.example.byeoldori.data.model.common.TokenData
 import com.example.byeoldori.data.model.dto.FindEmailRequest
-import com.example.byeoldori.data.model.dto.FindEmailResponse
 import com.example.byeoldori.data.model.dto.LoginRequest
 import com.example.byeoldori.data.model.dto.RefreshRequest
 import com.example.byeoldori.data.model.dto.ResetPasswordToEmailRequest
@@ -62,11 +61,13 @@ class AuthRepository @Inject constructor(
         return authApi.signUp(req)
     }
 
-    // Email 찾기, password 초기화
-    suspend fun findEmail(req: FindEmailRequest): FindEmailResponse {
-        return authApi.findEmail(req)
+    // Email 찾기, List<String> 반환
+    suspend fun findEmail(req: FindEmailRequest): List<String> {
+        val resp = authApi.findEmail(req)
+        if (!resp.success) throw Exception(resp.message)
+        return resp.data?.ids ?: emptyList()
     }
-
+    // 비밀번호 초기화
     suspend fun resetPasswordToEmail(req: ResetPasswordToEmailRequest): ApiResponse<String> {
         return authApi.resetPasswordToEmail(req)
     }
