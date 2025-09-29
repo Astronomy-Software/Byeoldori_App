@@ -1,4 +1,3 @@
-// ui/screen/login/SignUpConsentScreen.kt
 package com.example.byeoldori.ui.screen.login
 
 import androidx.compose.foundation.layout.Column
@@ -23,7 +22,7 @@ import com.example.byeoldori.ui.components.TopBar
 import com.example.byeoldori.ui.components.WideButton
 import com.example.byeoldori.ui.theme.Background
 import com.example.byeoldori.ui.theme.Purple500
-import com.example.byeoldori.viewmodel.Login.SignUpViewModel
+import com.example.byeoldori.viewmodel.login.SignUpViewModel
 
 // 👉 ViewModel을 실제로 붙이는 Wrapper
 @Composable

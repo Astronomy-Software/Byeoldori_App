@@ -27,8 +27,8 @@ import com.example.byeoldori.ui.components.WideButton
 import com.example.byeoldori.ui.theme.Background
 import com.example.byeoldori.ui.theme.ErrorRed
 import com.example.byeoldori.ui.theme.SuccessGreen
-import com.example.byeoldori.viewmodel.Login.SignUpViewModel
-import com.example.byeoldori.viewmodel.Login.VerificationUiState
+import com.example.byeoldori.viewmodel.login.SignUpViewModel
+import com.example.byeoldori.viewmodel.login.VerificationUiState
 
 // ✅ Wrapper (실제 실행 시 VM 연결)
 @Composable

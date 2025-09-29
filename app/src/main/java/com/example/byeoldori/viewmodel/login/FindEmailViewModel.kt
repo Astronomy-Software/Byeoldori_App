@@ -1,16 +1,15 @@
-package com.example.byeoldori.viewmodel.Login
+package com.example.byeoldori.viewmodel.login
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.byeoldori.data.model.dto.FindEmailRequset
-import com.example.byeoldori.data.repository.FindAccountRepository
+import com.example.byeoldori.data.model.dto.FindEmailRequest
+import com.example.byeoldori.data.repository.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-// ✅ 화면 전용 UI State
 sealed class FindEmailUiState {
     object Idle : FindEmailUiState()
     object Loading : FindEmailUiState()
@@ -20,22 +19,20 @@ sealed class FindEmailUiState {
 
 @HiltViewModel
 class FindEmailViewModel @Inject constructor(
-    private val repo: FindAccountRepository
+    private val repo: AuthRepository
 ) : ViewModel() {
-
-    // ✅ FindEmail 전용 상태
     private val _state = MutableStateFlow<FindEmailUiState>(FindEmailUiState.Idle)
     val state: StateFlow<FindEmailUiState> = _state
 
     fun findEmail(name: String, phone: String) = viewModelScope.launch {
         _state.value = FindEmailUiState.Loading
         try {
-            val req = FindEmailRequset(name = name, phone = phone)
+            val req = FindEmailRequest(name = name, phone = phone)
             val resp = repo.findEmail(req)
 
             if (resp.success) {
                 val email = resp.data ?: ""
-                _state.value = FindEmailUiState.Success(email)
+                _state.value = FindEmailUiState.Success(email.toString())
             } else {
                 _state.value = FindEmailUiState.Error(resp.message ?: "이메일 찾기 실패")
             }

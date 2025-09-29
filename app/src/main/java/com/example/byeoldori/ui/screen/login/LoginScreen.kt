@@ -1,4 +1,3 @@
-// ui/screen/login/LoginScreen.kt
 package com.example.byeoldori.ui.screen.login
 
 import android.widget.Toast

@@ -1,4 +1,3 @@
-// ui/screen/login/FindEmailScreen.kt
 package com.example.byeoldori.ui.screen.login
 
 import androidx.compose.foundation.layout.Column
@@ -29,8 +28,8 @@ import com.example.byeoldori.ui.components.TopBar
 import com.example.byeoldori.ui.components.WideButton
 import com.example.byeoldori.ui.theme.Background
 import com.example.byeoldori.ui.theme.TextNormal
-import com.example.byeoldori.viewmodel.Login.FindEmailUiState
-import com.example.byeoldori.viewmodel.Login.FindEmailViewModel
+import com.example.byeoldori.viewmodel.login.FindEmailUiState
+import com.example.byeoldori.viewmodel.login.FindEmailViewModel
 
 // ✅ 실제 실행 시 사용하는 Screen (VM 연결)
 @Composable

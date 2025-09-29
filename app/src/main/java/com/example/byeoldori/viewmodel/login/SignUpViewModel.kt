@@ -1,10 +1,10 @@
-package com.example.byeoldori.viewmodel.Login
+package com.example.byeoldori.viewmodel.login
 
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.byeoldori.data.model.dto.SignUpRequest
-import com.example.byeoldori.data.repository.SignUpRepository
+import com.example.byeoldori.data.repository.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -29,36 +29,30 @@ sealed class VerificationUiState {
 
 @HiltViewModel
 class SignUpViewModel @Inject constructor(
-    private val repo: SignUpRepository
+    private val repo: AuthRepository
 ) : ViewModel() {
 
-    // ✅ 회원가입 상태
     private val _uiState = MutableStateFlow<SignUpUiState>(SignUpUiState.Idle)
     val uiState: StateFlow<SignUpUiState> = _uiState
 
-    // ✅ 이메일 인증 상태
     private val _verificationState = MutableStateFlow<VerificationUiState>(VerificationUiState.Idle)
     val verificationState: StateFlow<VerificationUiState> = _verificationState
 
-    // ✅ 입력값 상태 (Composable에서 직접 observe)
     var email = mutableStateOf("")
     var password = mutableStateOf("")
     var passwordConfirm = mutableStateOf("")
     var name = mutableStateOf("")
     var phone = mutableStateOf("")
 
-    // ✅ 약관 동의 상태
     var agreePolicy = mutableStateOf(false)
     var agreeProfile = mutableStateOf(false)
     var agreeLocation = mutableStateOf(false)
     var agreeMarketing = mutableStateOf(false)
 
-    // ✅ 동의 정보 저장소
     private var consents: SignUpRequest.Consents? = null
 
     fun getEmail(): String = email.value
 
-    // --- Consents 관리 ---
     fun saveConsents(policy: Boolean, profile: Boolean, location: Boolean, marketing: Boolean) {
         consents = SignUpRequest.Consents(
             termsOfService = policy,
@@ -69,41 +63,6 @@ class SignUpViewModel @Inject constructor(
     }
 
     fun getConsents(): SignUpRequest.Consents? = consents
-
-    // --- API 호출 ---
-    /** 이메일 중복 확인 */
-    fun checkEmail(email: String) = viewModelScope.launch {
-        _uiState.value = SignUpUiState.Loading
-        try {
-            val resp = repo.checkEmail(email)
-            if (resp.success) {
-                val exists = resp.data?.exists ?: false
-                if (exists) _uiState.value = SignUpUiState.Error("이미 사용 중인 이메일입니다.")
-                else _uiState.value = SignUpUiState.Success("사용 가능한 이메일입니다.")
-            } else {
-                _uiState.value = SignUpUiState.Error(resp.message ?: "이메일 중복 확인 실패")
-            }
-        } catch (e: Exception) {
-            _uiState.value = SignUpUiState.Error(e.message ?: "이메일 중복 확인 중 오류 발생")
-        }
-    }
-
-    /** 닉네임 중복 확인 */
-    fun checkNickname(nickname: String) = viewModelScope.launch {
-        _uiState.value = SignUpUiState.Loading
-        try {
-            val resp = repo.checkNickname(nickname)
-            if (resp.success) {
-                val exists = resp.data?.exists ?: false
-                if (exists) _uiState.value = SignUpUiState.Error("이미 사용 중인 닉네임입니다.")
-                else _uiState.value = SignUpUiState.Success("사용 가능한 닉네임입니다.")
-            } else {
-                _uiState.value = SignUpUiState.Error(resp.message ?: "닉네임 중복 확인 실패")
-            }
-        } catch (e: Exception) {
-            _uiState.value = SignUpUiState.Error(e.message ?: "닉네임 중복 확인 중 오류 발생")
-        }
-    }
 
     /** 이메일 인증 처리 */
     fun verifyEmail(token: String) = viewModelScope.launch {

@@ -26,8 +26,8 @@ import com.example.byeoldori.ui.components.TopBar
 import com.example.byeoldori.ui.components.WideButton
 import com.example.byeoldori.ui.theme.Background
 import com.example.byeoldori.ui.theme.TextNormal
-import com.example.byeoldori.viewmodel.Login.SignUpUiState
-import com.example.byeoldori.viewmodel.Login.SignUpViewModel
+import com.example.byeoldori.viewmodel.login.SignUpUiState
+import com.example.byeoldori.viewmodel.login.SignUpViewModel
 
 @Composable
 fun SignUpScreen(
@@ -37,7 +37,6 @@ fun SignUpScreen(
 ) {
     val uiState = vm.uiState.collectAsState().value
 
-    // ✅ 회원가입 성공 시 다음 화면 이동
     LaunchedEffect(uiState) {
         if (uiState is SignUpUiState.Success) {
             onNext()
