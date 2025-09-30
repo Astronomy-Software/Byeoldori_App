@@ -9,6 +9,9 @@ import android.view.View;
 import android.view.WindowInsets;
 import android.view.WindowInsetsController;
 
+
+// Live2D 관리 파일
+// 여기서 대부분을 관리함.
 public class Live2DView extends GLSurfaceView {
 
     private GLRenderer glRenderer;
@@ -26,6 +29,11 @@ public class Live2DView extends GLSurfaceView {
     private void init(Context context) {
         // OpenGL ES 2.0 사용
         setEGLContextClientVersion(2);
+
+        // 배경 투명 설정
+        setEGLConfigChooser(8, 8, 8, 8, 16, 0);
+        getHolder().setFormat(android.graphics.PixelFormat.TRANSLUCENT);
+        setZOrderOnTop(true); // 필요에 따라 setZOrderMediaOverlay(true)
 
         // Renderer 연결
         glRenderer = new GLRenderer();

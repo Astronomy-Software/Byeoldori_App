@@ -30,9 +30,9 @@ public class LAppView implements AutoCloseable {
 
     public LAppView() {
         clearColor[0] = 1.0f;
-        clearColor[1] = 1.0f;
-        clearColor[2] = 1.0f;
-        clearColor[3] = 0.0f;
+        clearColor[1] = 0.0f;
+        clearColor[2] = 0.0f;
+        clearColor[3] = 1.0f;
     }
 
     @Override
@@ -150,16 +150,19 @@ public class LAppView implements AutoCloseable {
 
     // 描画する
     public void render() {
+        // 배경색 투명으로 클리어
+        GLES20.glClearColor(0.0f, 0.0f, 0.0f, 0.0f); // RGBA (알파=0 → 투명)
+        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
         // 画面サイズを取得する。
         int maxWidth = LAppDelegate.getInstance().getWindowWidth();
         int maxHeight = LAppDelegate.getInstance().getWindowHeight();
-
-        backSprite.setWindowSize(maxWidth, maxHeight);
+        // backsprite 이친구가 배경이미지 assets background
+//        backSprite.setWindowSize(maxWidth, maxHeight);
         gearSprite.setWindowSize(maxWidth, maxHeight);
         powerSprite.setWindowSize(maxWidth, maxHeight);
 
         // UIと背景の描画
-        backSprite.render();
+//        backSprite.render();
         gearSprite.render();
         powerSprite.render();
 
