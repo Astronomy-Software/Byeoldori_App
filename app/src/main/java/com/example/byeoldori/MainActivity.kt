@@ -7,6 +7,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.core.view.WindowCompat
 import com.example.byeoldori.ui.AppEntry
 import com.example.byeoldori.ui.theme.AppTheme
+import com.live2d.sdk.cubism.framework.CubismFramework
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -28,6 +29,15 @@ class MainActivity : ComponentActivity() {
             hide(WindowInsetsCompat.Type.systemBars())
         }
         */
+        // Live2D 초기화
+
+        // 초기화 코드
+        // Live2D Cubism Framework 초기화 (Java SDK 버전)
+        if (!CubismFramework.isStarted()) {
+            CubismFramework.startUp(null)   // Java SDK는 Option 없이 null 가능
+            CubismFramework.initialize()
+        }
+
         setContent {
             AppTheme {
                 AppEntry()

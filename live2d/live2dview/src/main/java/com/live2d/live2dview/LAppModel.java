@@ -636,6 +636,11 @@ public class LAppModel extends CubismUserModel {
         }
     }
 
+    public ICubismModelSetting getModelSetting() {
+        return modelSetting;
+    }
+
+
     private ICubismModelSetting modelSetting;
     /**
      * モデルのホームディレクトリ

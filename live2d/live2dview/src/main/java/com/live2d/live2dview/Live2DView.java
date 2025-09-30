@@ -9,9 +9,6 @@ import android.view.View;
 import android.view.WindowInsets;
 import android.view.WindowInsetsController;
 
-
-// Live2D 관리 파일
-// 여기서 대부분을 관리함.
 public class Live2DView extends GLSurfaceView {
 
     private GLRenderer glRenderer;
@@ -44,11 +41,10 @@ public class Live2DView extends GLSurfaceView {
         if (context instanceof Activity) {
             LAppDelegate.getInstance().onStart((Activity) context);
         } else {
-            // Activity context가 아닌 경우에는 나중에 Activity 주입 필요
             LAppDelegate.getInstance().onStart(null);
         }
 
-        // 시스템 UI 숨기기 설정 (원본 샘플 코드 반영)
+        // 시스템 UI 숨기기
         if (context instanceof Activity) {
             Activity activity = (Activity) context;
             if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.R) {
@@ -68,13 +64,6 @@ public class Live2DView extends GLSurfaceView {
                 }
             }
         }
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        // GLSurfaceView 자체 resume 호출
-        this.onResume();
     }
 
     @Override
@@ -104,4 +93,49 @@ public class Live2DView extends GLSurfaceView {
         });
         return true;
     }
+
+    // -------------------------------
+    // 외부에서 안전하게 호출할 수 있는 제어 API
+    // -------------------------------
+
+    /** 다음 캐릭터로 변경 */
+    public void nextCharacter() {
+        queueEvent(() -> LAppLive2DManager.getInstance().nextScene());
+    }
+
+    /** 특정 인덱스 캐릭터로 변경 */
+    public void changeCharacter(int index) {
+        queueEvent(() -> LAppLive2DManager.getInstance().changeScene(index));
+    }
+
+    /** 특정 모션 실행 */
+    public void playMotion(String group, int no) {
+        queueEvent(() -> {
+            LAppModel model = LAppLive2DManager.getInstance().getModel(0);
+            if (model != null) {
+                model.startMotion(group, no, LAppDefine.Priority.FORCE.getPriority());
+            }
+        });
+    }
+
+    /** 표정 변경 */
+    public void setExpression(String name) {
+        queueEvent(() -> {
+            LAppModel model = LAppLive2DManager.getInstance().getModel(0);
+            if (model != null) {
+                model.setExpression(name);
+            }
+        });
+    }
+
+    /** 드래그 전달 */
+    public void onDrag(float x, float y) {
+        queueEvent(() -> LAppLive2DManager.getInstance().onDrag(x, y));
+    }
+
+    /** 탭 이벤트 전달 */
+    public void onTap(float x, float y) {
+        queueEvent(() -> LAppLive2DManager.getInstance().onTap(x, y));
+    }
+
 }
