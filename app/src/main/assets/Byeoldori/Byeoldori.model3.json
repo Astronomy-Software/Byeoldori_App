@@ -1,0 +1,10 @@
+{
+	"Version": 3,
+	"FileReferences": {
+		"Moc": "Byeoldori.moc3",
+		"Textures": [
+			"Byeoldori.1024/texture_00.png"
+		],
+		"DisplayInfo": "Byeoldori.cdi3.json"
+	}
+}
