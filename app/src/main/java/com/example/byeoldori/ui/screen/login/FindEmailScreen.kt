@@ -1,4 +1,3 @@
-// ui/screen/login/FindEmailScreen.kt
 package com.example.byeoldori.ui.screen.login
 
 import androidx.compose.foundation.layout.Column
@@ -20,19 +19,22 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight.Companion.Bold
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.byeoldori.ui.components.InputForm
 import com.example.byeoldori.ui.components.TopBar
 import com.example.byeoldori.ui.components.WideButton
 import com.example.byeoldori.ui.theme.Background
+import com.example.byeoldori.ui.theme.ErrorRed
+import com.example.byeoldori.ui.theme.SuccessGreen
 import com.example.byeoldori.ui.theme.TextNormal
-import com.example.byeoldori.viewmodel.Login.FindEmailUiState
-import com.example.byeoldori.viewmodel.Login.FindEmailViewModel
+import com.example.byeoldori.ui.theme.WarningYellow
+import com.example.byeoldori.viewmodel.UiState
+import com.example.byeoldori.viewmodel.login.FindEmailViewModel
 
-// ✅ 실제 실행 시 사용하는 Screen (VM 연결)
 @Composable
 fun FindEmailScreen(
     onBack: () -> Unit,
@@ -47,11 +49,10 @@ fun FindEmailScreen(
     )
 }
 
-// ✅ 순수 UI 전용 Content (Preview/Test에서 사용 가능)
 @Composable
 fun FindEmailContent(
     onBack: () -> Unit,
-    state: FindEmailUiState = FindEmailUiState.Idle,
+    state: UiState<List<String>> = UiState.Idle,
     onSubmit: (String, String) -> Unit = { _, _ -> }
 ) {
     var name by remember { mutableStateOf("") }
@@ -69,13 +70,11 @@ fun FindEmailContent(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // ✅ 상단바
             TopBar(
                 title = "이메일 찾기",
                 onBack = onBack
             )
 
-            // ✅ 입력폼
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -113,32 +112,49 @@ fun FindEmailContent(
 
                 Spacer(Modifier.height(16.dp))
 
-                // ✅ 상태 표시
                 when (state) {
-                    is FindEmailUiState.Idle ->
-                        Text("📧 이름과 전화번호를 입력하세요", color = Color.Gray)
+                    UiState.Idle ->
+                        Text("이름과 전화번호를 입력하세요", color = TextNormal)
 
-                    is FindEmailUiState.Loading ->
-                        Text("⏳ 이메일을 찾는 중...", color = Color.Gray)
+                    UiState.Loading ->
+                        Text("이메일을 찾는 중...", color = WarningYellow)
 
-                    is FindEmailUiState.Success ->
-                        Text("✅ 가입된 이메일: ${state.email}", color = Color.Green)
-
-                    is FindEmailUiState.Error ->
-                        Text("❌ ${state.message}", color = Color.Red)
+                    is UiState.Success -> {
+                        if (state.data.isNotEmpty()) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(
+                                    "가입된 이메일 목록:",
+                                    color = SuccessGreen,
+                                    fontSize = 18.sp,
+                                    fontWeight = Bold
+                                )
+                                Spacer(Modifier.height(8.dp))
+                                state.data.forEach { email ->
+                                    Text(
+                                        email,
+                                        color = TextNormal,
+                                        fontSize = 18.sp,
+                                        fontWeight = Bold
+                                    )
+                                }
+                            }
+                        } else {
+                            Text("이메일을 찾을 수 없습니다.", color = ErrorRed)
+                        }
+                    }
+                    is UiState.Error -> Text(state.message, color = ErrorRed)
                 }
             }
         }
     }
 }
 
-// ✅ Preview는 Content만 테스트
 @Preview(showBackground = true, backgroundColor = 0xFFFFFFFF)
 @Composable
 fun FindEmailScreenPreview() {
     FindEmailContent(
         onBack = {},
-        state = FindEmailUiState.Success("test@example.com"),
+        state = UiState.Success(listOf()),
         onSubmit = { _, _ -> }
     )
 }

@@ -71,9 +71,12 @@ android {
     }
 
     kotlin { jvmToolchain(21) }
+
 }
 
 dependencies {
+    implementation(project(":live2d:Framework:framework"))
+    implementation(project(":live2d:live2dview"))
     implementation(platform(libs.compose.bom))
     implementation(libs.coil.compose)
     implementation(libs.activity.compose)
@@ -106,6 +109,7 @@ dependencies {
     implementation(libs.lifecycle.runtime.compose)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.datastore.preferences)
+    implementation(project(":live2d:Framework:framework"))
 
     // ✅ Moshi는 계속 KSP 사용
     ksp(libs.moshi.kotlin.codegen)

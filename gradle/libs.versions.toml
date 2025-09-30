@@ -32,6 +32,7 @@ hilt = "2.51.1"
 retrofit = "2.11.0"
 ksp = "1.9.23-1.0.20"
 firebaseAppdistributionGradle = "5.1.1"
+appcompat = "1.7.1"
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -39,6 +40,7 @@ kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 firebase-appdistribution = { id = "com.google.firebase.appdistribution", version.ref = "firebaseAppdistributionGradle" }
+android-library = { id = "com.android.library", version.ref = "agp" }
 
 
 [libraries]
@@ -80,3 +82,4 @@ ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
 accompanist-pager = { module = "com.google.accompanist:accompanist-pager", version.ref = "accompanist" }
 accompanist-pager-indicators = { module = "com.google.accompanist:accompanist-pager-indicators", version.ref = "accompanist" }
 firebase-appdistribution-gradle = { group = "com.google.firebase", name = "firebase-appdistribution-gradle", version.ref = "firebaseAppdistributionGradle" }
+androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }

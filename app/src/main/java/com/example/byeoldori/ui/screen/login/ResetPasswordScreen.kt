@@ -1,4 +1,3 @@
-// ui/screen/login/ResetPasswordScreen.kt
 package com.example.byeoldori.ui.screen.login
 
 import androidx.compose.foundation.layout.Column
@@ -20,7 +19,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -28,11 +26,13 @@ import com.example.byeoldori.ui.components.InputForm
 import com.example.byeoldori.ui.components.TopBar
 import com.example.byeoldori.ui.components.WideButton
 import com.example.byeoldori.ui.theme.Background
+import com.example.byeoldori.ui.theme.ErrorRed
+import com.example.byeoldori.ui.theme.SuccessGreen
 import com.example.byeoldori.ui.theme.TextNormal
-import com.example.byeoldori.viewmodel.Login.ResetPasswordUiState
-import com.example.byeoldori.viewmodel.Login.ResetPasswordViewModel
+import com.example.byeoldori.ui.theme.WarningYellow
+import com.example.byeoldori.viewmodel.UiState
+import com.example.byeoldori.viewmodel.login.ResetPasswordViewModel
 
-// ✅ 실제 실행 시 VM 연결
 @Composable
 fun ResetPasswordScreen(
     onBack: () -> Unit,
@@ -43,19 +43,21 @@ fun ResetPasswordScreen(
     ResetPasswordContent(
         onBack = onBack,
         state = state,
-        onSubmit = { email -> vm.resetPassword(email) }
+        onSubmit = { email,name,phone -> vm.resetPassword(email, name, phone) }
     )
 }
 
-// ✅ 순수 UI
 @Composable
 fun ResetPasswordContent(
     onBack: () -> Unit,
-    state: ResetPasswordUiState = ResetPasswordUiState.Idle,
-    onSubmit: (String) -> Unit = {}
+    state: UiState<String> = UiState.Idle,
+    onSubmit: (String, String, String) -> Unit = { _, _, _ -> }
 ) {
     var email by remember { mutableStateOf("") }
-    val isFormValid = email.isNotBlank()
+    var phone by remember { mutableStateOf("") }
+    var name by remember { mutableStateOf("") }
+
+    val isFormValid = email.isNotBlank() && phone.isNotBlank() && name.isNotBlank()
 
     Background(
         modifier = Modifier
@@ -87,11 +89,24 @@ fun ResetPasswordContent(
                     modifier = Modifier.width(330.dp)
                 )
 
+                InputForm(
+                    label = "전화번호",
+                    value = phone,
+                    onValueChange = { phone = it },
+                    placeholder = "01012345678",
+                    modifier = Modifier.width(330.dp)
+                )
+                InputForm(
+                    label = "이름",
+                    value = name,
+                    onValueChange = { name = it },
+                    placeholder = "홍길동",
+                    modifier = Modifier.width(330.dp)
+                )
                 Spacer(Modifier.height(24.dp))
-
                 WideButton(
                     text = "재설정 메일 보내기",
-                    onClick = { onSubmit(email) },
+                    onClick = { onSubmit(email,name,phone) },
                     contentColor = TextNormal,
                     modifier = Modifier.width(330.dp),
                     enabled = isFormValid
@@ -100,17 +115,17 @@ fun ResetPasswordContent(
                 Spacer(Modifier.height(16.dp))
 
                 when (state) {
-                    is ResetPasswordUiState.Idle ->
-                        Text("📩 가입한 이메일을 입력하세요", color = Color.Gray)
+                    UiState.Idle ->
+                        Text("이메일, 전화번호, 이름을 입력하세요", color = TextNormal)
 
-                    is ResetPasswordUiState.Loading ->
-                        Text("⏳ 요청 중...", color = Color.Gray)
+                    UiState.Loading ->
+                        Text("요청 중...", color = WarningYellow)
 
-                    is ResetPasswordUiState.Success ->
-                        Text("✅ ${(state as ResetPasswordUiState.Success).message}", color = Color.Green)
+                    is UiState.Success ->
+                        Text(state.data, color = SuccessGreen)
 
-                    is ResetPasswordUiState.Error ->
-                        Text("❌ ${(state as ResetPasswordUiState.Error).message}", color = Color.Red)
+                    is UiState.Error ->
+                        Text(state.message, color = ErrorRed)
                 }
             }
         }
@@ -122,6 +137,6 @@ fun ResetPasswordContent(
 fun ResetPasswordPreview() {
     ResetPasswordContent(
         onBack = {},
-        state = ResetPasswordUiState.Success("테스트: 재설정 메일 발송 완료")
+        state = UiState.Success("테스트: 재설정 메일 발송 완료")
     )
 }
