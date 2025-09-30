@@ -4,6 +4,9 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.byeoldori.data.repository.WeatherRepository
+import com.example.byeoldori.domain.Observatory.CurrentWeather
+import com.example.byeoldori.domain.Observatory.DailyForecast
+import com.example.byeoldori.domain.Observatory.HourlyForecast
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

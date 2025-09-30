@@ -2,7 +2,6 @@
 
 package com.example.byeoldori.ui.screen.Observatory
 
-import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -11,7 +10,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.*
 import androidx.compose.ui.unit.*
-import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.byeoldori.domain.Observatory.MarkerInfo
 import com.example.byeoldori.ui.components.observatory.*
 import com.example.byeoldori.ui.theme.*
 import com.example.byeoldori.viewmodel.Observatory.*

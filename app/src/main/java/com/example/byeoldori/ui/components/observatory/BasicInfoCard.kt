@@ -15,8 +15,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
 import com.example.byeoldori.R
 import com.example.byeoldori.ui.theme.*
-import com.example.byeoldori.viewmodel.Observatory.MarkerInfo
-import com.example.byeoldori.viewmodel.Observatory.ObservatoryType
+import com.example.byeoldori.domain.Observatory.MarkerInfo
+import com.example.byeoldori.domain.Observatory.ObservatoryType
 
 //기본 정보 카드
 @Composable

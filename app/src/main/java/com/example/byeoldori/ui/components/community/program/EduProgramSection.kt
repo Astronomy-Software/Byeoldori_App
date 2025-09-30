@@ -8,7 +8,6 @@ import androidx.compose.foundation.lazy.grid.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -20,8 +19,9 @@ import com.example.byeoldori.ui.components.community.EditorItem
 import com.example.byeoldori.ui.components.community.SortBar
 import com.example.byeoldori.ui.components.observatory.ReviewCard
 import com.example.byeoldori.ui.theme.*
-import com.example.byeoldori.viewmodel.Community.EduProgram
-import com.example.byeoldori.viewmodel.Observatory.Review
+import com.example.byeoldori.domain.Community.EduProgram
+import com.example.byeoldori.domain.Content
+import com.example.byeoldori.domain.Observatory.Review
 import com.example.byeoldori.viewmodel.dummyProgramComments
 
 // EduProgram → Review 변환 (임시 어댑터)
@@ -171,9 +171,7 @@ private fun Preview_EduProgramSection_Default() {
                     profile = R.drawable.profile1,
                     createdAt = 202510290000L - i, // Long 더미
                     contentItems = listOf(
-                        EditorItem.Paragraph(
-                            value = TextFieldValue("이 강의는 망원경 기초와 관측 매너를 다룹니다.")
-                        )
+                       Content.Text("이 강의는 망원경 기초와 관측 매너를 다룹니다.")
                     )
                 )
             }

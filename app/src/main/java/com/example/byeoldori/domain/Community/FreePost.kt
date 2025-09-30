@@ -1,5 +1,6 @@
-package com.example.byeoldori.viewmodel.Community
+package com.example.byeoldori.domain.Community
 
+import com.example.byeoldori.domain.Content
 import com.example.byeoldori.ui.components.community.EditorItem
 
 data class FreePost(
@@ -13,6 +14,6 @@ data class FreePost(
     //val imageRes: Int,
     val viewCount: Int,
     val createdAt: Long,
-    val contentItems: List<EditorItem>,
+    val contentItems: List<Content>,
 
-)
+    )

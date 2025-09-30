@@ -1,9 +1,9 @@
 package com.example.byeoldori.data
 
-import com.example.byeoldori.viewmodel.Observatory.DailyForecast
+import com.example.byeoldori.domain.Observatory.DailyForecast
 
 interface WeatherCache {
-    suspend fun saveDaily(key: String, daily: List<DailyForecast>,updatedAt: Long)
+    suspend fun saveDaily(key: String, daily: List<DailyForecast>, updatedAt: Long)
     suspend fun loadDaily(key: String): CachedDaily?
 }
 

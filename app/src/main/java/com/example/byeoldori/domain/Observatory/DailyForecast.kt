@@ -1,6 +1,4 @@
-package com.example.byeoldori.viewmodel.Observatory
-
-import java.time.LocalDate
+package com.example.byeoldori.domain.Observatory
 
 
 data class DailyForecast(

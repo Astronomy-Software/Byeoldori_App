@@ -13,7 +13,8 @@ import androidx.compose.ui.unit.*
 import com.example.byeoldori.R
 import com.example.byeoldori.ui.components.community.*
 import com.example.byeoldori.ui.theme.*
-import com.example.byeoldori.viewmodel.Community.FreePost
+import com.example.byeoldori.domain.Community.FreePost
+import com.example.byeoldori.domain.Content
 
 @Composable
 fun FreeBoardItem( //게시글 UI
@@ -106,9 +107,9 @@ private fun Preview_FreeBoardItem() {
         viewCount = 120,
         createdAt = 202510301500,
         contentItems = listOf(
-        EditorItem.Paragraph(value = TextFieldValue("오늘 처음 가입했습니다.")),
-        EditorItem.Photo(model = R.drawable.img_dummy),
-        EditorItem.Paragraph(value = TextFieldValue("좋은 관측 장소 공유 부탁드려요!"))
+            Content.Text("오늘 처음 가입했습니다."),
+            Content.Image.Resource(R.drawable.img_dummy),
+            Content.Text("좋은 관측 장소 공유 부탁드려요!")
         ),
         profile = R.drawable.profile1
     )

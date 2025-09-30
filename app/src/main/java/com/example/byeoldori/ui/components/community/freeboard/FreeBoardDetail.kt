@@ -13,10 +13,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
 import com.example.byeoldori.R
+import com.example.byeoldori.domain.Community.FreePost
+import com.example.byeoldori.domain.Community.ReviewComment
 import com.example.byeoldori.ui.components.community.*
 import com.example.byeoldori.ui.components.community.review.*
+import com.example.byeoldori.ui.mapper.toUi
 import com.example.byeoldori.ui.theme.*
-import com.example.byeoldori.viewmodel.Community.*
 import com.example.byeoldori.viewmodel.dummyFreeComments
 import com.example.byeoldori.viewmodel.dummyFreePosts
 
@@ -179,7 +181,7 @@ fun FreeBoardDetail (
                 }
                 Spacer(Modifier.height(16.dp))
                 ContentInput( //내용 입력(텍스트 + 이미지)
-                    items = post.contentItems,
+                    items = post.contentItems.toUi(),
                     onItemsChange = {},
                     onPickImages = {},
                     onCheck = {},

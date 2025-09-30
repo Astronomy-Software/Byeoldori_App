@@ -3,8 +3,10 @@ package com.example.byeoldori.data.repository
 import android.util.Log
 import com.example.byeoldori.data.api.WeatherApi
 import com.example.byeoldori.data.model.dto.*
+import com.example.byeoldori.domain.Observatory.CurrentWeather
+import com.example.byeoldori.domain.Observatory.DailyForecast
+import com.example.byeoldori.domain.Observatory.HourlyForecast
 import com.example.byeoldori.ui.components.observatory.*
-import com.example.byeoldori.viewmodel.Observatory.*
 import java.time.*
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject

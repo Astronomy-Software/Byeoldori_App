@@ -1,4 +1,4 @@
-package com.example.byeoldori.viewmodel.Observatory
+package com.example.byeoldori.domain.Observatory
 
 data class MarkerInfo(
     val name: String,

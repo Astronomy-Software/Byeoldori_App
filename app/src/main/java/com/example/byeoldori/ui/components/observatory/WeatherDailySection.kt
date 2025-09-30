@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.*
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.byeoldori.R
 import com.example.byeoldori.ui.theme.*
-import com.example.byeoldori.viewmodel.Observatory.DailyForecast
+import com.example.byeoldori.domain.Observatory.DailyForecast
 import com.example.byeoldori.viewmodel.Observatory.WeatherViewModel
 
 @Composable

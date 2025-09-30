@@ -18,8 +18,8 @@ import com.example.byeoldori.ui.components.community.LikeState
 import com.example.byeoldori.ui.components.community.SortBar
 import com.example.byeoldori.ui.components.community.likedKeyFree
 import com.example.byeoldori.ui.theme.*
-import com.example.byeoldori.viewmodel.Community.FreePost
-import com.example.byeoldori.viewmodel.Observatory.Review
+import com.example.byeoldori.domain.Community.FreePost
+import com.example.byeoldori.domain.Observatory.Review
 import com.example.byeoldori.viewmodel.dummyFreeComments
 import com.example.byeoldori.viewmodel.dummyFreePosts
 

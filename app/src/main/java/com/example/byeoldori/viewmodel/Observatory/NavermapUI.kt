@@ -15,6 +15,8 @@ import androidx.core.app.ActivityCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.byeoldori.R
 import com.example.byeoldori.data.model.dto.ObservationSite
+import com.example.byeoldori.domain.Observatory.MarkerInfo
+import com.example.byeoldori.domain.Observatory.ObservatoryType
 import com.example.byeoldori.ui.components.observatory.CurrentLocationButton
 import com.example.byeoldori.viewmodel.NaverMapViewModel
 import com.google.android.gms.location.LocationServices

@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.*
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.byeoldori.R
 import com.example.byeoldori.ui.theme.*
-import com.example.byeoldori.viewmodel.Observatory.HourlyForecast
+import com.example.byeoldori.domain.Observatory.HourlyForecast
 import com.example.byeoldori.viewmodel.Observatory.WeatherViewModel
 import java.time.format.DateTimeFormatter
 

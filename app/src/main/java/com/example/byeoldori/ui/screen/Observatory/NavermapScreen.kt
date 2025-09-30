@@ -8,9 +8,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.byeoldori.viewmodel.Observatory.MarkerInfo
-import com.example.byeoldori.viewmodel.NavigationViewModel
+import com.example.byeoldori.domain.Observatory.MarkerInfo
 import com.example.byeoldori.viewmodel.Observatory.NaverMapWithSearchUI
 import com.example.byeoldori.viewmodel.Observatory.ObservatoryMapViewModel
 import com.google.accompanist.permissions.*

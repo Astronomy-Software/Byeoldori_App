@@ -10,11 +10,11 @@ import androidx.compose.ui.unit.*
 import com.example.byeoldori.ui.components.community.*
 import com.example.byeoldori.ui.components.community.program.*
 import com.example.byeoldori.ui.theme.*
-import com.example.byeoldori.viewmodel.Observatory.*
 import com.example.byeoldori.ui.components.community.freeboard.*
 import com.example.byeoldori.ui.components.community.review.CommuReviewSection
 import com.example.byeoldori.ui.components.community.review.ReviewDetail
-import com.example.byeoldori.viewmodel.Community.EduProgram
+import com.example.byeoldori.domain.Community.EduProgram
+import com.example.byeoldori.domain.Observatory.Review
 import com.example.byeoldori.viewmodel.*
 import com.example.byeoldori.ui.components.community.review.ReviewWriteForm
 

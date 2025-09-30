@@ -1,13 +1,14 @@
 package com.example.byeoldori.viewmodel
 
 import com.example.byeoldori.R
-import com.example.byeoldori.viewmodel.Community.EduProgram
-import com.example.byeoldori.viewmodel.Community.FreePost
+import com.example.byeoldori.domain.Community.EduProgram
+import com.example.byeoldori.domain.Community.FreePost
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.text.input.TextFieldValue
 import com.example.byeoldori.ui.components.community.EditorItem
-import com.example.byeoldori.viewmodel.Community.ReviewComment
-import com.example.byeoldori.viewmodel.Observatory.Review
+import com.example.byeoldori.domain.Community.ReviewComment
+import com.example.byeoldori.domain.Content
+import com.example.byeoldori.domain.Observatory.Review
 
 //리뷰 더미 데이터
 val dummyReviews = mutableStateListOf(
@@ -30,9 +31,9 @@ val dummyReviews = mutableStateListOf(
         endTime = "23:30",
         // ✅ 본문 + 이미지
         contentItems = listOf(
-            EditorItem.Paragraph(value = TextFieldValue("오늘은 태양 흑점을 관측했습니다.")),
-            EditorItem.Photo(model = R.drawable.img_dummy),
-            EditorItem.Paragraph(value = TextFieldValue("날씨가 좋아 관측이 수월했습니다!."))
+            Content.Text("오늘은 태양 흑점을 관측했습니다."),
+            Content.Image.Resource(R.drawable.img_dummy),
+            Content.Text("날씨가 좋아 관측이 수월했습니다!.")
         )
     ),
     Review(
@@ -53,8 +54,8 @@ val dummyReviews = mutableStateListOf(
         startTime = "12:00",
         endTime = "16:30",
         contentItems = listOf(
-            EditorItem.Paragraph(value = TextFieldValue("오늘은 태양 흑점을 관측했습니다.")),
-            EditorItem.Photo(model = R.drawable.img_dummy)
+            Content.Text("오늘은 태양 흑점을 관측했습니다."),
+            Content.Image.Resource(R.drawable.img_dummy)
         )
     ),
     Review(
@@ -75,8 +76,8 @@ val dummyReviews = mutableStateListOf(
         startTime = "22:00",
         endTime = "23:30",
         contentItems = listOf(
-            EditorItem.Paragraph(value = TextFieldValue("오늘은 태양 흑점을 관측했습니다.")),
-            EditorItem.Photo(model = R.drawable.img_dummy)
+            Content.Text("오늘은 태양 흑점을 관측했습니다."),
+            Content.Image.Resource(R.drawable.img_dummy)
         )
     ),
     Review(
@@ -97,8 +98,8 @@ val dummyReviews = mutableStateListOf(
         startTime = "22:00",
         endTime = "23:30",
         contentItems = listOf(
-            EditorItem.Paragraph(value = TextFieldValue("오늘은 태양 흑점을 관측했습니다.")),
-            EditorItem.Photo(model = R.drawable.img_dummy)
+            Content.Text("오늘은 태양 흑점을 관측했습니다."),
+            Content.Image.Resource(R.drawable.img_dummy)
         )
     ),
     Review(
@@ -119,8 +120,8 @@ val dummyReviews = mutableStateListOf(
         startTime = "22:00",
         endTime = "23:30",
         contentItems = listOf(
-            EditorItem.Paragraph(value = TextFieldValue("오늘은 태양 흑점을 관측했습니다.")),
-            EditorItem.Photo(model = R.drawable.img_dummy)
+            Content.Text("오늘은 태양 흑점을 관측했습니다."),
+            Content.Image.Resource(R.drawable.img_dummy)
         )
     ),
     Review(
@@ -141,8 +142,8 @@ val dummyReviews = mutableStateListOf(
         startTime = "22:00",
         endTime = "23:30",
         contentItems = listOf(
-            EditorItem.Paragraph(value = TextFieldValue("오늘은 태양 흑점을 관측했습니다.")),
-            EditorItem.Photo(model = R.drawable.img_dummy)
+            Content.Text("오늘은 태양 흑점을 관측했습니다."),
+            Content.Image.Resource(R.drawable.img_dummy)
         )
     ),
 )
@@ -254,10 +255,10 @@ val dummyFreePosts = mutableStateListOf(
         createdAt = 202510251500,
         profile = R.drawable.profile1,
         contentItems = listOf(
-            EditorItem.Paragraph(value = TextFieldValue("안녕하세요 오늘 처음 별도리앱 깔았어요")),
-            EditorItem.Paragraph(value = TextFieldValue("혹시 다들 어디서 관측하시나요??")),
-            EditorItem.Photo(model = R.drawable.img_dummy),
-            EditorItem.Paragraph(value = TextFieldValue("이런 곳은 어떤가요?? 잘 보이나요?"))
+            Content.Text("안녕하세요 오늘 처음 별도리앱 깔았어요"),
+            Content.Text("혹시 다들 어디서 관측하시나요??"),
+            Content.Image.Resource(R.drawable.img_dummy),
+            Content.Text("이런 곳은 어떤가요?? 잘 보이나요?")
         )
     ),
     FreePost(
@@ -270,9 +271,9 @@ val dummyFreePosts = mutableStateListOf(
         createdAt = 202510291500,
         profile = R.drawable.profile1,
         contentItems = listOf(
-            EditorItem.Paragraph(value = TextFieldValue("오늘 처음 가입했습니다.")),
-            EditorItem.Photo(model = R.drawable.img_dummy),
-            EditorItem.Paragraph(value = TextFieldValue("좋은 관측 장소 공유 부탁드려요!"))
+            Content.Text("오늘 처음 가입했습니다."),
+            Content.Image.Resource(R.drawable.img_dummy),
+            Content.Text("좋은 관측 장소 공유 부탁드려요!")
         )
     ),
     FreePost(
@@ -285,8 +286,8 @@ val dummyFreePosts = mutableStateListOf(
         createdAt = 202510301500,
         profile = R.drawable.profile1,
         contentItems = listOf(
-            EditorItem.Paragraph(value = TextFieldValue("안녕하세요 astro3입니다.")),
-            EditorItem.Paragraph(value = TextFieldValue("저는 주로 교외에서 관측해요 🌌"))
+            Content.Text("안녕하세요 astro3입니다."),
+            Content.Text("저는 주로 교외에서 관측해요 🌌")
         )
     ),
     FreePost(
@@ -299,8 +300,8 @@ val dummyFreePosts = mutableStateListOf(
         createdAt = 202510281500,
         profile = R.drawable.profile1,
         contentItems = listOf(
-            EditorItem.Paragraph(value = TextFieldValue("astro4 입니다. 잘 부탁드려요!")),
-            EditorItem.Photo(model = R.drawable.img_dummy)
+            Content.Text("astro4 입니다. 잘 부탁드려요!"),
+            Content.Image.Resource(R.drawable.img_dummy)
         )
     )
 )
@@ -318,9 +319,9 @@ val dummyPrograms = mutableStateListOf(
         viewCount = 120,
         createdAt = 202510290900,
         contentItems = listOf(
-            EditorItem.Paragraph(value = TextFieldValue("망원경 종류와 기본 조작을 배웁니다.")),
-            EditorItem.Photo(model = R.drawable.img_dummy),
-            EditorItem.Paragraph(value = TextFieldValue("실습 포함: 파인더 정렬, 배율 계산"))
+            Content.Text("망원경 종류와 기본 조작을 배웁니다."),
+            Content.Image.Resource(R.drawable.img_dummy),
+            Content.Text("실습 포함: 파인더 정렬, 배율 계산")
         )
     ),
     EduProgram(
@@ -334,9 +335,9 @@ val dummyPrograms = mutableStateListOf(
         viewCount = 210,
         createdAt = 202510291100,
         contentItems = listOf(
-            EditorItem.Paragraph(value = TextFieldValue("유성우 예보 읽는 법과 관측 팁을 다룹니다.")),
-            EditorItem.Photo(model = R.drawable.img_dummy),
-            EditorItem.Paragraph(value = TextFieldValue("필수 장비 체크리스트 제공"))
+            Content.Text("유성우 예보 읽는 법과 관측 팁을 다룹니다."),
+            Content.Image.Resource(R.drawable.img_dummy),
+            Content.Text("필수 장비 체크리스트 제공")
         )
     ),
     EduProgram(
@@ -350,8 +351,8 @@ val dummyPrograms = mutableStateListOf(
         viewCount = 95,
         createdAt = 202510291430,
         contentItems = listOf(
-            EditorItem.Paragraph(value = TextFieldValue("광해가 심한 환경에서의 관측 전략.")),
-            EditorItem.Paragraph(value = TextFieldValue("필터 사용과 관측 대상 추천"))
+            Content.Text("광해가 심한 환경에서의 관측 전략."),
+            Content.Text("필터 사용과 관측 대상 추천")
         )
     )
 )

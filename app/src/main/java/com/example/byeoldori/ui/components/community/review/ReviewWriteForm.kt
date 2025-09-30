@@ -15,7 +15,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.byeoldori.R
 import com.example.byeoldori.ui.components.community.*
-import com.example.byeoldori.viewmodel.Observatory.Review
+import com.example.byeoldori.domain.Observatory.Review
+import com.example.byeoldori.ui.mapper.toDomain
 import java.util.UUID
 
 @Composable
@@ -79,7 +80,7 @@ fun ReviewWriteForm(
             equipment = equipment,
             startTime = startTime,
             endTime = endTime,
-            contentItems = items
+            contentItems = items.toDomain()
         )
     }
 

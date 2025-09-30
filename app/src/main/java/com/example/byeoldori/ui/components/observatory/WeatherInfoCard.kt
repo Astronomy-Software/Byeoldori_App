@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.*
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.byeoldori.R
 import com.example.byeoldori.ui.theme.*
-import com.example.byeoldori.viewmodel.Observatory.CurrentWeather
+import com.example.byeoldori.domain.Observatory.CurrentWeather
 import com.example.byeoldori.viewmodel.Observatory.WeatherViewModel
 
 private const val TAG_UIWX = "CurrentWeatherUI"

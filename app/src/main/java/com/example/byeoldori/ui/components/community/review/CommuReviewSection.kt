@@ -18,7 +18,7 @@ import com.example.byeoldori.ui.components.community.EditorItem
 import com.example.byeoldori.ui.components.community.SortBar
 import com.example.byeoldori.ui.components.observatory.ReviewCard
 import com.example.byeoldori.ui.theme.*
-import com.example.byeoldori.viewmodel.Observatory.Review
+import com.example.byeoldori.domain.Observatory.Review
 import com.example.byeoldori.viewmodel.dummyReviewComments
 import com.example.byeoldori.viewmodel.dummyReviews
 

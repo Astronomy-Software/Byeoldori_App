@@ -1,5 +1,6 @@
-package com.example.byeoldori.viewmodel.Observatory
+package com.example.byeoldori.domain.Observatory
 
+import com.example.byeoldori.domain.Content
 import com.example.byeoldori.ui.components.community.EditorItem
 
 data class Review (
@@ -20,5 +21,5 @@ data class Review (
     val equipment: String,
     val startTime: String,
     val endTime: String,
-    val contentItems: List<EditorItem>, //본문 + 이미지
+    val contentItems: List<Content>, //본문 + 이미지
 )
