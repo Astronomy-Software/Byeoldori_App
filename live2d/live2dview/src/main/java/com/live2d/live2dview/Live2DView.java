@@ -9,6 +9,9 @@ import android.view.View;
 import android.view.WindowInsets;
 import android.view.WindowInsetsController;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Live2DView extends GLSurfaceView {
 
     private GLRenderer glRenderer;
@@ -138,4 +141,13 @@ public class Live2DView extends GLSurfaceView {
         queueEvent(() -> LAppLive2DManager.getInstance().onTap(x, y));
     }
 
+    // Live2DView.java
+    public List<String> getAvailableMotions() {
+        List<String> motions = new ArrayList<>();
+        LAppModel model = LAppLive2DManager.getInstance().getModel(0);
+        if (model != null) {
+            motions.addAll(model.getMotionList());
+        }
+        return motions;
+    }
 }

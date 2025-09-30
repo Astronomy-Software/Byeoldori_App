@@ -636,6 +636,21 @@ public class LAppModel extends CubismUserModel {
         }
     }
 
+    public List<String> getMotionList() {
+        List<String> motions = new ArrayList<>();
+        if (modelSetting == null) return motions;
+
+        int motionGroupCount = modelSetting.getMotionGroupCount();
+        for (int i = 0; i < motionGroupCount; i++) {
+            String group = modelSetting.getMotionGroupName(i);
+            int motionCount = modelSetting.getMotionCount(group);
+            for (int j = 0; j < motionCount; j++) {
+                motions.add(group + ":" + j);
+            }
+        }
+        return motions;
+    }
+
     public ICubismModelSetting getModelSetting() {
         return modelSetting;
     }
