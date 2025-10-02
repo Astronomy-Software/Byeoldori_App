@@ -86,7 +86,7 @@ fun DailyForecastRow(forecast: DailyForecast) {
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         // 날짜
-        Text(forecast.date, color = TextHighlight, fontSize = 18.sp, modifier = Modifier.weight(1f))
+        Text(forecast.date, color = TextHighlight, fontSize = 18.sp, maxLines = 1,modifier = Modifier.weight(1f))
 
         // 강수 확률
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1.2f)) {
@@ -134,7 +134,7 @@ private fun Preview_WeatherDailySection() {
         DailyForecast("5.29", "90%",  "rain",       "rain",       "23°", "11°", "45%"),
         DailyForecast("5.30", "100%", "rain",       "rain",       "22°", "10°", "20%"),
         DailyForecast("5.31", "100%", "cloud_sun",  "rain",       "23°", "9°",  "40%"),
-        DailyForecast("6.1",  "100%", "rain",       "cloud_moon", "22°", "11°", "35%")
+        DailyForecast("10.10",  "100%", "rain",       "cloud_moon", "22°", "11°", "35%")
     )
     MaterialTheme {
         Surface(color = Color.Black) { DailyForecastListSection(previewDaily) }
