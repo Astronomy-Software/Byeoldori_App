@@ -13,7 +13,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.byeoldori.data.TestUserScreen
 import com.example.byeoldori.ui.screen.TestObservationSiteScreen
-import com.example.byeoldori.ui.screen.live2d.Live2DScreen
 
 @Composable
 fun HomeScreen() {
@@ -28,7 +27,10 @@ fun HomeScreen() {
             Spacer(Modifier.height(16.dp))
         }
         item{
-            Live2DScreen()
+            Live2DTestScreen()
+        }
+        item{
+//            Live2DScreen()
         }
         // 관측지 리스트
         item {

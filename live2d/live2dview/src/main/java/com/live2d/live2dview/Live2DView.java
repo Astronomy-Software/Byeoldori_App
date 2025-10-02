@@ -5,6 +5,7 @@ import android.content.Context;
 import android.opengl.GLSurfaceView;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
+import android.view.SurfaceHolder;
 import android.view.View;
 import android.view.WindowInsets;
 import android.view.WindowInsetsController;
@@ -24,6 +25,17 @@ public class Live2DView extends GLSurfaceView {
     public Live2DView(Context context, AttributeSet attrs) {
         super(context, attrs);
         init(context);
+    }
+
+    // Live2DView.java
+    @Override
+    public void surfaceCreated(SurfaceHolder holder) {
+        super.surfaceCreated(holder);
+
+        // GL 컨텍스트가 새로 만들어질 때 Live2D 리소스 재초기화
+        queueEvent(() -> {
+            LAppDelegate.getInstance().onSurfaceCreated();
+        });
     }
 
     private void init(Context context) {
