@@ -21,36 +21,41 @@ import com.example.byeoldori.R
 import com.example.byeoldori.ui.theme.*
 import com.example.byeoldori.domain.Observatory.CurrentWeather
 import com.example.byeoldori.viewmodel.Observatory.WeatherViewModel
+import com.example.byeoldori.viewmodel.UiState
 
 private const val TAG_UIWX = "CurrentWeatherUI"
 
 @Composable
-fun CurrentWeatherSection(lat: Double, lon: Double, vm: WeatherViewModel = hiltViewModel()) {
-    val current by vm.current.collectAsState(null)
-    val loading by vm.isLoading.collectAsState()
-    val error by vm.error.collectAsState()
+fun CurrentWeatherSection(
+    lat: Double,
+    lon: Double,
+    vm: WeatherViewModel = hiltViewModel()
+) {
+    val state by vm.current.collectAsState()
 
     LaunchedEffect(lat, lon) {
         Log.d(TAG_UIWX, "LaunchedEffect -> vm.getCurrent(lat=$lat, lon=$lon)")
         vm.getCurrent(lat, lon)
     }
 
-    when {
-        current != null -> {
-            Log.d(TAG_UIWX, "render current = $current")
-            WeatherInfoCard(current!!)
+    when (val s = state) {
+        UiState.Idle -> {
+            Text("현재 날씨를 확인하려면 위치를 지정하세요.", color = Color.Gray)
         }
-        loading -> {
+        UiState.Loading -> {
             Log.d(TAG_UIWX, "loading...")
             CircularProgressIndicator()
         }
-        error != null -> {
-            Log.e(TAG_UIWX, "error: $error")
-            Text("현재 날씨를 불러오지 못했습니다.", color = Color.Gray)
+        is UiState.Success -> {
+            Log.d(TAG_UIWX, "render current = ${s.data}")
+            WeatherInfoCard(s.data)
+        }
+        is UiState.Error -> {
+            Log.e(TAG_UIWX, "error: ${s.message}")
+            Text("현재 날씨를 불러오지 못했습니다.\n${s.message}", color = Color.Red)
         }
     }
 }
-
 
 // TODO : 여기도 내부의 컴포넌트들 파일 나눠야합니다.
 @Composable

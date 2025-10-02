@@ -21,8 +21,7 @@ private const val TAG_OBS = "ObservatoryScreen"
 
 
 @Composable
-fun ObservatoryScreen(
-) {
+fun ObservatoryScreen() {
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var searchTrigger by rememberSaveable { mutableStateOf(0) }
     var showOverlay by rememberSaveable { mutableStateOf(false) }
@@ -89,6 +88,8 @@ fun ObservatoryScreen(
         content = {
             // 이 안에서 NavermapScreen을 딱 한 번만 호출
             Box(modifier = Modifier.fillMaxSize()) {
+                var naverMap by remember { mutableStateOf<com.naver.maps.map.NaverMap?>(null) }
+
                 NavermapScreen(
                     searchQuery = searchQuery,
                     onSearch = { searchQuery = it },
@@ -100,14 +101,29 @@ fun ObservatoryScreen(
                     onCurrentLocated = { lat, lon ->
                         userLat = lat
                         userLon = lon
-                    }
+                    },
+                    onMapReady = { map -> naverMap = map }
                 )
+                if (selectedLatLng != null && !selectedAddress.isNullOrBlank()) {
+                    MarkerPopup(
+                        selectedLatLng = selectedLatLng,
+                        selectedAddress = selectedAddress,
+                        onDismiss = {
+                            selectedLatLng = null
+                            selectedAddress = null
+                        },
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .padding(top = 140.dp)         // 검색창 아래 정도로 띄움
+                            .fillMaxWidth(0.75f)
+                            .fillMaxWidth(0.4f)
+                    )
+                }
 
                 Box(
                     modifier = Modifier
                         .align(Alignment.TopStart)
                         .padding(top = 35.dp, start = 0.dp)
-
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -139,4 +155,3 @@ fun ObservatoryScreen(
         }
     )
 }
-

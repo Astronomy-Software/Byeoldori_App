@@ -19,6 +19,7 @@ import com.example.byeoldori.R
 import com.example.byeoldori.ui.theme.*
 import com.example.byeoldori.domain.Observatory.DailyForecast
 import com.example.byeoldori.viewmodel.Observatory.WeatherViewModel
+import com.example.byeoldori.viewmodel.UiState
 
 @Composable
 fun WeatherDailyPanel(
@@ -26,24 +27,33 @@ fun WeatherDailyPanel(
     lon: Double,
     viewModel: WeatherViewModel = hiltViewModel() //Hilt가 WeatherViewModel 객체를 만들어서 자동으로 넣어줌
 ) {
-    val daily by viewModel.daily.collectAsState() //Compose State로 변환
+    val dailyState by viewModel.daily.collectAsState() //Compose State로 변환
 
     // 최초 진입 시 우암산 좌표로 불러오기
     LaunchedEffect(lat, lon) {
         viewModel.getDaily(lat, lon)  // ← 좌표 기반 API 호출
     }
 
-    // 로딩/빈 상태 간단 처리
-    if (daily.isEmpty()) {
-        // 필요하면 로딩 UI 교체
-        Box(Modifier.fillMaxWidth().height(120.dp)) {
-            CircularProgressIndicator(Modifier.align(Alignment.Center))
+    when(val state = dailyState) {
+        UiState.Idle -> Text("날씨 정보를 불러오는 중입니다.")
+        UiState.Loading -> {
+            Box(Modifier.fillMaxWidth().height(120.dp)) {
+                CircularProgressIndicator(Modifier.align(Alignment.Center))
+            }
         }
-    } else {
-        DailyForecastListSection(forecasts = daily)
+        is UiState.Success -> {
+            val forecasts = state.data
+            if(forecasts.isEmpty()) {
+                Box(Modifier.fillMaxWidth().height(120.dp)) {
+                    Text("예보 데이터가 없습니다.", modifier = Modifier.align(Alignment.Center))
+                }
+            } else {
+                DailyForecastListSection(forecasts = state.data)
+            }
+        }
+        is UiState.Error -> Text("날씨 정보를 불러오지 못했습니다: ${state.message}")
     }
 }
-
 
 @Composable
 fun DailyForecastListSection(forecasts: List<DailyForecast>) {
@@ -76,7 +86,6 @@ fun DailyForecastRow(forecast: DailyForecast) {
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         // 날짜
-        // Spacer(modifier = Modifier.height(15.dp))
         Text(forecast.date, color = TextHighlight, fontSize = 18.sp, modifier = Modifier.weight(1f))
 
         // 강수 확률
@@ -116,7 +125,6 @@ fun DailyForecastRow(forecast: DailyForecast) {
     }
 }
 
-
 @Preview(name = "WeatherDailySection", showBackground = true, backgroundColor = 0xFF000000)
 @Composable
 private fun Preview_WeatherDailySection() {
@@ -131,5 +139,4 @@ private fun Preview_WeatherDailySection() {
     MaterialTheme {
         Surface(color = Color.Black) { DailyForecastListSection(previewDaily) }
     }
-    //WeatherDailyPanel()
 }

@@ -1,7 +1,6 @@
 package com.example.byeoldori.domain.Community
 
 import com.example.byeoldori.domain.Content
-import com.example.byeoldori.ui.components.community.EditorItem
 
 data class EduProgram (
     val id: String,
@@ -13,5 +12,5 @@ data class EduProgram (
     val commentCount: Int,
     val viewCount: Int, //조회수 순
     val createdAt: Long, //작성 시점
-    val contentItems: List<Content>,
+    val contentItems: List<Content>
 )

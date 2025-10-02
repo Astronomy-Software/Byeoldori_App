@@ -20,6 +20,7 @@ import com.example.byeoldori.R
 import com.example.byeoldori.ui.theme.*
 import com.example.byeoldori.domain.Observatory.HourlyForecast
 import com.example.byeoldori.viewmodel.Observatory.WeatherViewModel
+import com.example.byeoldori.viewmodel.UiState
 import java.time.format.DateTimeFormatter
 
 
@@ -29,21 +30,31 @@ fun WeatherHourlyPanel(
     lon: Double,
     viewModel: WeatherViewModel = hiltViewModel() //Hilt가 WeatherViewModel 객체를 만들어서 자동으로 넣어줌
 ) {
-    val hourly by viewModel.hourly.collectAsState() //Compose State로 변환
+    val hourlyState by viewModel.hourly.collectAsState() //Compose State로 변환
 
     // 최초 진입 시 우암산 좌표로 불러오기
     LaunchedEffect(lat,lon) {
         viewModel.getHourly(lat,lon)
     }
 
-    // 로딩/빈 상태 간단 처리
-    if (hourly.isEmpty()) {
-        // 필요하면 로딩 UI 교체
-        Box(Modifier.fillMaxWidth().height(120.dp)) {
-            CircularProgressIndicator(Modifier.align(Alignment.Center))
+    when(val state = hourlyState) {
+        UiState.Idle -> Text("날씨 정보를 불러오는 중입니다.")
+        UiState.Loading -> {
+            Box(Modifier.fillMaxWidth().height(120.dp)) {
+                CircularProgressIndicator(Modifier.align(Alignment.Center))
+            }
         }
-    } else {
-       WeatherHourlySection(forecasts = hourly)
+        is UiState.Success -> {
+            val forecasts = state.data
+            if(forecasts.isEmpty()) {
+                Box(Modifier.fillMaxWidth().height(120.dp)) {
+                    Text("예보 데이터가 없습니다.", modifier = Modifier.align(Alignment.Center))
+                }
+            } else {
+                WeatherHourlySection(forecasts = state.data)
+            }
+        }
+        is UiState.Error -> Text("날씨 정보를 불러오지 못했습니다: ${state.message}")
     }
 }
 
@@ -105,7 +116,6 @@ fun WeatherHourlySection(forecasts: List<HourlyForecast>) {
     }
 }
 
-
 @Composable
 fun ForecastItem(forecast: HourlyForecast) {
     val iconRes = getWeatherIconResId(forecast.iconName)
@@ -140,7 +150,6 @@ fun ForecastItem(forecast: HourlyForecast) {
         Text(forecast.suitability, color = Color(0xFF75FF75), fontSize = 18.sp)
     }
 }
-
 
 @Preview(name = "WeatherHourlySection", showBackground = true, backgroundColor = 0xFF000000)
 @Composable

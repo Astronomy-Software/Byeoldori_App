@@ -7,20 +7,20 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.byeoldori.data.model.dto.ObservationSite
 import com.example.byeoldori.data.repository.ObservationSiteRepository
+import com.example.byeoldori.viewmodel.UiState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class ObservatoryMapViewModel @Inject constructor(
-    private val observatoryRepository: ObservationSiteRepository
+    private val repo: ObservationSiteRepository
 ) : ViewModel() {
 
-    var sites by mutableStateOf<List<ObservationSite>>(emptyList())
-
-    var isLoading by mutableStateOf(false)
-
-    var error by mutableStateOf<String?>(null)
+    private val _state = MutableStateFlow<UiState<List<ObservationSite>>>(UiState.Idle)
+    val state: StateFlow<UiState<List<ObservationSite>>> = _state
 
     init {
         loadSites()
@@ -28,14 +28,12 @@ class ObservatoryMapViewModel @Inject constructor(
 
     fun loadSites() {
         viewModelScope.launch {
-            isLoading = true
-            error = null
+            _state.value = UiState.Loading
             try {
-                sites = observatoryRepository.getAllSites()
+                val sites = repo.getAllSites()
+                _state.value = UiState.Success(sites)
             } catch (e: Exception) {
-                error = e.message
-            } finally {
-                isLoading = false
+                _state.value = UiState.Error(e.message ?: "관측지 정보를 불러오지 못했습니다.")
             }
         }
     }

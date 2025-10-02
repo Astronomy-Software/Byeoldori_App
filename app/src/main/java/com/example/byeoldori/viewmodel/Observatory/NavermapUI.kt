@@ -42,6 +42,7 @@ fun NaverMapWithSearchUI(
     showOverlay: Boolean,
     onMarkerClick: (MarkerInfo) -> Unit,
     onCurrentLocated: (Double, Double) -> Unit,
+    onMapReady: (NaverMap)->Unit = {},
     sites: List<ObservationSite> //api에서 받은 관측지 리스트
 ) {
     //이 부분들은 UI에 종속적인 객체(viewModel사용 안함)
@@ -51,14 +52,11 @@ fun NaverMapWithSearchUI(
     var selectedMarker by remember { mutableStateOf<Marker?>(null) }
     var lightOverlay by remember { mutableStateOf<com.naver.maps.map.overlay.GroundOverlay?>(null) }
     var naverMapObj by remember { mutableStateOf<NaverMap?>(null) }
-    var currentCoordinate by remember { mutableStateOf("127.0,37.0") }
     val geocoder = remember { Geocoder(context, Locale.getDefault()) }
     val scope = rememberCoroutineScope()
 
     val userMarker = remember { Marker() }
     var userMarkerPlaced by remember { mutableStateOf(false) }
-
-
     val markers = remember { mutableStateListOf<Marker>() }
 
     LaunchedEffect(showOverlay) {
@@ -89,7 +87,7 @@ fun NaverMapWithSearchUI(
                 searchAndMoveToLocation(
                     context, searchQuery, naverMap, mapView, selectedMarker,
                     onMarkerUpdated = { marker ->
-                        selectedMarker?.setIconTintColor(Color.BLACK)    // ✅
+                        selectedMarker?.setIconTintColor(Color.BLACK)
                         marker.setIconTintColor(Color.RED)
                         selectedMarker = marker
                     },
@@ -118,6 +116,7 @@ fun NaverMapWithSearchUI(
                     getMapAsync { naverMap ->
                         naverMapObj = naverMap
                         naverMap.locationTrackingMode = LocationTrackingMode.NoFollow
+                        onMapReady(naverMap)
 
                         // 지도 초기 진입 시 오버레이 상태 반영
                         if (showOverlay) {
@@ -143,13 +142,59 @@ fun NaverMapWithSearchUI(
 
                                     naverMap.moveCamera(CameraUpdate.scrollTo(LatLng(location.latitude, location.longitude)))
                                     onCurrentLocated(location.latitude, location.longitude)
+
                                     if (!userMarkerPlaced) {
                                         userMarker.position = LatLng(lat, lon)
                                         userMarker.map = naverMap
                                         userMarkerPlaced = true
+
+                                        userMarker.setOnClickListener {
+                                            val clicked = userMarker.position
+                                            scope.launch {
+                                                val addr = withContext(Dispatchers.IO) {
+                                                    try {
+                                                        val road = reverseAddressRoadNaver(clicked.latitude, clicked.longitude)
+                                                        if (road.isNotBlank()) road
+                                                        else getAddressFromLatLng(geocoder, clicked.latitude, clicked.longitude)
+                                                    } catch (e: Exception) {
+                                                        Log.e(TAG_UI, "user marker reverse geocode failed: ${e.message}", e)
+                                                        "주소를 불러오지 못했습니다."
+                                                    }
+                                                }
+                                                onLatLngUpdated(clicked)
+                                                onAddressUpdated(addr)
+                                            }
+                                            true
+                                        }
                                     } else {
                                         userMarker.position = LatLng(lat, lon) // 이후엔 위치만 갱신
                                     }
+                                }
+                            }
+                        }
+                        naverMap.setOnMapClickListener { _, clickLatLng ->
+                            val marker = selectedMarker ?: Marker().also { selectedMarker = it }
+                            marker.apply {
+                                position = clickLatLng
+                                map = naverMap
+
+                                setOnClickListener {
+                                    val p = position
+                                    scope.launch {
+                                        val addr = withContext(Dispatchers.IO) {
+                                            try {
+                                                val road = reverseAddressRoadNaver(p.latitude, p.longitude)
+                                                if (road.isNotBlank()) road
+                                                else getAddressFromLatLng(geocoder, p.latitude, p.longitude)
+                                            } catch (e: Exception) {
+                                                Log.e(TAG_UI, "marker click reverse geocode failed: ${e.message}", e)
+                                                "주소를 불러오지 못했습니다."
+                                            }
+                                        }
+                                        onLatLngUpdated(p)
+                                        onAddressUpdated(addr)
+                                    }
+                                    true
                                 }
                             }
                         }
@@ -158,7 +203,6 @@ fun NaverMapWithSearchUI(
             },
             modifier = Modifier.fillMaxSize()
         )
-
         // 현재 위치 버튼
         CurrentLocationButton(
             context = context,

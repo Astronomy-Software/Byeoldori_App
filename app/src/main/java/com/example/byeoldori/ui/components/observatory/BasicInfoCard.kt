@@ -100,7 +100,7 @@ fun BasicInfoCard(
                     Text(
                         "도로명 주소",
                         color = TextHighlight,
-                        modifier = Modifier.weight(2f)                        //maxLines = 2
+                        modifier = Modifier.weight(2f)
                     )
                     Text(
                         text = info.address,
