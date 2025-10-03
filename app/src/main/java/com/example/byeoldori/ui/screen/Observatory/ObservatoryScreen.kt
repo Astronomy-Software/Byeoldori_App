@@ -10,16 +10,18 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.*
 import androidx.compose.ui.unit.*
+import com.example.byeoldori.domain.Observatory.MarkerInfo
 import com.example.byeoldori.ui.components.observatory.*
 import com.example.byeoldori.ui.theme.*
 import com.example.byeoldori.viewmodel.Observatory.*
 import com.naver.maps.geometry.LatLng
 import kotlinx.coroutines.launch
 
+private const val TAG_OBS = "ObservatoryScreen"
+
 
 @Composable
-fun ObservatoryScreen(
-) {
+fun ObservatoryScreen() {
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var searchTrigger by rememberSaveable { mutableStateOf(0) }
     var showOverlay by rememberSaveable { mutableStateOf(false) }
@@ -36,22 +38,19 @@ fun ObservatoryScreen(
     val scaffoldState = rememberBottomSheetScaffoldState(sheetState)
     val scope = rememberCoroutineScope()
 
-    // 마커 클릭 로직: 현재 상태에 따라 시트를 확장하거나 부분 확장
-    val onMarkerClick: (MarkerInfo) -> Unit = { clickedInfo ->
-        // 새로운 마커를 클릭했거나, 현재 시트가 숨겨져 있다면
-        if (selectedInfo != clickedInfo || sheetState.currentValue == SheetValue.Hidden) {
-            selectedInfo = clickedInfo // 새 정보로 업데이트
-            scope.launch { sheetState.partialExpand() } // 250dp 높이로 시트를 엽니다.
-        } else {
-            // 이미 열려있는 상태에서 동일한 마커를 다시 클릭한 경우
-            scope.launch {
-                if (sheetState.currentValue == SheetValue.PartiallyExpanded) {
-                    sheetState.expand() // 현재 250dp면 전체 화면으로 확장
-                } else if (sheetState.currentValue == SheetValue.Expanded) {
-                    sheetState.partialExpand() // 현재 전체 화면이면 250dp로 다시 접기
-                }
-            }
-        }
+    // 사용자의 현재 위치
+    var userLat by rememberSaveable { mutableStateOf<Double?>(null) }
+    var userLon by rememberSaveable { mutableStateOf<Double?>(null) }
+
+    // 선택한 관측지 위치
+    var siteLat by rememberSaveable { mutableStateOf<Double?>(null) }
+    var siteLon by rememberSaveable { mutableStateOf<Double?>(null) }
+
+    val onMarkerClick: (MarkerInfo) -> Unit = { info ->
+        selectedInfo = info
+        siteLat = info.latitude
+        siteLon = info.longitude
+        scope.launch { sheetState.partialExpand() }
     }
 
     BottomSheetScaffold(
@@ -68,6 +67,8 @@ fun ObservatoryScreen(
                 ObservatoryInfoCard(
                     info = selectedInfo!!,
                     listState = listState,
+                    currentLat = siteLat,
+                    currentLon = siteLon,
                     modifier = Modifier.fillMaxWidth()
                 )
             } else {
@@ -87,6 +88,8 @@ fun ObservatoryScreen(
         content = {
             // 이 안에서 NavermapScreen을 딱 한 번만 호출
             Box(modifier = Modifier.fillMaxSize()) {
+                var naverMap by remember { mutableStateOf<com.naver.maps.map.NaverMap?>(null) }
+
                 NavermapScreen(
                     searchQuery = searchQuery,
                     onSearch = { searchQuery = it },
@@ -94,13 +97,33 @@ fun ObservatoryScreen(
                     onLatLngUpdated = { selectedLatLng = it },
                     onAddressUpdated = { selectedAddress = it },
                     searchTrigger = searchTrigger,
-                    onMarkerClick = onMarkerClick
+                    onMarkerClick = onMarkerClick,
+                    onCurrentLocated = { lat, lon ->
+                        userLat = lat
+                        userLon = lon
+                    },
+                    onMapReady = { map -> naverMap = map }
                 )
+                if (selectedLatLng != null && !selectedAddress.isNullOrBlank()) {
+                    MarkerPopup(
+                        selectedLatLng = selectedLatLng,
+                        selectedAddress = selectedAddress,
+                        onDismiss = {
+                            selectedLatLng = null
+                            selectedAddress = null
+                        },
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .padding(top = 140.dp)         // 검색창 아래 정도로 띄움
+                            .fillMaxWidth(0.75f)
+                            .fillMaxWidth(0.4f)
+                    )
+                }
+
                 Box(
                     modifier = Modifier
                         .align(Alignment.TopStart)
                         .padding(top = 35.dp, start = 0.dp)
-
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -132,4 +155,3 @@ fun ObservatoryScreen(
         }
     )
 }
-

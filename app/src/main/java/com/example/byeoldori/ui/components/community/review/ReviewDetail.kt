@@ -16,9 +16,10 @@ import androidx.compose.ui.unit.*
 import com.example.byeoldori.R
 import com.example.byeoldori.ui.components.community.*
 import com.example.byeoldori.ui.theme.*
-import com.example.byeoldori.viewmodel.Community.ReviewComment
-import com.example.byeoldori.viewmodel.Observatory.*
+import com.example.byeoldori.domain.Community.ReviewComment
 import androidx.compose.ui.focus.*
+import com.example.byeoldori.domain.Observatory.Review
+import com.example.byeoldori.ui.mapper.toUi
 import com.example.byeoldori.viewmodel.dummyReviewComments
 import com.example.byeoldori.viewmodel.dummyReviews
 
@@ -223,7 +224,7 @@ fun ReviewDetail(
                     enabled = false //수정 못하게
                 )
                 ContentInput(
-                    items = review.contentItems,
+                    items = review.contentItems.toUi(),
                     onItemsChange = {},
                     onCheck = {},
                     onPickImages = {},

@@ -7,39 +7,39 @@ data class ForecastResponse(
 )
 
 data class UltraForecast(
-    val fcstTm: String,
-    val tmn: Int,
-    val tmx: Int,
-    val wd1: Int,
-    val wd2: Int,
-    val reh: Int,
-    val rn1: Int,
-    val pty: Int,
-    val sky: Int
+    val tmef: String,
+    val t1h: Int?,
+    val vec: Int?, //풍향
+    val wsd: Double?, //풍속
+    val pty: Int?, //강수 형태
+    val rn1: Double?, //1시간 강수량
+    val reh: Int?, //상대습도
+    val sky: Int? //하늘 상태
 )
 
 data class ShortForecast(
-    val fcstTm: String,
-    val tmp: Int,
-    val tmn: Int,
-    val tmx: Int,
-    val wd1: Int,
-    val wd2: Int,
-    val reh: Int,
-    val rn1: Int,
-    val pty: Int,
-    val sky: Int,
-    val pop: Int
+    val tmef: String,
+    val tmp: Int?,
+    val tmx: Int?,
+    val tmn: Int?,
+    val vec: Double?,
+    val wsd: Double?,
+    val sky: Int?,
+    val pty: Int?,
+    val pop: Int?, //강수 확률
+    val pcp: Double?,
+    val sno: Double?,
+    val reh: Int?,
 )
 
 data class MidForecast(
     val tmFc: String,
-    val tmEf: String,
-    val doRegId: String,
-    val siRegId: String,
-    val sky: String,
-    val pre: String,
-    val rnSt: Int,
-    val min: Int,
-    val max: Int
+    val tmEf: String?,
+    val doRegId: String?,
+    val siRegId: String?,
+    val sky: String?,
+    val pre: String?,
+    val rnSt: Int?,
+    val min: Int?,
+    val max: Int?
 )

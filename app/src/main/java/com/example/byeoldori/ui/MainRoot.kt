@@ -39,6 +39,7 @@ fun MainRoot() {
         ) {
             composable(Root.Home.route)        { HomeScreen() }
             composable(Root.StarMap.route)     { SkyMapScreen() }
+
             composable(Root.Observatory.route) { ObservatoryScreen() }
             navigation(startDestination = "community/home", route = Root.Community.route) {
                 composable("community/home") { CommunityScreen(tab = CommunityTab.Home, onSelectTab = { t -> nav.navigate("community/$t") }) }

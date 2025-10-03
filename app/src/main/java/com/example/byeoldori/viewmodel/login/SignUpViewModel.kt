@@ -103,4 +103,3 @@ class SignUpViewModel @Inject constructor(
         }
     }
 }
-

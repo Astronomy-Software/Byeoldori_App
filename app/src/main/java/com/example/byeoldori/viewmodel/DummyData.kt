@@ -1,96 +1,14 @@
 package com.example.byeoldori.viewmodel
 
 import com.example.byeoldori.R
-import com.example.byeoldori.viewmodel.Community.EduProgram
-import com.example.byeoldori.viewmodel.Community.FreePost
+import com.example.byeoldori.domain.Community.EduProgram
+import com.example.byeoldori.domain.Community.FreePost
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.text.input.TextFieldValue
 import com.example.byeoldori.ui.components.community.EditorItem
-import com.example.byeoldori.viewmodel.Community.ReviewComment
-import com.example.byeoldori.viewmodel.Observatory.CurrentWeather
-import com.example.byeoldori.viewmodel.Observatory.DailyForecast
-import com.example.byeoldori.viewmodel.Observatory.HourlyForecast
-import com.example.byeoldori.viewmodel.Observatory.Observatory
-import com.example.byeoldori.viewmodel.Observatory.ObservatoryType
-import com.example.byeoldori.viewmodel.Observatory.Review
-import com.naver.maps.geometry.LatLng
-
-val observatoryList = listOf(
-    Observatory(
-        name = "오산천",
-        type = ObservatoryType.POPULAR,
-        latLng = LatLng(37.1570906, 127.0703307),
-        reviewCount = 103,
-        likeCount = 57,
-        avgRating = 4.3f,
-        address = "경기도 오산시 오산천로 254-5",
-        imageRes = R.drawable.img_dummy,
-        suitability = 87
-    ),
-    Observatory(
-        name = "필봉산",
-        type = ObservatoryType.GENERAL,
-        latLng = LatLng(37.179097404593584, 127.07212073869198),
-        reviewCount = 150,
-        likeCount = 99,
-        avgRating = 4.2f,
-        address = "경기도 오산시 내삼미동 산 21-1",
-        imageRes = R.drawable.img_dummy,
-        suitability = 85
-    ),
-    Observatory(
-        name = "배티공원",
-        type = ObservatoryType.GENERAL,
-        latLng = LatLng(36.6266086351, 127.4653234453252),
-        reviewCount = 69,
-        likeCount = 12,
-        avgRating = 3.9f,
-        address = "충청북도 청주시 서원구 개신동 3-16",
-        imageRes = R.drawable.img_dummy,
-        suitability = 88
-    ),
-    Observatory(
-        name = "구룡산",
-        type = ObservatoryType.POPULAR,
-        latLng = LatLng(36.61834002153799, 127.46435709201829),
-        reviewCount = 79,
-        likeCount = 150,
-        avgRating = 4.8f,
-        address = "충북 청주시 상당구 문의면 덕유리",
-        imageRes = R.drawable.img_dummy,
-        suitability = 92
-    ),
-)
-
-//현재 날씨 더미
-val dummyCurrentWeather = CurrentWeather(
-    temperature = "14°",
-    humidity = "35%",
-    windSpeed = "→ 3m/s",
-    suitability = "75%"
-)
-
-//날씨 (시간별) 더미 데이터
-val dummyHourlyForecasts = listOf(
-    HourlyForecast("5.23", "4시", "15°", "cloud_sun", "60%", "85%"),
-    HourlyForecast("5.23", "5시", "16°", "sunny",     "55%", "82%"),
-    HourlyForecast("5.23", "6시", "17°", "rain",      "70%", "60%"),
-    HourlyForecast("5.24", "1시", "13°", "cloud_moon","80%", "90%"),
-    HourlyForecast("5.24", "2시", "12°", "cloud_sun", "85%", "88%"),
-    HourlyForecast("5.24", "3시", "14°", "sunny",     "60%", "60%")
-    // ...
-)
-
-//날씨 (일별) 더미 데이터
-val dummyDailyForecasts = listOf(
-    DailyForecast("5.27", "100%", "sunny",      "cloud",      "27°", "13°", "85%"),
-    DailyForecast("5.28", "80%",  "cloud",      "rain",       "25°", "12°", "60%"),
-    DailyForecast("5.29", "90%",  "rain",       "rain",       "23°", "11°", "45%"),
-    DailyForecast("5.30", "100%", "rain",       "rain",       "22°", "10°", "20%"),
-    DailyForecast("5.31", "100%", "cloud_sun",  "rain",       "23°", "9°",  "40%"),
-    DailyForecast("6.1",  "100%", "rain",       "cloud_moon", "22°", "11°", "35%")
-    // ...
-)
+import com.example.byeoldori.domain.Community.ReviewComment
+import com.example.byeoldori.domain.Content
+import com.example.byeoldori.domain.Observatory.Review
 
 //리뷰 더미 데이터
 val dummyReviews = mutableStateListOf(
@@ -113,9 +31,9 @@ val dummyReviews = mutableStateListOf(
         endTime = "23:30",
         // ✅ 본문 + 이미지
         contentItems = listOf(
-            EditorItem.Paragraph(value = TextFieldValue("오늘은 태양 흑점을 관측했습니다.")),
-            EditorItem.Photo(model = R.drawable.img_dummy),
-            EditorItem.Paragraph(value = TextFieldValue("날씨가 좋아 관측이 수월했습니다!."))
+            Content.Text("오늘은 태양 흑점을 관측했습니다."),
+            Content.Image.Resource(R.drawable.img_dummy),
+            Content.Text("날씨가 좋아 관측이 수월했습니다!.")
         )
     ),
     Review(
@@ -136,8 +54,8 @@ val dummyReviews = mutableStateListOf(
         startTime = "12:00",
         endTime = "16:30",
         contentItems = listOf(
-            EditorItem.Paragraph(value = TextFieldValue("오늘은 태양 흑점을 관측했습니다.")),
-            EditorItem.Photo(model = R.drawable.img_dummy)
+            Content.Text("오늘은 태양 흑점을 관측했습니다."),
+            Content.Image.Resource(R.drawable.img_dummy)
         )
     ),
     Review(
@@ -158,8 +76,8 @@ val dummyReviews = mutableStateListOf(
         startTime = "22:00",
         endTime = "23:30",
         contentItems = listOf(
-            EditorItem.Paragraph(value = TextFieldValue("오늘은 태양 흑점을 관측했습니다.")),
-            EditorItem.Photo(model = R.drawable.img_dummy)
+            Content.Text("오늘은 태양 흑점을 관측했습니다."),
+            Content.Image.Resource(R.drawable.img_dummy)
         )
     ),
     Review(
@@ -180,8 +98,8 @@ val dummyReviews = mutableStateListOf(
         startTime = "22:00",
         endTime = "23:30",
         contentItems = listOf(
-            EditorItem.Paragraph(value = TextFieldValue("오늘은 태양 흑점을 관측했습니다.")),
-            EditorItem.Photo(model = R.drawable.img_dummy)
+            Content.Text("오늘은 태양 흑점을 관측했습니다."),
+            Content.Image.Resource(R.drawable.img_dummy)
         )
     ),
     Review(
@@ -202,8 +120,8 @@ val dummyReviews = mutableStateListOf(
         startTime = "22:00",
         endTime = "23:30",
         contentItems = listOf(
-            EditorItem.Paragraph(value = TextFieldValue("오늘은 태양 흑점을 관측했습니다.")),
-            EditorItem.Photo(model = R.drawable.img_dummy)
+            Content.Text("오늘은 태양 흑점을 관측했습니다."),
+            Content.Image.Resource(R.drawable.img_dummy)
         )
     ),
     Review(
@@ -224,8 +142,8 @@ val dummyReviews = mutableStateListOf(
         startTime = "22:00",
         endTime = "23:30",
         contentItems = listOf(
-            EditorItem.Paragraph(value = TextFieldValue("오늘은 태양 흑점을 관측했습니다.")),
-            EditorItem.Photo(model = R.drawable.img_dummy)
+            Content.Text("오늘은 태양 흑점을 관측했습니다."),
+            Content.Image.Resource(R.drawable.img_dummy)
         )
     ),
 )
@@ -337,10 +255,10 @@ val dummyFreePosts = mutableStateListOf(
         createdAt = 202510251500,
         profile = R.drawable.profile1,
         contentItems = listOf(
-            EditorItem.Paragraph(value = TextFieldValue("안녕하세요 오늘 처음 별도리앱 깔았어요")),
-            EditorItem.Paragraph(value = TextFieldValue("혹시 다들 어디서 관측하시나요??")),
-            EditorItem.Photo(model = R.drawable.img_dummy),
-            EditorItem.Paragraph(value = TextFieldValue("이런 곳은 어떤가요?? 잘 보이나요?"))
+            Content.Text("안녕하세요 오늘 처음 별도리앱 깔았어요"),
+            Content.Text("혹시 다들 어디서 관측하시나요??"),
+            Content.Image.Resource(R.drawable.img_dummy),
+            Content.Text("이런 곳은 어떤가요?? 잘 보이나요?")
         )
     ),
     FreePost(
@@ -353,9 +271,9 @@ val dummyFreePosts = mutableStateListOf(
         createdAt = 202510291500,
         profile = R.drawable.profile1,
         contentItems = listOf(
-            EditorItem.Paragraph(value = TextFieldValue("오늘 처음 가입했습니다.")),
-            EditorItem.Photo(model = R.drawable.img_dummy),
-            EditorItem.Paragraph(value = TextFieldValue("좋은 관측 장소 공유 부탁드려요!"))
+            Content.Text("오늘 처음 가입했습니다."),
+            Content.Image.Resource(R.drawable.img_dummy),
+            Content.Text("좋은 관측 장소 공유 부탁드려요!")
         )
     ),
     FreePost(
@@ -368,8 +286,8 @@ val dummyFreePosts = mutableStateListOf(
         createdAt = 202510301500,
         profile = R.drawable.profile1,
         contentItems = listOf(
-            EditorItem.Paragraph(value = TextFieldValue("안녕하세요 astro3입니다.")),
-            EditorItem.Paragraph(value = TextFieldValue("저는 주로 교외에서 관측해요 🌌"))
+            Content.Text("안녕하세요 astro3입니다."),
+            Content.Text("저는 주로 교외에서 관측해요 🌌")
         )
     ),
     FreePost(
@@ -382,8 +300,8 @@ val dummyFreePosts = mutableStateListOf(
         createdAt = 202510281500,
         profile = R.drawable.profile1,
         contentItems = listOf(
-            EditorItem.Paragraph(value = TextFieldValue("astro4 입니다. 잘 부탁드려요!")),
-            EditorItem.Photo(model = R.drawable.img_dummy)
+            Content.Text("astro4 입니다. 잘 부탁드려요!"),
+            Content.Image.Resource(R.drawable.img_dummy)
         )
     )
 )
@@ -401,9 +319,9 @@ val dummyPrograms = mutableStateListOf(
         viewCount = 120,
         createdAt = 202510290900,
         contentItems = listOf(
-            EditorItem.Paragraph(value = TextFieldValue("망원경 종류와 기본 조작을 배웁니다.")),
-            EditorItem.Photo(model = R.drawable.img_dummy),
-            EditorItem.Paragraph(value = TextFieldValue("실습 포함: 파인더 정렬, 배율 계산"))
+            Content.Text("망원경 종류와 기본 조작을 배웁니다."),
+            Content.Image.Resource(R.drawable.img_dummy),
+            Content.Text("실습 포함: 파인더 정렬, 배율 계산")
         )
     ),
     EduProgram(
@@ -417,9 +335,9 @@ val dummyPrograms = mutableStateListOf(
         viewCount = 210,
         createdAt = 202510291100,
         contentItems = listOf(
-            EditorItem.Paragraph(value = TextFieldValue("유성우 예보 읽는 법과 관측 팁을 다룹니다.")),
-            EditorItem.Photo(model = R.drawable.img_dummy),
-            EditorItem.Paragraph(value = TextFieldValue("필수 장비 체크리스트 제공"))
+            Content.Text("유성우 예보 읽는 법과 관측 팁을 다룹니다."),
+            Content.Image.Resource(R.drawable.img_dummy),
+            Content.Text("필수 장비 체크리스트 제공")
         )
     ),
     EduProgram(
@@ -433,8 +351,8 @@ val dummyPrograms = mutableStateListOf(
         viewCount = 95,
         createdAt = 202510291430,
         contentItems = listOf(
-            EditorItem.Paragraph(value = TextFieldValue("광해가 심한 환경에서의 관측 전략.")),
-            EditorItem.Paragraph(value = TextFieldValue("필터 사용과 관측 대상 추천"))
+            Content.Text("광해가 심한 환경에서의 관측 전략."),
+            Content.Text("필터 사용과 관측 대상 추천")
         )
     )
 )

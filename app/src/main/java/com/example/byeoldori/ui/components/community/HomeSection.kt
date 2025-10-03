@@ -11,12 +11,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.*
 import com.example.byeoldori.R
+import com.example.byeoldori.domain.Community.EduProgram
+import com.example.byeoldori.domain.Community.FreePost
 import com.example.byeoldori.ui.components.community.freeboard.asReview
 import com.example.byeoldori.ui.components.community.program.asReview
 import com.example.byeoldori.ui.components.observatory.ReviewCard
 import com.example.byeoldori.ui.theme.*
-import com.example.byeoldori.viewmodel.Community.*
-import com.example.byeoldori.viewmodel.Observatory.Review
+import com.example.byeoldori.domain.Observatory.Review
 import com.example.byeoldori.viewmodel.*
 import kotlinx.coroutines.launch
 

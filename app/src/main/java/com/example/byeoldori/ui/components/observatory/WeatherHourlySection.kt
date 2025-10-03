@@ -6,18 +6,63 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.byeoldori.R
 import com.example.byeoldori.ui.theme.*
-import com.example.byeoldori.viewmodel.Observatory.HourlyForecast
+import com.example.byeoldori.domain.Observatory.HourlyForecast
+import com.example.byeoldori.viewmodel.Observatory.WeatherViewModel
+import com.example.byeoldori.viewmodel.UiState
+import java.time.format.DateTimeFormatter
+
+
+@Composable
+fun WeatherHourlyPanel(
+    lat: Double,
+    lon: Double,
+    viewModel: WeatherViewModel = hiltViewModel() //Hilt가 WeatherViewModel 객체를 만들어서 자동으로 넣어줌
+) {
+    val hourlyState by viewModel.hourly.collectAsState() //Compose State로 변환
+
+    // 최초 진입 시 우암산 좌표로 불러오기
+    LaunchedEffect(lat,lon) {
+        viewModel.getHourly(lat,lon)
+    }
+
+    when(val state = hourlyState) {
+        UiState.Idle -> Text("날씨 정보를 불러오는 중입니다.")
+        UiState.Loading -> {
+            Box(Modifier.fillMaxWidth().height(120.dp)) {
+                CircularProgressIndicator(Modifier.align(Alignment.Center))
+            }
+        }
+        is UiState.Success -> {
+            val forecasts = state.data
+            if(forecasts.isEmpty()) {
+                Box(Modifier.fillMaxWidth().height(120.dp)) {
+                    Text("예보 데이터가 없습니다.", modifier = Modifier.align(Alignment.Center))
+                }
+            } else {
+                WeatherHourlySection(forecasts = state.data)
+            }
+        }
+        is UiState.Error -> Text("날씨 정보를 불러오지 못했습니다: ${state.message}")
+    }
+}
 
 @Composable
 fun WeatherHourlySection(forecasts: List<HourlyForecast>) {
     val grouped = forecasts.groupBy { it.date }.toList() // 날짜별로 그룹화
+    val dateFmt = remember { DateTimeFormatter.ofPattern("M.d") }
+    val timeFmt = remember { DateTimeFormatter.ofPattern("H시") }
 
     Box(
         modifier = Modifier
@@ -71,7 +116,6 @@ fun WeatherHourlySection(forecasts: List<HourlyForecast>) {
     }
 }
 
-
 @Composable
 fun ForecastItem(forecast: HourlyForecast) {
     val iconRes = getWeatherIconResId(forecast.iconName)
@@ -106,7 +150,6 @@ fun ForecastItem(forecast: HourlyForecast) {
         Text(forecast.suitability, color = Color(0xFF75FF75), fontSize = 18.sp)
     }
 }
-
 
 @Preview(name = "WeatherHourlySection", showBackground = true, backgroundColor = 0xFF000000)
 @Composable

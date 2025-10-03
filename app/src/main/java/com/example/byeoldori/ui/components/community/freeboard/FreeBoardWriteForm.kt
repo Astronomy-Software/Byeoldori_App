@@ -13,10 +13,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
 import com.example.byeoldori.R
+import com.example.byeoldori.domain.Community.FreePost
 import com.example.byeoldori.ui.components.community.*
 import com.example.byeoldori.ui.components.community.review.*
-import com.example.byeoldori.viewmodel.Community.*
-
+import com.example.byeoldori.ui.mapper.toDomain
+import com.example.byeoldori.ui.mapper.toUi
 
 @Composable
 fun FreeBoardWriteForm (
@@ -43,7 +44,8 @@ fun FreeBoardWriteForm (
     }
     var items by remember {
         mutableStateOf(
-            initialPost?.contentItems ?: listOf<EditorItem>(EditorItem.Paragraph())
+            initialPost?.contentItems?.toUi()   // 도메인 → UI 변환
+                ?: listOf<EditorItem>(EditorItem.Paragraph())
         )
     }
 
@@ -58,7 +60,7 @@ fun FreeBoardWriteForm (
             commentCount = 0,
             viewCount = 0,
             createdAt = createdAt,
-            contentItems = items
+            contentItems = items.toDomain()
         )
     }
     fun validate(): Boolean {

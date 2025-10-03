@@ -1,4 +1,5 @@
-package com.example.byeoldori.viewmodel.Observatory
+package com.example.byeoldori.domain.Observatory
+
 
 data class DailyForecast(
     val date: String,
@@ -9,3 +10,4 @@ data class DailyForecast(
     val nightTemp: String,
     val suitability: String
 )
+

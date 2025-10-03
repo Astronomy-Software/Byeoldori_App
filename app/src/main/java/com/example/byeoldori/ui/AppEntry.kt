@@ -29,13 +29,8 @@ fun AppEntry() {
         return
     }
 
-    // 로그인 분기 → MainRoot or AuthRoot
-    val authVm: AuthViewModel = hiltViewModel() // ✅ Hilt ViewModelFactory 사용
+    val authVm: AuthViewModel = hiltViewModel()
     val signedIn by authVm.isSignedIn.collectAsState()
-
-//     테스트용 signedIn
-//    val signedIn = true
-//     val signedIn = false
 
     if (signedIn) {
         MainRoot()
