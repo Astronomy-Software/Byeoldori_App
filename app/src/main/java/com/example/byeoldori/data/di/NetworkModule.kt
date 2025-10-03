@@ -15,7 +15,6 @@ import com.example.byeoldori.data.remote.interceptor.AuthInterceptor
 import com.example.byeoldori.data.remote.interceptor.NetworkCacheInterceptor
 import com.example.byeoldori.data.remote.interceptor.RefreshTokenAuthenticator
 import com.squareup.moshi.Moshi
-import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -86,7 +85,6 @@ object NetworkModule {
     @Provides @Singleton
     fun provideMoshi(): Moshi =
         Moshi.Builder()
-            .add(KotlinJsonAdapterFactory())
             .build()
 
     @Provides @Singleton

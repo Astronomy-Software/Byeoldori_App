@@ -2,6 +2,7 @@ package com.example.byeoldori.ui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -28,13 +29,8 @@ fun AppEntry() {
         return
     }
 
-    // 로그인 분기 → MainRoot or AuthRoot
-    val authVm: AuthViewModel = hiltViewModel() // ✅ Hilt ViewModelFactory 사용
-   // val signedIn by authVm.isSignedIn.collectAsState()
-
-//     테스트용 signedIn
-    val signedIn = true
-//     val signedIn = false
+    val authVm: AuthViewModel = hiltViewModel()
+    val signedIn by authVm.isSignedIn.collectAsState()
 
     if (signedIn) {
         MainRoot()
