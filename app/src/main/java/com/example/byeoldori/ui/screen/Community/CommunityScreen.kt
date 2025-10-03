@@ -1,5 +1,6 @@
 package com.example.byeoldori.ui.screen.Community
 
+import android.util.Log
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -7,6 +8,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.*
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.byeoldori.data.model.dto.CommunityType
+import com.example.byeoldori.data.model.dto.Post
 import com.example.byeoldori.ui.components.community.*
 import com.example.byeoldori.ui.components.community.program.*
 import com.example.byeoldori.ui.theme.*
@@ -29,7 +33,8 @@ enum class CommunityTab(val label: String, val routeSeg: String) {
 @Composable
 fun CommunityScreen(
     tab: CommunityTab,
-    onSelectTab: (CommunityTab) -> Unit
+    onSelectTab: (CommunityTab) -> Unit,
+    vm: CommunityViewModel = hiltViewModel()
 ) {
     val tabs = CommunityTab.entries
     var showWriteForm by remember { mutableStateOf(false) }
@@ -42,6 +47,15 @@ fun CommunityScreen(
     val currentUser = "헤이헤이"
     var showFreeBoardWriteForm by remember { mutableStateOf(false) }
     var successMessage by remember { mutableStateOf("") }
+
+    val state by vm.postsState.collectAsState()
+   // val selectedPost by vm.selectedPost.collectAsState()
+
+    LaunchedEffect(tab) {
+        if (tab == CommunityTab.Board) {
+            vm.loadPosts(CommunityType.FREE)
+        }
+    }
 
     when {
         showWriteForm -> {
@@ -107,17 +121,15 @@ fun CommunityScreen(
                 }
             )
         }
-        selectedFreePost != null -> {
-            val post = dummyFreePosts.find { it.id == selectedFreePost }
-            if(post != null) {
-                FreeBoardDetail(
-                    post = post,
-                    onBack = { selectedFreePost = null },
-                    currentUser = currentUser
+//        tab == CommunityTab.Board && selectedPost != null -> {
+//            FreeBoardDetail(
+//                post = selectedPost!!.toFreePost(),
+//                onBack = { vm.clearSelection() },
+//                currentUser = currentUser
+//            )
+//            return
+//        }
 
-                )
-            }
-        }
         selectedProgram != null -> {
             EduProgramDetail(
                 program = selectedProgram!!,
@@ -209,11 +221,23 @@ fun CommunityScreen(
                     }
 
                     CommunityTab.Board -> {
-                        FreeBoardSection(
-                            freeBoardsAll = dummyFreePosts,
-                            onClickProgram = { id -> selectedFreePost = id },
-                            onWriteClick = { showFreeBoardWriteForm = true }
-                        )
+                        when (state) {
+                            is UiState.Idle, UiState.Loading -> {
+                                CircularProgressIndicator()
+                            }
+                            is UiState.Success -> {
+                                val posts = (state as UiState.Success<List<Post>>).data
+                                FreeBoardSection(
+                                    freeBoardsAll = posts.map { it.toFreePost() },
+                                    onClickPost = { id -> vm.selectPost(id) },
+                                    onWriteClick = { showFreeBoardWriteForm = true }
+                                )
+                            }
+                            is UiState.Error -> {
+                                val msg = (state as UiState.Error).message ?: "에러 발생"
+                                Log.e("CommunityScreen", "자유게시판 에러: $msg")
+                            }
+                        }
                     }
                 }
             }

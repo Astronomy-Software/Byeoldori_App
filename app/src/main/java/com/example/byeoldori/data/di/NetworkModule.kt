@@ -6,6 +6,7 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import com.example.byeoldori.BuildConfig
 import com.example.byeoldori.data.api.AuthApi
+import com.example.byeoldori.data.api.CommunityApi
 import com.example.byeoldori.data.api.ObservationSiteApi
 import com.example.byeoldori.data.api.RefreshApi
 import com.example.byeoldori.data.api.UserApi
@@ -210,4 +211,8 @@ object NetworkModule {
     @Provides @Singleton
     fun provideWeatherApi(@UnauthRetrofit retrofit: Retrofit): WeatherApi =
         retrofit.create(WeatherApi::class.java)
+
+    @Provides @Singleton
+    fun provideCommunityApi(@UnauthRetrofit retrofit: Retrofit): CommunityApi =
+        retrofit.create(CommunityApi::class.java)
 }

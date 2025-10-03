@@ -13,18 +13,29 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
 import com.example.byeoldori.R
+import com.example.byeoldori.data.model.dto.Post
 import com.example.byeoldori.ui.components.community.EditorItem
 import com.example.byeoldori.ui.components.community.LikeState
 import com.example.byeoldori.ui.components.community.SortBar
 import com.example.byeoldori.ui.components.community.likedKeyFree
 import com.example.byeoldori.ui.theme.*
 import com.example.byeoldori.domain.Community.FreePost
+import com.example.byeoldori.domain.Content
 import com.example.byeoldori.domain.Observatory.Review
 import com.example.byeoldori.viewmodel.dummyFreeComments
 import com.example.byeoldori.viewmodel.dummyFreePosts
 
 enum class FreeBoardSort(val label: String) {
     Latest("최신순"), Like("좋아요순"), View("조회수순")
+}
+
+private fun parseCreatedAtToNumeric(createdAt: String): Long {
+    val digits = createdAt.filter { it.isDigit() }
+    return when {
+        digits.length >= 12 -> digits.substring(0, 12).toLong()
+        digits.length >= 8 -> digits.substring(0, 8).toLong()
+        else -> 0L
+    }
 }
 
 fun FreePost.asReview(): Review =
@@ -48,11 +59,27 @@ fun FreePost.asReview(): Review =
         contentItems = contentItems
     )
 
+fun Post.toFreePost(): FreePost {
+    val numericDate = parseCreatedAtToNumeric(createdAt)
+
+    return FreePost(
+        id = id.toString(),
+        title = title,
+        author = authorId.toString(),
+        likeCount = likeCount,
+        commentCount = commentCount,
+        viewCount = viewCount,
+        createdAt = numericDate,
+        contentItems = emptyList<Content>(),
+        profile = null
+    )
+}
+
 @Composable
 fun FreeBoardSection(
     freeBoardsAll: List<FreePost>,
     onWriteClick: () -> Unit = {},
-    onClickProgram: (String) -> Unit = {}
+    onClickPost: (String) -> Unit = {}
 ){
     var searchText by remember { mutableStateOf("") } //초기값이 빈 문자열인 변할 수 있는 상태 객체
     var sort by remember { mutableStateOf(FreeBoardSort.Latest) }
@@ -122,7 +149,7 @@ fun FreeBoardSection(
                             post = post,
                             commentCount = liveCommentCount,
                             likeCount = post.likeCount,
-                            onClick = { onClickProgram(post.id) }
+                            onClick = { onClickPost(post.id) }
                         )
                         Divider(
                             color = Color.White.copy(alpha = 0.8f),
@@ -159,7 +186,7 @@ private fun Preview_FreeBoardSection_Empty() {
         FreeBoardSection(
             freeBoardsAll = dummyFreePosts,
             onWriteClick = {},
-            onClickProgram = {}
+            onClickPost = {}
         )
     }
 }
