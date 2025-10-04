@@ -73,36 +73,93 @@ public class LAppDelegate {
         releaseInstance();
     }
 
-    public void onSurfaceCreated() {
-        // テクスチャサンプリング設定
-        GLES20.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        GLES20.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+//    public void onSurfaceCreated() {
+//        // テクスチャサンプリング設定
+//        GLES20.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+//        GLES20.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+//
+//        // 透過設定
+//        GLES20.glEnable(GLES20.GL_BLEND);
+//        GLES20.glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+//
+//        // Initialize Cubism SDK framework
+//        CubismFramework.initialize();
+//
+//        // ✅ GL context가 새로 생겼으니 캐시 비우고 다시 로드
+//        if (textureManager != null) {
+//            textureManager.clear();
+//        }
+//        LAppLive2DManager.getInstance().reloadCurrentModel();
+//    }
 
-        // 透過設定
-        GLES20.glEnable(GLES20.GL_BLEND);
-        GLES20.glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
-        // Initialize Cubism SDK framework
+public void onSurfaceCreated() {
+    // 텍스처 관련 초기화
+    GLES20.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    GLES20.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+    GLES20.glEnable(GLES20.GL_BLEND);
+    GLES20.glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+
+    // Framework 상태 확인
+    if (!CubismFramework.isStarted() || !CubismFramework.isInitialized()) {
+        CubismFramework.startUp(cubismOption);
         CubismFramework.initialize();
     }
 
+    // ✅ GLContext가 새로 생겼으니 Shader도 재초기화 필요
+    if (view != null) {
+        view.initialize();       // 여기서 shader, sprite, 렌더링타겟 초기화
+    }
+
+    if (textureManager != null) {
+        textureManager.clear();  // 텍스처 캐시 클리어
+    }
+
+    // 모델 재로드
+    if (CubismFramework.isInitialized()) {
+        LAppLive2DManager.getInstance().reloadCurrentModel();
+    }
+}
+
+
+
+//    public void onSurfaceChanged(int width, int height) {
+//        // 描画範囲指定
+//        GLES20.glViewport(0, 0, width, height);
+//        windowWidth = width;
+//        windowHeight = height;
+//
+//        // AppViewの初期化
+//        view.initialize();
+////        view.initializeSprite();
+//
+//        // load models
+//        if (LAppLive2DManager.getInstance().getCurrentModel() != currentModel) {
+//            LAppLive2DManager.getInstance().changeScene(currentModel);
+//        }
+//
+//        isActive = true;
+//    }
     public void onSurfaceChanged(int width, int height) {
-        // 描画範囲指定
         GLES20.glViewport(0, 0, width, height);
         windowWidth = width;
         windowHeight = height;
 
-        // AppViewの初期化
-        view.initialize();
-//        view.initializeSprite();
+        if (view != null) {
+            view.initialize();
+            // view.initializeSprite(); // 필요 시 추가
+        }
 
-        // load models
-        if (LAppLive2DManager.getInstance().getCurrentModel() != currentModel) {
-            LAppLive2DManager.getInstance().changeScene(currentModel);
+        // ✅ 화면 크기 변경 시 projection 갱신 → 모델에도 반영
+        if (CubismFramework.isInitialized()) {
+            int current = LAppLive2DManager.getInstance().getCurrentModel();
+            LAppLive2DManager.getInstance().changeScene(current);
         }
 
         isActive = true;
     }
+
 
     public void run() {
         // 時間更新

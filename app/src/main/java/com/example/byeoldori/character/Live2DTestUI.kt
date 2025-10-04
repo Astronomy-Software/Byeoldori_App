@@ -4,9 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
@@ -39,6 +37,7 @@ fun Live2DTestUI(
                 Button(onClick = { controller.hideCharacter() }) { Text("🙈 HIDE") }
             }
         }
+
         // 캐릭터 변경 / 모션
         item {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -47,6 +46,7 @@ fun Live2DTestUI(
             }
         }
 
+        // 모션 / 표정
         item {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Button(onClick = { controller.playMotion("TapBody", 0) }) { Text("▶ TapBody 모션") }
@@ -82,60 +82,71 @@ fun Live2DTestUI(
             }
         }
 
-        // 크기 변경 버튼
+        // ✅ 크기 변경 버튼 (누적)
         item {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Button(onClick = {
-                    controller.updateModifier(Modifier.size(300.dp, 200.dp))
-                }) { Text("📏 300x200") }
-
-                Button(onClick = {
-                    controller.updateModifier(Modifier.size(400.dp, 300.dp))
-                }) { Text("📏 400x300") }
+                Button(onClick = { controller.resizeBy(50.dp) }) { Text("➕ 커지기") }
+                Button(onClick = { controller.resizeBy((-50).dp)}) { Text("➖ 작아지기") }
             }
         }
 
-        // ✅ 위치(offset) 변경 버튼
+        // ✅ 위치(offset) 변경 버튼 (누적)
         item {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Button(onClick = {
-                    controller.updateModifier(
-                        Modifier
-                            .size(300.dp, 200.dp)
-                            .offset(x = (-50).dp, y = 0.dp)
-                    )
-                }) { Text("⬅ 왼쪽 -50") }
-
-                Button(onClick = {
-                    controller.updateModifier(
-                        Modifier
-                            .size(300.dp, 200.dp)
-                            .offset(x = 50.dp, y = 0.dp)
-                    )
-                }) { Text("➡ 오른쪽 +50") }
+                Button(onClick = { controller.moveBy((-50).dp, 0.dp) }) { Text("⬅ 왼쪽 -50") }
+                Button(onClick = { controller.moveBy(50.dp, 0.dp) }) { Text("➡ 오른쪽 +50") }
             }
         }
 
-        // ✅ 위/아래 이동 버튼 추가
+        // ✅ 위/아래 이동 버튼 (누적)
         item {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Button(onClick = {
-                    controller.updateModifier(
-                        Modifier
-                            .size(300.dp, 200.dp)
-                            .offset(x = 0.dp, y = (-50).dp)
-                    )
-                }) { Text("⬆ 위로 -50") }
-
-                Button(onClick = {
-                    controller.updateModifier(
-                        Modifier
-                            .size(300.dp, 200.dp)
-                            .offset(x = 0.dp, y = 50.dp)
-                    )
-                }) { Text("⬇ 아래로 +50") }
+                Button(onClick = { controller.moveBy(0.dp, (-50).dp) }) { Text("⬆ 위로 -50") }
+                Button(onClick = { controller.moveBy(0.dp, 50.dp) }) { Text("⬇ 아래로 +50") }
             }
         }
+
+        // 크기/위치 초기화
+        item {
+            Button(onClick = { controller.resetSizeAndPosition() }) { Text("🔄 초기화") }
+        }
+
+        item {
+            Button(
+                onClick = { controller.animateMoveX( 0.5, 300.dp) },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("➡ 애니메이션 이동")
+            }
+            Button(
+                onClick = { controller.animateMoveX( 0.5, (-300).dp) },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("➡ 애니메이션 이동")
+            }
+        }
+        item {
+            Button(
+                onClick = { controller.animateMoveX( 0.5, 300.dp) },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("➡ 애니메이션 이동")
+            }
+            Button(
+                onClick = { controller.animateMoveXEaseOut( 0.5, (-300).dp) },
+                        modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("➡ 애니메이션 이동")
+            }
+            Button(
+                onClick = { controller.animateCustomSmoothMove(2.0,((-300).dp),50.dp)},
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("➡ 애니메이션 이동")
+            }
+        }
+
+
 
         // 모션 새로고침
         item {

@@ -1,7 +1,8 @@
-import java.io.FileInputStream
-        import java.util.Properties
 
-        plugins {
+import java.io.FileInputStream
+import java.util.Properties
+
+plugins {
             alias(libs.plugins.android.application)
             alias(libs.plugins.kotlin.android)
             alias(libs.plugins.hilt)
@@ -76,6 +77,7 @@ android {
 dependencies {
     implementation(project(":live2d:Framework:framework"))
     implementation(project(":live2d:live2dview"))
+    implementation(files("../live2d/Core/android/Live2DCubismCore.aar"))
     implementation(platform(libs.compose.bom))
     implementation(libs.coil.compose)
     implementation(libs.activity.compose)

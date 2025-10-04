@@ -256,6 +256,16 @@ public class LAppLive2DManager {
         }
         return models.size();
     }
+    /**
+     * 현재 표시 중인 모델을 다시 로드한다 (GLContext 손실 복구 시 사용)
+     */
+    public void reloadCurrentModel() {
+        if (models.isEmpty()) return;
+
+        int index = getCurrentModel(); // 현재 인덱스 기억
+        releaseAllModel();             // 기존 모델 해제
+        changeScene(index);            // 같은 인덱스 모델 다시 로드
+    }
 
     /**
      * モーション再生時に実行されるコールバック関数

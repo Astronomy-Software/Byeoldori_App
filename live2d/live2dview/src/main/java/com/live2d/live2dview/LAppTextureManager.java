@@ -91,5 +91,9 @@ public class LAppTextureManager {
         return textureInfo;
     }
 
+    public void clear() {
+        textures.clear(); // GL context 새로 생기면 기존 ID 무효 → 맵도 비움
+    }
+
     private final List<TextureInfo> textures = new ArrayList<TextureInfo>();        // 画像情報のリスト
 }
