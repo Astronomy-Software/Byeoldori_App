@@ -1,4 +1,4 @@
-package com.example.byeoldori.ui.screen.Home
+package com.example.byeoldori.ui.screen.home
 
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -25,12 +25,6 @@ fun HomeScreen() {
         item {
             Text("홈화면이에요", fontSize = 28.sp)
             Spacer(Modifier.height(16.dp))
-        }
-        item{
-            Live2DTestScreen()
-        }
-        item{
-//            Live2DScreen()
         }
         // 관측지 리스트
         item {

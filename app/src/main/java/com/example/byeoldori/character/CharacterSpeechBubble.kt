@@ -1,3 +1,4 @@
+package com.example.byeoldori.character
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement

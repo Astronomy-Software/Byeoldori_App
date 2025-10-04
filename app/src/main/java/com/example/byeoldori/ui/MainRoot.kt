@@ -10,10 +10,10 @@ import androidx.navigation.compose.rememberNavController
 import com.example.byeoldori.ui.components.NavBar
 import com.example.byeoldori.ui.screen.Community.CommunityScreen
 import com.example.byeoldori.ui.screen.Community.CommunityTab
-import com.example.byeoldori.ui.screen.Home.HomeScreen
 import com.example.byeoldori.ui.screen.MyPage.MyPageScreen
 import com.example.byeoldori.ui.screen.Observatory.ObservatoryScreen
 import com.example.byeoldori.ui.screen.SkyMap.SkyMapScreen
+import com.example.byeoldori.ui.screen.home.HomeScreen
 import com.example.byeoldori.ui.theme.BackgroundScaffold
 
 sealed class Root(val route: String, val label: String) {

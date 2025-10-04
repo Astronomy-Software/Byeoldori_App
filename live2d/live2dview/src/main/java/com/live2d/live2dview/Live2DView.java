@@ -92,7 +92,29 @@ public class Live2DView extends GLSurfaceView {
         final float pointX = event.getX();
         final float pointY = event.getY();
 
-        // GLSurfaceView의 이벤트 큐에 전달
+        // 현재 표시 중인 모델 가져오기
+        LAppModel model = LAppLive2DManager.getInstance().getModel(0);
+
+        // hitArea 체크: 모델이 있고, Head/Body 같은 영역에 닿았는지 확인
+        boolean hit = false;
+        if (model != null) {
+            // 좌표 변환 (화면 좌표 → View 크기 보정 → Live2D 좌표)
+            float logicalX = (pointX / getWidth()) * 2f - 1f;   // -1 ~ +1 범위
+            float logicalY = (pointY / getHeight()) * -2f + 1f; // 위/아래 반전 포함
+
+            // 필요한 영역만 활성화 (Head, Body 등)
+            if (model.hitTest("Head", logicalX, logicalY) ||
+                    model.hitTest("Body", logicalX, logicalY)) {
+                hit = true;
+            }
+        }
+
+        if (!hit) {
+            // 캐릭터 외부 → 이벤트 무시 → 뒤쪽 Compose나 다른 View로 전달
+            return false;
+        }
+
+        // ✅ 캐릭터 내부 터치일 때만 Live2D 이벤트 처리
         queueEvent(() -> {
             switch (event.getAction()) {
                 case MotionEvent.ACTION_DOWN:
@@ -108,6 +130,7 @@ public class Live2DView extends GLSurfaceView {
         });
         return true;
     }
+
 
     // -------------------------------
     // 외부에서 안전하게 호출할 수 있는 제어 API
