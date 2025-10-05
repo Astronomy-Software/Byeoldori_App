@@ -13,7 +13,7 @@ data class Review (
     val commentCount: Int,
     val profile: Int?,
     val viewCount: Int,  //조회수
-    val createdAt: Long, //작성 시점
+    val createdAt: String, //작성 시점
     val target: String,  //관측 대상
     val site: String,    //관측지
     val date: String,    //관측 일자

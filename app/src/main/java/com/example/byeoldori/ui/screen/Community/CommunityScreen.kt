@@ -10,7 +10,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.*
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.byeoldori.data.model.dto.CommunityType
-import com.example.byeoldori.data.model.dto.Post
+import com.example.byeoldori.data.model.dto.FreePostResponse
 import com.example.byeoldori.ui.components.community.*
 import com.example.byeoldori.ui.components.community.program.*
 import com.example.byeoldori.ui.theme.*
@@ -49,12 +49,19 @@ fun CommunityScreen(
     var successMessage by remember { mutableStateOf("") }
 
     val state by vm.postsState.collectAsState()
-   // val selectedPost by vm.selectedPost.collectAsState()
+    val selectedId by vm.selectedPostId.collectAsState()
+    val selectedPost by vm.selectedPost.collectAsState()
+    val postDetailState by vm.postDetail.collectAsState()
+    val currentSort by vm.sort.collectAsState()
 
     LaunchedEffect(tab) {
         if (tab == CommunityTab.Board) {
-            vm.loadPosts(CommunityType.FREE)
+            vm.loadPosts()
         }
+    }
+    LaunchedEffect(selectedId) {
+        val idLong = selectedId?.toLongOrNull()
+        if (idLong != null) vm.loadPostDetail(idLong)
     }
 
     when {
@@ -100,7 +107,8 @@ fun CommunityScreen(
                     dummyFreePosts.add(0, newPost)
                     showFreeBoardWriteForm = false
                     showSuccessDialog = true
-                }
+                },
+                onClose = { showFreeBoardWriteForm = false }
             )
         }
         selectedReview != null -> {
@@ -121,14 +129,17 @@ fun CommunityScreen(
                 }
             )
         }
-//        tab == CommunityTab.Board && selectedPost != null -> {
-//            FreeBoardDetail(
-//                post = selectedPost!!.toFreePost(),
-//                onBack = { vm.clearSelection() },
-//                currentUser = currentUser
-//            )
-//            return
-//        }
+        tab == CommunityTab.Board && selectedPost != null -> {
+            val apiPost = (postDetailState as? UiState.Success)?.data
+            FreeBoardDetail(
+                post = selectedPost!!.toFreePost(),
+                apiPost = apiPost,
+                onBack = { vm.clearSelection() },
+                currentUser = currentUser,
+                vm = vm
+            )
+            return
+        }
 
         selectedProgram != null -> {
             EduProgramDetail(
@@ -226,11 +237,14 @@ fun CommunityScreen(
                                 CircularProgressIndicator()
                             }
                             is UiState.Success -> {
-                                val posts = (state as UiState.Success<List<Post>>).data
+                                val posts = (state as UiState.Success<List<FreePostResponse>>).data
                                 FreeBoardSection(
                                     freeBoardsAll = posts.map { it.toFreePost() },
                                     onClickPost = { id -> vm.selectPost(id) },
-                                    onWriteClick = { showFreeBoardWriteForm = true }
+                                    onWriteClick = { showFreeBoardWriteForm = true },
+                                    currentSort = currentSort,
+                                    onChangeSort = { vm.setSort(it) },
+                                    vm = vm
                                 )
                             }
                             is UiState.Error -> {

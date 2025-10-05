@@ -209,10 +209,10 @@ object NetworkModule {
         retrofit.create(ObservationSiteApi::class.java)
 
     @Provides @Singleton
-    fun provideWeatherApi(@UnauthRetrofit retrofit: Retrofit): WeatherApi =
+    fun provideWeatherApi(@AuthedRetrofit retrofit: Retrofit): WeatherApi =
         retrofit.create(WeatherApi::class.java)
 
     @Provides @Singleton
-    fun provideCommunityApi(@UnauthRetrofit retrofit: Retrofit): CommunityApi =
+    fun provideCommunityApi(@AuthedRetrofit retrofit: Retrofit): CommunityApi =
         retrofit.create(CommunityApi::class.java)
 }

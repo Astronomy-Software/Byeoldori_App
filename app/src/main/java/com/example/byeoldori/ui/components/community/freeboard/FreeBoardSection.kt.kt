@@ -13,7 +13,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
 import com.example.byeoldori.R
-import com.example.byeoldori.data.model.dto.Post
+import com.example.byeoldori.data.model.dto.FreePostResponse
+import com.example.byeoldori.data.model.dto.SortBy
 import com.example.byeoldori.ui.components.community.EditorItem
 import com.example.byeoldori.ui.components.community.LikeState
 import com.example.byeoldori.ui.components.community.SortBar
@@ -22,19 +23,22 @@ import com.example.byeoldori.ui.theme.*
 import com.example.byeoldori.domain.Community.FreePost
 import com.example.byeoldori.domain.Content
 import com.example.byeoldori.domain.Observatory.Review
+import com.example.byeoldori.viewmodel.CommunityViewModel
 import com.example.byeoldori.viewmodel.dummyFreeComments
 import com.example.byeoldori.viewmodel.dummyFreePosts
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 enum class FreeBoardSort(val label: String) {
     Latest("최신순"), Like("좋아요순"), View("조회수순")
 }
 
-private fun parseCreatedAtToNumeric(createdAt: String): Long {
-    val digits = createdAt.filter { it.isDigit() }
-    return when {
-        digits.length >= 12 -> digits.substring(0, 12).toLong()
-        digits.length >= 8 -> digits.substring(0, 8).toLong()
-        else -> 0L
+fun formatCreatedAt(createdAt: String): String {
+    return try {
+        val parsed = LocalDateTime.parse(createdAt, DateTimeFormatter.ISO_DATE_TIME)
+        parsed.format(DateTimeFormatter.ofPattern("yy.MM.dd")) // "25.10.03"
+    } catch (e: Exception) {
+        createdAt // 실패하면 원본 표시
     }
 }
 
@@ -59,18 +63,18 @@ fun FreePost.asReview(): Review =
         contentItems = contentItems
     )
 
-fun Post.toFreePost(): FreePost {
-    val numericDate = parseCreatedAtToNumeric(createdAt)
+fun FreePostResponse.toFreePost(): FreePost {
+    val formattedDate = formatCreatedAt(createdAt)
 
     return FreePost(
         id = id.toString(),
         title = title,
-        author = authorId.toString(),
+        author = authorNickname.toString(),
         likeCount = likeCount,
         commentCount = commentCount,
         viewCount = viewCount,
-        createdAt = numericDate,
-        contentItems = emptyList<Content>(),
+        createdAt = formattedDate,
+        contentItems = listOf(Content.Text(contentSummary)),
         profile = null
     )
 }
@@ -79,32 +83,35 @@ fun Post.toFreePost(): FreePost {
 fun FreeBoardSection(
     freeBoardsAll: List<FreePost>,
     onWriteClick: () -> Unit = {},
-    onClickPost: (String) -> Unit = {}
+    onClickPost: (String) -> Unit = {},
+    currentSort: SortBy,
+    onChangeSort: (SortBy) -> Unit = {},
+    vm: CommunityViewModel
 ){
     var searchText by remember { mutableStateOf("") } //초기값이 빈 문자열인 변할 수 있는 상태 객체
     var sort by remember { mutableStateOf(FreeBoardSort.Latest) }
     val listState = rememberLazyListState()
+    val likeState by vm.likeState.collectAsState()
+    val likedIds by vm.likedIds.collectAsState()
 
-    // 검색 + 정렬 적용
-    val filtered = remember(searchText, sort, freeBoardsAll, LikeState.ids) {
-        val q = searchText.trim() //양끝 공백 제거
-        val base = if (q.isEmpty()) freeBoardsAll //검색어가 비어있으면 전체 리스트 사용
-        else {
+    // 검색만
+    val filtered = run {
+        val q = searchText.trim()
+        if (q.isEmpty()) freeBoardsAll else {
             freeBoardsAll.filter { r ->
-                val matchesTitle = r.title.contains(q, ignoreCase = true)
-                val matchesAuthor = r.author.contains(q, ignoreCase = true)
-                val matchesContent = r.contentItems
-                    .filterIsInstance<EditorItem.Paragraph>()
-                    .any { it.value.text.contains(q, ignoreCase = true) }
-
-                matchesTitle || matchesAuthor || matchesContent
+                val k = q.lowercase()
+                r.title.lowercase().contains(k) ||
+                        r.author.lowercase().contains(k) ||
+                        r.contentItems.filterIsInstance<EditorItem.Paragraph>()
+                            .any { it.value.text.lowercase().contains(k) }
             }
         }
-        when (sort) {
-            FreeBoardSort.Latest -> base.sortedByDescending { it.createdAt}
-            FreeBoardSort.Like -> base.sortedByDescending { it.likeCount }
-            FreeBoardSort.View -> base.sortedByDescending { it.viewCount }
-        }
+    }
+
+    val uiSort = when (currentSort) {
+        SortBy.LATEST -> FreeBoardSort.Latest
+        SortBy.LIKES  -> FreeBoardSort.Like
+        SortBy.VIEWS  -> FreeBoardSort.View
     }
 
     LaunchedEffect(sort) {
@@ -129,10 +136,17 @@ fun FreeBoardSection(
             ) {
                 // 정렬 바
                 SortBar(
-                    current = sort,
+                    current = uiSort,
                     options = FreeBoardSort.entries.toList(),
                     label = { it.label },
-                    onSelect = { sort = it }
+                    onSelect = {
+                        val serverSort = when (it) {
+                            FreeBoardSort.Latest -> SortBy.LATEST
+                            FreeBoardSort.Like   -> SortBy.LIKES
+                            FreeBoardSort.View   -> SortBy.VIEWS
+                        }
+                        onChangeSort(serverSort)
+                    }
                 )
             }
             Spacer(Modifier.height(12.dp))
@@ -143,13 +157,17 @@ fun FreeBoardSection(
                 modifier = Modifier.fillMaxSize()
             ) {
                 items(filtered, key = { it.id }) { post ->
+                    val likeKey = likedKeyFree(post.id)
+                    val isLiked = likeKey in likedIds
                     val liveCommentCount = dummyFreeComments.count { it.reviewId == post.id }
                     Column {
                         FreeBoardItem(
                             post = post,
                             commentCount = liveCommentCount,
                             likeCount = post.likeCount,
-                            onClick = { onClickPost(post.id) }
+                            isLiked = isLiked,
+                            onClick = { onClickPost(post.id) },
+                            onLikeClick = { vm.toggleLike(post.id.toLong()) }
                         )
                         Divider(
                             color = Color.White.copy(alpha = 0.8f),
@@ -178,15 +196,30 @@ fun FreeBoardSection(
         }
     }
 }
-
-@Preview(showBackground = true, backgroundColor = 0xFF241860, widthDp = 420, heightDp = 840)
-@Composable
-private fun Preview_FreeBoardSection_Empty() {
-    MaterialTheme {
-        FreeBoardSection(
-            freeBoardsAll = dummyFreePosts,
-            onWriteClick = {},
-            onClickPost = {}
-        )
-    }
-}
+//
+//@Preview(
+//    showBackground = true,
+//    backgroundColor = 0xFF241860,
+//    widthDp = 420,
+//    heightDp = 840
+//)
+//@Composable
+//private fun Preview_FreeBoardSection_Empty() {
+//    // ✅ HiltViewModel은 프리뷰에서 직접 생성 불가하므로 더미 구현 사용
+//    val fakeVm = object : CommunityViewModel(
+//        repo = com.example.byeoldori.data.repository.CommunityRepository(
+//            api = com.example.byeoldori.data.api.FakeCommunityApi()
+//        )
+//    ) {}
+//
+//    MaterialTheme {
+//        FreeBoardSection(
+//            freeBoardsAll = dummyFreePosts,
+//            onWriteClick = {},
+//            onClickPost = {},
+//            currentSort = SortBy.LATEST,
+//            onChangeSort = {},
+//            vm = fakeVm // ✅ 더미 뷰모델 전달
+//        )
+//    }
+//}

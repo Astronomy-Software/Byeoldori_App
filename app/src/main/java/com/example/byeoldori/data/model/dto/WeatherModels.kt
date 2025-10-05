@@ -1,11 +1,15 @@
 package com.example.byeoldori.data.model.dto
 
+import com.squareup.moshi.JsonClass
+
+@JsonClass(generateAdapter = true)
 data class ForecastResponse(
     val ultraForecastResponse: List<UltraForecast>,
     val shortForecastResponse: List<ShortForecast>,
     val midCombinedForecastDTO: List<MidForecast>
 )
 
+@JsonClass(generateAdapter = true)
 data class UltraForecast(
     val tmef: String,
     val t1h: Int?,
@@ -17,6 +21,7 @@ data class UltraForecast(
     val sky: Int? //하늘 상태
 )
 
+@JsonClass(generateAdapter = true)
 data class ShortForecast(
     val tmef: String,
     val tmp: Int?,
@@ -32,6 +37,7 @@ data class ShortForecast(
     val reh: Int?,
 )
 
+@JsonClass(generateAdapter = true)
 data class MidForecast(
     val tmFc: String,
     val tmEf: String?,

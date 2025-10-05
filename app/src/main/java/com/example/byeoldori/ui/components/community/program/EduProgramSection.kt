@@ -169,7 +169,7 @@ private fun Preview_EduProgramSection_Default() {
                     commentCount = 8 + i,
                     viewCount = 200 + i * 15,
                     profile = R.drawable.profile1,
-                    createdAt = 202510290000L - i, // Long 더미
+                    createdAt = "25.10${29-1}", //String으로 변환
                     contentItems = listOf(
                        Content.Text("이 강의는 망원경 기초와 관측 매너를 다룹니다.")
                     )

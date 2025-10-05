@@ -17,6 +17,8 @@ import com.example.byeoldori.R
 import com.example.byeoldori.ui.components.community.*
 import com.example.byeoldori.domain.Observatory.Review
 import com.example.byeoldori.ui.mapper.toDomain
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.util.UUID
 
 @Composable
@@ -61,8 +63,14 @@ fun ReviewWriteForm(
     }
     var date by rememberSaveable { mutableStateOf(initialReview?.date ?: "") }
 
+    fun formatNow(now: Long): String {
+        val date = LocalDateTime.ofEpochSecond(now / 1000, 0, java.time.ZoneOffset.UTC)
+        return date.format(DateTimeFormatter.ofPattern("yy.MM.dd"))
+    }
+
     fun makeReview(): Review {
         val createdAt = now()
+        val createdAtStr = formatNow(createdAt)
         return Review(
             id = UUID.randomUUID().toString(),
             title = title,
@@ -72,7 +80,7 @@ fun ReviewWriteForm(
             commentCount = 0,
             profile = R.drawable.profile1,
             viewCount = 0,
-            createdAt = createdAt,
+            createdAt = createdAtStr,
             target = target,
             site = site,
             date = date,

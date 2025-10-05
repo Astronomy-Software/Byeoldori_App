@@ -10,41 +10,62 @@ import androidx.compose.ui.focus.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
 import com.example.byeoldori.R
+import com.example.byeoldori.data.model.dto.FreePostResponse
 import com.example.byeoldori.domain.Community.FreePost
 import com.example.byeoldori.domain.Community.ReviewComment
 import com.example.byeoldori.ui.components.community.*
 import com.example.byeoldori.ui.components.community.review.*
 import com.example.byeoldori.ui.mapper.toUi
 import com.example.byeoldori.ui.theme.*
+import com.example.byeoldori.viewmodel.CommunityViewModel
+import com.example.byeoldori.viewmodel.UiState
 import com.example.byeoldori.viewmodel.dummyFreeComments
 import com.example.byeoldori.viewmodel.dummyFreePosts
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FreeBoardDetail (
-    post: FreePost,
+    post: FreePost, //더미 Post
     onBack: () -> Unit,
     onShare: () -> Unit = {},
     onMore: () -> Unit = {},
-    currentUser: String
+    currentUser: String,
+    apiPost: FreePostResponse? = null, //api에서 받은 Post,
+    vm: CommunityViewModel
 ) {
     var input by rememberSaveable { mutableStateOf("") }
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusRequester = remember { FocusRequester() }
     var editingTarget by remember { mutableStateOf<ReviewComment?>(null) }
     var requestKeyboard by remember { mutableStateOf(false) }
-    var liked by rememberSaveable { mutableStateOf(setOf<String>()) }
-    var postLikeCount by rememberSaveable { mutableStateOf(post.likeCount) }
+    //var postLikeCount by rememberSaveable { mutableStateOf(post.likeCount) }
     var parent by remember { mutableStateOf<ReviewComment?>(null) }
+    val likeState by vm.likeState.collectAsState()
+    val likedIds by vm.likedIds.collectAsState()
+    val likeKey = likedKeyFree(post.id)
+    val isLiked = likeKey in likedIds
+
+
+    var postLikeCount by rememberSaveable(post.id) {
+        mutableStateOf(apiPost?.likeCount ?: post.likeCount)
+    }
 
     LaunchedEffect(requestKeyboard) {
         if (requestKeyboard) {
             focusRequester.requestFocus()
             keyboardController?.show()
             requestKeyboard = false  // 한 번만 실행
+        }
+    }
+
+    LaunchedEffect(likeState) {
+        val s = likeState
+        if (s is UiState.Success) {
+            postLikeCount = s.data.likes.toInt()   // 서버 최종값으로 맞추기
         }
     }
 
@@ -153,7 +174,8 @@ fun FreeBoardDetail (
         ) {
             item {
                 Spacer(Modifier.height(10.dp))
-                Text(text = post.title, fontSize = 24.sp, color = TextHighlight) //제목
+                //제목
+                Text(text = apiPost?.title ?: post.title, fontSize = 24.sp, color = TextHighlight) //제목
                 Spacer(Modifier.height(10.dp))
 
                 Row(verticalAlignment = Alignment.CenterVertically
@@ -170,10 +192,10 @@ fun FreeBoardDetail (
                     )
                     Spacer(Modifier.width(8.dp))
                     Column { //작성자
-                        Text(text = post.author, fontSize = 17.sp, color = TextHighlight)
+                        Text(text = apiPost?.authorId?.toString() ?: post.author, fontSize = 17.sp, color = TextHighlight)
                         Spacer(Modifier.height(4.dp))
                         Text( //작성일
-                            text = post.createdAt.toShortDate(),
+                            text = apiPost?.createdAt?.toShortDate() ?: post.createdAt.toShortDate(),
                             style = MaterialTheme.typography.bodySmall.copy(color = TextDisabled),
                             fontSize = 17.sp
                         )
@@ -181,7 +203,15 @@ fun FreeBoardDetail (
                 }
                 Spacer(Modifier.height(16.dp))
                 ContentInput( //내용 입력(텍스트 + 이미지)
-                    items = post.contentItems.toUi(),
+                    items = if (apiPost != null) {
+                        listOf(
+                            EditorItem.Paragraph(
+                                value = TextFieldValue(apiPost.contentSummary)
+                            )
+                        )
+                    } else {
+                        post.contentItems.toUi()
+                    },
                     onItemsChange = {},
                     onPickImages = {},
                     onCheck = {},
@@ -194,11 +224,16 @@ fun FreeBoardDetail (
                 LikeCommentBar(
                     key = likedKeyFree(post.id),
                     likeCount = postLikeCount,
-                    onLikeCountChange = { postLikeCount = it },
+                    onLikeCountChange = {},
                     onSyncLikeCount = { next ->
                         // 목록 원본 동기화(정렬/표시 일치)
-                        val idx = dummyFreePosts.indexOfFirst { it.id == post.id }
-                        if (idx >= 0) dummyFreePosts[idx] = dummyFreePosts[idx].copy(likeCount = next)
+//                        val idx = dummyFreePosts.indexOfFirst { it.id == post.id }
+//                        if (idx >= 0) dummyFreePosts[idx] = dummyFreePosts[idx].copy(likeCount = next)
+
+                        val key = likedKeyFree(post.id)
+                        LikeState.ids = if (key in LikeState.ids) LikeState.ids - key else LikeState.ids + key
+                        vm.toggleLikedLocal(likeKey)
+                        vm.toggleLike(post.id.toLong())
                     },
                     commentCount = dummyFreeComments.count { it.reviewId == post.id }
                 )
@@ -235,15 +270,15 @@ fun FreeBoardDetail (
     }
 }
 
-@Preview(showBackground = true, backgroundColor = 0xFF241860, widthDp = 420, heightDp = 840)
-@Composable
-private fun Preview_FreeBoardDetail() {
-    val sample = remember { dummyFreePosts.first() }
-    FreeBoardDetail(
-        post = sample,
-        onBack = {},
-        onShare = {},
-        onMore = {},
-        currentUser = "astro_user"
-    )
-}
+//@Preview(showBackground = true, backgroundColor = 0xFF241860, widthDp = 420, heightDp = 840)
+//@Composable
+//private fun Preview_FreeBoardDetail() {
+//    val sample = remember { dummyFreePosts.first() }
+//    FreeBoardDetail(
+//        post = sample,
+//        onBack = {},
+//        onShare = {},
+//        onMore = {},
+//        currentUser = "astro_user"
+//    )
+//}
