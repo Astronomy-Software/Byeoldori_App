@@ -205,7 +205,7 @@ object NetworkModule {
         retrofit.create(UserApi::class.java)
 
     @Provides @Singleton
-    fun provideObservationSiteApi(@AuthedRetrofit retrofit: Retrofit): ObservationSiteApi =
+    fun provideObservationSiteApi(@UnauthRetrofit retrofit: Retrofit): ObservationSiteApi =
         retrofit.create(ObservationSiteApi::class.java)
 
     @Provides @Singleton
