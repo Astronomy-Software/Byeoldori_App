@@ -75,7 +75,7 @@ android {
 }
 
 dependencies {
-    implementation(project(":live2d:Framework:framework"))
+    implementation(project(":live2d:Framework"))
     implementation(project(":live2d:live2dview"))
     implementation(files("../live2d/Core/android/Live2DCubismCore.aar"))
     implementation(platform(libs.compose.bom))
@@ -110,7 +110,6 @@ dependencies {
     implementation(libs.lifecycle.runtime.compose)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.datastore.preferences)
-    implementation(project(":live2d:Framework:framework"))
 
     // ✅ Moshi는 계속 KSP 사용
     ksp(libs.moshi.kotlin.codegen)
