@@ -7,10 +7,6 @@
 
 package com.live2d.live2dview;
 
-import com.live2d.live2dview.LAppDefine;
-import com.live2d.live2dview.LAppDelegate;
-import com.live2d.live2dview.LAppTextureManager;
-import com.live2d.live2dview.LAppWavFileHandler;
 import com.live2d.sdk.cubism.framework.CubismDefaultParameterId.ParameterId;
 import com.live2d.sdk.cubism.framework.CubismFramework;
 import com.live2d.sdk.cubism.framework.CubismModelSettingJson;
@@ -634,6 +630,14 @@ public class LAppModel extends CubismUserModel {
                 this.<CubismRendererAndroid>getRenderer().isPremultipliedAlpha(false);
             }
         }
+    }
+
+    /**
+     * 사용자 추가함수
+     * 로딩된 모션의 그룹 이름 목록을 반환합니다.
+     */
+    public List<String> getMotionGroupNames() {
+        return new ArrayList<>(motions.keySet()); // motions 맵의 키(그룹 이름) 반환
     }
 
     private ICubismModelSetting modelSetting;

@@ -7,20 +7,11 @@
 
 package com.live2d.live2dview;
 
-import static android.opengl.GLES20.GL_COLOR_BUFFER_BIT;
-import static android.opengl.GLES20.GL_DEPTH_BUFFER_BIT;
-import static android.opengl.GLES20.GL_LINEAR;
-import static android.opengl.GLES20.GL_ONE;
-import static android.opengl.GLES20.GL_ONE_MINUS_SRC_ALPHA;
-import static android.opengl.GLES20.GL_TEXTURE_2D;
-import static android.opengl.GLES20.GL_TEXTURE_MAG_FILTER;
-import static android.opengl.GLES20.GL_TEXTURE_MIN_FILTER;
-import static android.opengl.GLES20.glClear;
-import static android.opengl.GLES20.glClearColor;
-import static android.opengl.GLES20.glClearDepthf;
 import android.app.Activity;
 import android.opengl.GLES20;
 import com.live2d.sdk.cubism.framework.CubismFramework;
+
+import static android.opengl.GLES20.*;
 
 public class LAppDelegate {
     public static LAppDelegate getInstance() {
@@ -94,7 +85,7 @@ public class LAppDelegate {
 
         // AppViewの初期化
         view.initialize();
-        view.initializeSprite();
+//        view.initializeSprite();
 
         // load models
         if (LAppLive2DManager.getInstance().getCurrentModel() != currentModel) {
@@ -109,9 +100,9 @@ public class LAppDelegate {
         LAppPal.updateTime();
 
         // 画面初期化
-        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glClearDepthf(1.0f);
+        glClearDepthf(0.0f);
 
         if (view != null) {
             view.render();

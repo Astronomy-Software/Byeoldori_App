@@ -8,9 +8,8 @@
 package com.live2d.live2dview;
 
 import android.util.Log;
-
-import com.live2d.live2dview.LAppDefine;
 import com.live2d.sdk.cubism.core.ICubismLogger;
+
 import java.io.IOException;
 import java.io.InputStream;
 
