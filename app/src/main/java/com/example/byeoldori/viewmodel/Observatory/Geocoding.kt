@@ -52,6 +52,7 @@ data class NaverReverseRes(
             @JsonClass(generateAdapter = true)
             data class Area(val name: String? = null) }
 
+        @JsonClass(generateAdapter = true)
         data class Land(
             val name: String? = null,
             val number1: String? = null,
