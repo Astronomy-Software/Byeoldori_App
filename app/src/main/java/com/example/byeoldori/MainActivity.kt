@@ -7,7 +7,6 @@ import androidx.activity.enableEdgeToEdge
 import androidx.core.view.WindowCompat
 import com.example.byeoldori.ui.AppEntry
 import com.example.byeoldori.ui.theme.AppTheme
-import com.live2d.live2dview.LAppDelegate
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -29,11 +28,6 @@ class MainActivity : ComponentActivity() {
             hide(WindowInsetsCompat.Type.systemBars())
         }
         */
-
-        // ✅ Live2D 초기화 (Activity 연결만)
-        // 내부에서 CubismFramework.startUp() + initialize() 수행됨
-        val live2DDelegate = LAppDelegate.getInstance()
-        live2DDelegate.onStart(this)
 
         setContent {
             AppTheme {

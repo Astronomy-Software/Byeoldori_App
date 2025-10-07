@@ -9,8 +9,6 @@ package com.live2d.live2dview;
 
 import static com.live2d.live2dview.LAppDefine.*;
 
-import android.content.res.AssetManager;
-
 import com.live2d.sdk.cubism.framework.math.CubismMatrix44;
 import com.live2d.sdk.cubism.framework.motion.ACubismMotion;
 import com.live2d.sdk.cubism.framework.motion.IBeganMotionCallback;
@@ -20,6 +18,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import android.content.res.AssetManager;
 
 /**
  * サンプルアプリケーションにおいてCubismModelを管理するクラス。
@@ -256,16 +256,6 @@ public class LAppLive2DManager {
         }
         return models.size();
     }
-    /**
-     * 현재 표시 중인 모델을 다시 로드한다 (GLContext 손실 복구 시 사용)
-     */
-    public void reloadCurrentModel() {
-        if (models.isEmpty()) return;
-
-        int index = getCurrentModel(); // 현재 인덱스 기억
-        releaseAllModel();             // 기존 모델 해제
-        changeScene(index);            // 같은 인덱스 모델 다시 로드
-    }
 
     /**
      * モーション再生時に実行されるコールバック関数
@@ -298,7 +288,7 @@ public class LAppLive2DManager {
 
     private LAppLive2DManager() {
         setUpModel();
-//        changeScene(0);
+        changeScene(0);
     }
 
     private final List<LAppModel> models = new ArrayList<>();

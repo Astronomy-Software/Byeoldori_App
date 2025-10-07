@@ -12,9 +12,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.opengl.GLES20;
 import android.opengl.GLUtils;
-
-import com.live2d.live2dview.LAppDefine;
-import com.live2d.live2dview.LAppDelegate;
 import com.live2d.sdk.cubism.framework.CubismFramework;
 
 import java.io.IOException;
@@ -89,10 +86,6 @@ public class LAppTextureManager {
         }
 
         return textureInfo;
-    }
-
-    public void clear() {
-        textures.clear(); // GL context 새로 생기면 기존 ID 무효 → 맵도 비움
     }
 
     private final List<TextureInfo> textures = new ArrayList<TextureInfo>();        // 画像情報のリスト

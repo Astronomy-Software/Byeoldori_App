@@ -7,10 +7,6 @@
 
 package com.live2d.live2dview;
 
-import com.live2d.live2dview.LAppDefine;
-import com.live2d.live2dview.LAppDelegate;
-import com.live2d.live2dview.LAppTextureManager;
-import com.live2d.live2dview.LAppWavFileHandler;
 import com.live2d.sdk.cubism.framework.CubismDefaultParameterId.ParameterId;
 import com.live2d.sdk.cubism.framework.CubismFramework;
 import com.live2d.sdk.cubism.framework.CubismModelSettingJson;
@@ -635,26 +631,6 @@ public class LAppModel extends CubismUserModel {
             }
         }
     }
-
-    public List<String> getMotionList() {
-        List<String> motions = new ArrayList<>();
-        if (modelSetting == null) return motions;
-
-        int motionGroupCount = modelSetting.getMotionGroupCount();
-        for (int i = 0; i < motionGroupCount; i++) {
-            String group = modelSetting.getMotionGroupName(i);
-            int motionCount = modelSetting.getMotionCount(group);
-            for (int j = 0; j < motionCount; j++) {
-                motions.add(group + ":" + j);
-            }
-        }
-        return motions;
-    }
-
-    public ICubismModelSetting getModelSetting() {
-        return modelSetting;
-    }
-
 
     private ICubismModelSetting modelSetting;
     /**

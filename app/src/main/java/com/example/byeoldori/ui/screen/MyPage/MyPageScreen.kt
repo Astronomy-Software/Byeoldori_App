@@ -12,7 +12,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.byeoldori.character.Live2DTestUI
 import com.example.byeoldori.viewmodel.AppScreen
 import com.example.byeoldori.viewmodel.NavigationViewModel
 
@@ -33,7 +32,7 @@ fun MyPageScreen() {
             Button(onClick = {navViewModel.navigateTo(AppScreen.SkyMap)}) {
                 Text("To 별지도")
             }
-            Live2DTestUI()
+//            Live2DTestUI()
         }
     }
 }
