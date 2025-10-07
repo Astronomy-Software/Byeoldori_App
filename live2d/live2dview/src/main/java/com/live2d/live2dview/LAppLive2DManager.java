@@ -298,7 +298,7 @@ public class LAppLive2DManager {
 
     private LAppLive2DManager() {
         setUpModel();
-        changeScene(0);
+//        changeScene(0);
     }
 
     private final List<LAppModel> models = new ArrayList<>();

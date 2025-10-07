@@ -29,15 +29,14 @@ public class LAppView implements AutoCloseable {
     }
 
     public LAppView() {
-        clearColor[0] = 1.0f;
+        clearColor[0] = 0.0f;
         clearColor[1] = 0.0f;
         clearColor[2] = 0.0f;
-        clearColor[3] = 1.0f;
+        clearColor[3] = 0.0f;
     }
 
     @Override
     public void close() {
-        spriteShader.close();
     }
 
     // ビューを初期化する
@@ -78,75 +77,7 @@ public class LAppView implements AutoCloseable {
             MaxLogicalView.BOTTOM.getValue(),
             MaxLogicalView.TOP.getValue()
         );
-
-        spriteShader = new LAppSpriteShader();
     }
-
-    // 画像を初期化する
-//    public void initializeSprite() {
-//        int windowWidth = LAppDelegate.getInstance().getWindowWidth();
-//        int windowHeight = LAppDelegate.getInstance().getWindowHeight();
-//
-//        LAppTextureManager textureManager = LAppDelegate.getInstance().getTextureManager();
-//
-//        // 背景画像の読み込み
-//        LAppTextureManager.TextureInfo backgroundTexture = textureManager.createTextureFromPngFile(ResourcePath.ROOT.getPath() + ResourcePath.BACK_IMAGE.getPath());
-//
-//
-//        // x,yは画像の中心座標
-//        float x = windowWidth * 0.5f;
-//        float y = windowHeight * 0.5f;
-//        float fWidth = backgroundTexture.width * 2.0f;
-//        float fHeight = windowHeight * 0.95f;
-//
-//        int programId = spriteShader.getShaderId();
-//
-//        if (backSprite == null) {
-//            backSprite = new LAppSprite(x, y, fWidth, fHeight, backgroundTexture.id, programId);
-//        } else {
-//            backSprite.resize(x, y, fWidth, fHeight);
-//        }
-//
-//        // 歯車画像の読み込み
-//        LAppTextureManager.TextureInfo gearTexture = textureManager.createTextureFromPngFile(ResourcePath.ROOT.getPath() + ResourcePath.GEAR_IMAGE.getPath());
-//
-//
-//        x = windowWidth - gearTexture.width * 0.5f - 96.f;
-//        y = windowHeight - gearTexture.height * 0.5f;
-//        fWidth = (float) gearTexture.width;
-//        fHeight = (float) gearTexture.height;
-//
-//        if (gearSprite == null) {
-//            gearSprite = new LAppSprite(x, y, fWidth, fHeight, gearTexture.id, programId);
-//        } else {
-//            gearSprite.resize(x, y, fWidth, fHeight);
-//        }
-//
-//        // 電源画像の読み込み
-//        LAppTextureManager.TextureInfo powerTexture = textureManager.createTextureFromPngFile(ResourcePath.ROOT.getPath() + ResourcePath.POWER_IMAGE.getPath());
-//
-//
-//        x = windowWidth - powerTexture.width * 0.5f - 96.0f;
-//        y = powerTexture.height * 0.5f;
-//        fWidth = (float) powerTexture.width;
-//        fHeight = (float) powerTexture.height;
-//
-//        if (powerSprite == null) {
-//            powerSprite = new LAppSprite(x, y, fWidth, fHeight, powerTexture.id, programId);
-//        } else {
-//            powerSprite.resize(x, y, fWidth, fHeight);
-//        }
-//
-//        // 画面全体を覆うサイズ
-//        x = windowWidth * 0.5f;
-//        y = windowHeight * 0.5f;
-//
-//        if (renderingSprite == null) {
-//            renderingSprite = new LAppSprite(x, y, windowWidth, windowHeight, 0, programId);
-//        } else {
-//            renderingSprite.resize(x, y, windowWidth, windowHeight);
-//        }
-//    }
 
     // 描画する
     public void render() {
@@ -156,15 +87,6 @@ public class LAppView implements AutoCloseable {
         // 画面サイズを取得する。
         int maxWidth = LAppDelegate.getInstance().getWindowWidth();
         int maxHeight = LAppDelegate.getInstance().getWindowHeight();
-        // backsprite 이친구가 배경이미지 assets background
-//        backSprite.setWindowSize(maxWidth, maxHeight);
-//        gearSprite.setWindowSize(maxWidth, maxHeight);
-//        powerSprite.setWindowSize(maxWidth, maxHeight);
-
-        // UIと背景の描画
-//        backSprite.render();
-//        gearSprite.render();
-//        powerSprite.render();
 
         if (isChangedModel) {
             isChangedModel = false;
@@ -175,28 +97,28 @@ public class LAppView implements AutoCloseable {
         LAppLive2DManager live2dManager = LAppLive2DManager.getInstance();
         live2dManager.onUpdate();
 
-        // 各モデルが持つ描画ターゲットをテクスチャとする場合
-        if (renderingTarget == RenderingTarget.MODEL_FRAME_BUFFER && renderingSprite != null) {
-            final float[] uvVertex = {
-                1.0f, 1.0f,
-                0.0f, 1.0f,
-                0.0f, 0.0f,
-                1.0f, 0.0f
-            };
-
-
-            for (int i = 0; i < live2dManager.getModelNum(); i++) {
-                LAppModel model = live2dManager.getModel(i);
-                float alpha = i < 1 ? 1.0f : model.getOpacity();    // 片方のみ不透明度を取得できるようにする。
-
-                renderingSprite.setColor(1.0f * alpha, 1.0f * alpha, 1.0f * alpha, alpha);
-
-                if (model != null) {
-                    renderingSprite.setWindowSize(maxWidth, maxHeight);
-                    renderingSprite.renderImmediate(model.getRenderingBuffer().getColorBuffer()[0], uvVertex);
-                }
-            }
-        }
+//        // 各モデルが持つ描画ターゲットをテクスチャとする場合
+//        if (renderingTarget == RenderingTarget.MODEL_FRAME_BUFFER && renderingSprite != null) {
+//            final float[] uvVertex = {
+//                1.0f, 1.0f,
+//                0.0f, 1.0f,
+//                0.0f, 0.0f,
+//                1.0f, 0.0f
+//            };
+//
+//
+//            for (int i = 0; i < live2dManager.getModelNum(); i++) {
+//                LAppModel model = live2dManager.getModel(i);
+//                float alpha = i < 1 ? 1.0f : model.getOpacity();    // 片方のみ不透明度を取得できるようにする。
+//
+//                renderingSprite.setColor(1.0f * alpha, 1.0f * alpha, 1.0f * alpha, alpha);
+//
+//                if (model != null) {
+//                    renderingSprite.setWindowSize(maxWidth, maxHeight);
+//                    renderingSprite.renderImmediate(model.getRenderingBuffer().getColorBuffer()[0], uvVertex);
+//                }
+//            }
+//        }
     }
 
     /**
@@ -252,22 +174,22 @@ public class LAppView implements AutoCloseable {
             useTarget.endDraw();
 
             // LAppViewの持つフレームバッファを使うなら、スプライトへの描画はこことなる
-            if (renderingTarget == RenderingTarget.VIEW_FRAME_BUFFER && renderingSprite != null) {
-                final float[] uvVertex = {
-                    1.0f, 1.0f,
-                    0.0f, 1.0f,
-                    0.0f, 0.0f,
-                    1.0f, 0.0f
-                };
-                renderingSprite.setColor(1.0f * getSpriteAlpha(0), 1.0f * getSpriteAlpha(0), 1.0f * getSpriteAlpha(0), getSpriteAlpha(0));
-
-                // 画面サイズを取得する。
-                int maxWidth = LAppDelegate.getInstance().getWindowWidth();
-                int maxHeight = LAppDelegate.getInstance().getWindowHeight();
-
-                renderingSprite.setWindowSize(maxWidth, maxHeight);
-                renderingSprite.renderImmediate(useTarget.getColorBuffer()[0], uvVertex);
-            }
+//            if (renderingTarget == RenderingTarget.VIEW_FRAME_BUFFER && renderingSprite != null) {
+//                final float[] uvVertex = {
+//                    1.0f, 1.0f,
+//                    0.0f, 1.0f,
+//                    0.0f, 0.0f,
+//                    1.0f, 0.0f
+//                };
+//                renderingSprite.setColor(1.0f * getSpriteAlpha(0), 1.0f * getSpriteAlpha(0), 1.0f * getSpriteAlpha(0), getSpriteAlpha(0));
+//
+//                // 画面サイズを取得する。
+//                int maxWidth = LAppDelegate.getInstance().getWindowWidth();
+//                int maxHeight = LAppDelegate.getInstance().getWindowHeight();
+//
+//                renderingSprite.setWindowSize(maxWidth, maxHeight);
+//                renderingSprite.renderImmediate(useTarget.getColorBuffer()[0], uvVertex);
+//            }
         }
     }
 
@@ -445,10 +367,6 @@ public class LAppView implements AutoCloseable {
 
     private CubismOffscreenSurfaceAndroid renderingBuffer = new CubismOffscreenSurfaceAndroid();
 
-    private LAppSprite backSprite;
-    private LAppSprite gearSprite;
-    private LAppSprite powerSprite;
-    private LAppSprite renderingSprite;
 
     /**
      * モデルの切り替えフラグ
@@ -457,8 +375,4 @@ public class LAppView implements AutoCloseable {
 
     private final TouchManager touchManager = new TouchManager();
 
-    /**
-     * シェーダー作成委譲クラス
-     */
-    private LAppSpriteShader spriteShader;
 }

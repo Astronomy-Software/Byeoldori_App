@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -27,10 +28,13 @@ fun Live2DScreen(
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
 
     // ✅ Live2DView를 화면 진입 시 생성
-    val live2DView = Live2DView(context).apply {
-        controller.attachView(this)
-        visibility = View.VISIBLE
+    val live2DView = remember {
+        Live2DView(context).apply {
+            controller.attachView(this)
+            visibility = View.VISIBLE
+        }
     }
+
 
     // 상태 구독
     val speech by controller.speech.collectAsState()
@@ -66,17 +70,28 @@ fun Live2DScreen(
                         Log.d("Live2DScreen", "⏸ onPause → Live2DView Pause")
                         live2DView.onPause()
                     }
+                    Lifecycle.Event.ON_STOP -> {
+                        // 🧩 onStop 시점에 detachView() 호출로 안정성 강화
+                        Log.d("Live2DScreen", "🧩 onStop → detach Live2DView")
+                        controller.detachView()
+                    }
                     Lifecycle.Event.ON_DESTROY -> {
-                        Log.d("Live2DScreen", "💀 onDestroy → release Live2D")
+                        Log.d("Live2DScreen", "💀 onDestroy → release Live2DView")
+                        live2DView.onPause()
                         controller.detachView()
                     }
                     else -> {}
                 }
             }
-            lifecycleOwner.lifecycle.addObserver(observer)
-            onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
-        }
 
+            lifecycleOwner.lifecycle.addObserver(observer)
+            onDispose {
+                Log.d("Live2DScreen", "🧹 onDispose → Live2DView detach")
+                controller.detachView()
+                live2DView.onPause()
+                lifecycleOwner.lifecycle.removeObserver(observer)
+            }
+        }
 
 
         CharacterSpeechBubble(
