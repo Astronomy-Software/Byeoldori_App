@@ -61,7 +61,7 @@ fun ObservatoryInfoCard(
                     } else {
                         Log.d(TAG_CARD, "No lat/lon -> show DUMMY")
                         // 더미 표시
-                        WeatherInfoCard(currentWeather = CurrentWeather("14°","35%","→ 3 m/s","75%",75))
+                        WeatherInfoCard(currentWeather = CurrentWeather("14°","35%","→ 3 m/s",75,75))
                     }
                     Spacer(Modifier.height(16.dp))
                 }

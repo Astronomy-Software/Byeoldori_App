@@ -9,8 +9,6 @@ import com.example.byeoldori.data.model.dto.CreatedPostId
 import com.example.byeoldori.data.model.dto.FreePostResponse
 import com.example.byeoldori.data.model.dto.LikeToggleResponse
 import com.example.byeoldori.data.model.dto.PostResponse
-import com.example.byeoldori.data.model.dto.SearchBy
-import com.example.byeoldori.data.model.dto.SortBy
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST

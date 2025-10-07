@@ -6,5 +6,5 @@ data class HourlyForecast(
     val temperature: String,// 예: "15°"
     val iconName: String,   // 예: "sunny" → drawable 리소스 이름
     val precipitation: String,   // 예: "100%"
-    val suitability: String // 예: "85%"
+    val suitability: Int // 예: "85%"
 )

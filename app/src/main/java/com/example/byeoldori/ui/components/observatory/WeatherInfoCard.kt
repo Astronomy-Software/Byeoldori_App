@@ -56,6 +56,8 @@ fun CurrentWeatherSection(
         }
     }
 }
+fun Int?.toPercent(): String = this?.let { "$it%" } ?: "-"
+
 
 // TODO : 여기도 내부의 컴포넌트들 파일 나눠야합니다.
 @Composable
@@ -100,7 +102,7 @@ fun WeatherInfoCard(
                 )
                 WeatherItem(
                     title = "관측 적합도",
-                    value = currentWeather.suitability,
+                    value = currentWeather.suitability.toPercent(),
                     iconResId = R.drawable.ic_thumbs_up,
                     valueColor = SuccessGreen,
                     modifier = Modifier.weight(1f)
@@ -174,7 +176,7 @@ private fun Preview_WeatherInfoCard_Summary() {
         temperature = "14°",
         humidity = "35%",
         windSpeed = "3 m/s",
-        suitability = "75%",
+        suitability = 75,
         windDirection = 245
     )
 

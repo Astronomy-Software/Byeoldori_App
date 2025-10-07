@@ -64,29 +64,29 @@ private val HOUR_OUT_FMT = DateTimeFormatter.ofPattern("H시")
 
 
 //초단기 데이터
-private fun mapUltraHourly(response: ForecastResponse): List<HourlyForecast> {
-    val items = response.ultraForecastResponse
-    if(items.isEmpty()) return emptyList()
-
-    return items.map { u ->
-        val date = LocalDateTime.parse(u.tmef, TM_FMT)
-        HourlyForecast(
-            date = date.toLocalDate().format(OUT_DATE_FMT),
-            time = date.format(HOUR_OUT_FMT),
-            temperature = "${u.t1h}°",
-            iconName = shortWeatherIcon(u.sky ?: 1, u.pty ?: 0,day = true),
-            precipitation = "${u.rn1}mm",
-            suitability = "-" //나중에
-        )
-    }.sortedBy { it.time }
-}
+//private fun mapUltraHourly(response: ForecastResponse): List<HourlyForecast> {
+//    val items = response.ultraForecastResponse
+//    if(items.isEmpty()) return emptyList()
+//
+//    return items.map { u ->
+//        val date = LocalDateTime.parse(u.tmef, TM_FMT)
+//        HourlyForecast(
+//            date = date.toLocalDate().format(OUT_DATE_FMT),
+//            time = date.format(HOUR_OUT_FMT),
+//            temperature = "${u.t1h}°",
+//            iconName = shortWeatherIcon(u.sky ?: 1, u.pty ?: 0,day = true),
+//            precipitation = "${u.rn1}mm",
+//            suitability = "-" //나중에
+//        )
+//    }.sortedBy { it.time }
+//}
 
 //현재 위치에 대한 날씨 데이터(초단기 사용)
 private fun UltraForecast.toCurrentWeather(): CurrentWeather = CurrentWeather(
     temperature = "${t1h}°",
     humidity = "${reh}%",
     windSpeed = "${wsd?.roundToInt()} m/s",
-    suitability ="-",
+    suitability = suitability,
     windDirection = Math.floorMod((vec ?: 0), 360)
 )
 
@@ -104,7 +104,7 @@ private fun mapShortHourly(response: ForecastResponse): List<HourlyForecast> {
             temperature = "${s.tmp}°",
             iconName = shortWeatherIcon(s.sky ?: 0, s.pty ?: 0, day = isDay),
             precipitation = "${s.pop}%",
-            suitability = "-" //나중에
+            suitability =  s.suitability
         )
     }.sortedBy { it.time }
 }
@@ -140,7 +140,7 @@ fun mapMidToDaily(response: ForecastResponse): List<DailyForecast> {
                 pmIcon = pmIcon,
                 dayTemp = "${tMax ?: ""}°",
                 nightTemp = "${tMin ?: ""}°",
-                suitability = "-" // 나중에
+                suitability = list.maxOfOrNull { it.suitability } ?: 0 //가장 높은 값 사용
             )
         }
         .sortedBy { parseMonthDay(it.date) } //모든 날짜별 데이터를 리스트로 변환

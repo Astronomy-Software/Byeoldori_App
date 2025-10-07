@@ -18,7 +18,8 @@ data class UltraForecast(
     val pty: Int?, //강수 형태
     val rn1: Double?, //1시간 강수량
     val reh: Int?, //상대습도
-    val sky: Int? //하늘 상태
+    val sky: Int?, //하늘 상태
+    val suitability: Int //관측 적합도
 )
 
 @JsonClass(generateAdapter = true)
@@ -35,6 +36,7 @@ data class ShortForecast(
     val pcp: Double?,
     val sno: Double?,
     val reh: Int?,
+    val suitability: Int //관측 적합도
 )
 
 @JsonClass(generateAdapter = true)
@@ -47,5 +49,6 @@ data class MidForecast(
     val pre: String?,
     val rnSt: Int?,
     val min: Int?,
-    val max: Int?
+    val max: Int?,
+    val suitability: Int //관측 적합도
 )

@@ -8,6 +8,6 @@ data class DailyForecast(
     val pmIcon: String,
     val dayTemp: String,
     val nightTemp: String,
-    val suitability: String
+    val suitability: Int
 )
 
