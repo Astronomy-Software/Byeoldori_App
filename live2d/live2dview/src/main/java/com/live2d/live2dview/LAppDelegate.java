@@ -85,7 +85,7 @@ public class LAppDelegate {
 
         // AppViewの初期化
         view.initialize();
-        view.initializeSprite();
+//        view.initializeSprite();
 
         // load models
         if (LAppLive2DManager.getInstance().getCurrentModel() != currentModel) {

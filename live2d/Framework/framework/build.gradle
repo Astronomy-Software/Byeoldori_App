@@ -28,14 +28,7 @@ android {
     }
 }
 
-//java {
-//    toolchain {
-//        languageVersion = JavaLanguageVersion.of(21)
-//    }
-//}
-
 dependencies {
-//    compileOnly(fileTree(dir: '../../Core/android', include: ['Live2DCubismCore.aar']))
     implementation(fileTree(dir: '../../Core/android', include: ['Live2DCubismCore.aar']))
 
     testImplementation 'junit:junit:4.13.2'
