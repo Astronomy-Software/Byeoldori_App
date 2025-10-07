@@ -1,11 +1,11 @@
 {
 	"Version": 3,
 	"FileReferences": {
-		"Moc": "byeoldori.moc3",
+		"Moc": "Byeoldori.moc3",
 		"Textures": [
-			"byeoldori.1024/texture_00.png"
+			"Byeoldori.1024/texture_00.png"
 		],
-		"DisplayInfo": "byeoldori.cdi3.json",
+		"DisplayInfo": "Byeoldori.cdi3.json",
 		"Motions": {
 			"": [
 				{

@@ -632,6 +632,14 @@ public class LAppModel extends CubismUserModel {
         }
     }
 
+    /**
+     * 사용자 추가함수
+     * 로딩된 모션의 그룹 이름 목록을 반환합니다.
+     */
+    public List<String> getMotionGroupNames() {
+        return new ArrayList<>(motions.keySet()); // motions 맵의 키(그룹 이름) 반환
+    }
+
     private ICubismModelSetting modelSetting;
     /**
      * モデルのホームディレクトリ

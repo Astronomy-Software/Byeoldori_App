@@ -9,7 +9,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.byeoldori.character.Live2DComposeView
+import com.example.byeoldori.character.Live2DScreen
 import com.example.byeoldori.ui.screen.SplashScreen
 import com.example.byeoldori.viewmodel.AuthViewModel
 import kotlinx.coroutines.delay
@@ -45,6 +45,6 @@ fun AppEntry() {
         } else {
             AuthRoot()
         }
-        Live2DComposeView()
+        Live2DScreen()
     }
 }

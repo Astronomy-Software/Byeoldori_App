@@ -279,6 +279,18 @@ public class LAppLive2DManager {
         }
     }
 
+    /**
+     * 사용자 추가함수
+     * 사용 가능한 모션 그룹들을 받습니다.
+     */
+    public List<String> getAvailableMotionGroups() {
+        if (models == null || models.size() <= currentModel || models.get(currentModel) == null) {
+            return Collections.emptyList();
+        }
+
+        return models.get(currentModel).getMotionGroupNames();
+    }
+
     private static final FinishedMotion finishedMotion = new FinishedMotion();
 
     /**
