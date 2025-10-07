@@ -1,7 +1,6 @@
 // ReviewCard.kt
 package com.example.byeoldori.ui.components.observatory
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -19,15 +18,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
 import coil.compose.AsyncImage
 import com.example.byeoldori.R
+import com.example.byeoldori.domain.Content
 import com.example.byeoldori.ui.theme.*
-import com.example.byeoldori.viewmodel.Observatory.Review
+import com.example.byeoldori.domain.Observatory.Review
 import com.example.byeoldori.viewmodel.dummyReviews
 import com.google.accompanist.pager.*
 import kotlinx.coroutines.launch
 import com.example.byeoldori.ui.components.community.EditorItem
 import com.example.byeoldori.ui.components.community.LikeState
-import com.example.byeoldori.ui.components.community.likedKeyFree
-import com.example.byeoldori.ui.components.community.likedKeyProgram
 import com.example.byeoldori.ui.components.community.likedKeyReview
 import com.example.byeoldori.viewmodel.dummyReviewComments
 
@@ -124,12 +122,6 @@ fun ReviewCard(
     commentCount: Int = review.commentCount,
     onSyncLikeCount: (Int) -> Unit = {}
 ) {
-    //좋아요 수 동기화 하기 위함
-//    val likeKey = when {
-//        ':' in review.id -> review.id                // "review:xxx" / "program:xxx" / "free:xxx"
-//        else             -> likedKeyReview(review.id) // 접두사 없으면 리뷰로 간주
-//    }
-//    val isLiked = likeKey in LikeState.ids
     val likeKey = if (':' in review.id) review.id else likedKeyReview(review.id)
     val isLiked = likeKey in LikeState.ids
     var likeCount by remember { mutableStateOf(review.likeCount) }
@@ -146,8 +138,12 @@ fun ReviewCard(
     ) {
         Column(Modifier.fillMaxSize()) {
             //대표 이미지
-            val thumb = review.contentItems.firstOrNull { it is EditorItem.Photo } as? EditorItem.Photo
-            val model = thumb?.model ?: R.drawable.img_dummy
+            val thumb = review.contentItems.firstOrNull { it is Content.Image } as? Content.Image
+            val model: Any = when (thumb) {
+                is Content.Image.Url -> thumb.url
+                is Content.Image.Resource -> thumb.resId
+                else -> R.drawable.img_dummy
+            }
             val imageModifier = Modifier
                 .fillMaxWidth()
                 .padding(10.dp)

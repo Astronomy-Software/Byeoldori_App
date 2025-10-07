@@ -14,10 +14,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
 import com.example.byeoldori.R
+import com.example.byeoldori.domain.Community.EduProgram
+import com.example.byeoldori.domain.Community.ReviewComment
 import com.example.byeoldori.ui.components.community.*
 import com.example.byeoldori.ui.components.community.review.*
+import com.example.byeoldori.ui.mapper.toUi
 import com.example.byeoldori.ui.theme.*
-import com.example.byeoldori.viewmodel.Community.*
 import com.example.byeoldori.viewmodel.dummyProgramComments
 import com.example.byeoldori.viewmodel.dummyPrograms
 
@@ -187,7 +189,7 @@ fun EduProgramDetail(
                 }
                 Spacer(Modifier.height(16.dp))
                 ContentInput( //내용 입력(텍스트 + 이미지)
-                    items = program.contentItems,
+                    items = program.contentItems.toUi(),
                     onItemsChange = {},
                     onPickImages = {},
                     onCheck = {},

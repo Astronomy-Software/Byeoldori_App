@@ -8,6 +8,6 @@ interface WeatherApi {
     @GET("weather/ForecastData")
     suspend fun getForecastData(
         @Query("lat") lat: Double,
-        @Query("long") long: Double
+        @Query("lon") long: Double
     ): ForecastResponse
 }

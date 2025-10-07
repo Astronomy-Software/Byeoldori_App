@@ -15,8 +15,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
 import com.example.byeoldori.R
 import com.example.byeoldori.ui.theme.*
-import com.example.byeoldori.viewmodel.Observatory.MarkerInfo
-import com.example.byeoldori.viewmodel.Observatory.ObservatoryType
+import com.example.byeoldori.domain.Observatory.MarkerInfo
+import com.example.byeoldori.domain.Observatory.ObservatoryType
 
 //기본 정보 카드
 @Composable
@@ -100,14 +100,13 @@ fun BasicInfoCard(
                     Text(
                         "도로명 주소",
                         color = TextHighlight,
-                        modifier = Modifier.weight(2f),
-                        maxLines = 1
+                        modifier = Modifier.weight(2f)
                     )
                     Text(
                         text = info.address,
                         color = TextHighlight,
                         modifier = Modifier.weight(5f),
-                        maxLines = 1,
+                        maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
                 }
@@ -124,7 +123,9 @@ private val previewMarkerInfo = MarkerInfo(
     rating = 4.3f,
     suitability = 87,
     address = "경기도 오산시 오산천로 254-5",
-    drawableRes = R.drawable.img_dummy
+    drawableRes = R.drawable.img_dummy,
+    latitude = 36.23,
+    longitude = 127.23
 )
 
 @Preview(

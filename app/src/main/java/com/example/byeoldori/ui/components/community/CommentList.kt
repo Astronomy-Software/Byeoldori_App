@@ -4,7 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.*
-import com.example.byeoldori.viewmodel.Community.ReviewComment
+import com.example.byeoldori.domain.Community.ReviewComment
 
 //여기서는 댓글 추가와 대댓글 관리
 @Composable

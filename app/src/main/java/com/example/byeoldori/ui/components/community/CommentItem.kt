@@ -13,7 +13,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
 import com.example.byeoldori.R
 import com.example.byeoldori.ui.theme.*
-import com.example.byeoldori.viewmodel.Community.ReviewComment
+import com.example.byeoldori.domain.Community.ReviewComment
 import com.example.byeoldori.viewmodel.dummyFreeComments
 
 @Composable

@@ -1,4 +1,4 @@
-package com.example.byeoldori.viewmodel.Community
+package com.example.byeoldori.domain.Community
 
 data class ReviewComment(
     val id: String,

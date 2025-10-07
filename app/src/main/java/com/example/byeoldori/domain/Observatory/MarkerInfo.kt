@@ -1,4 +1,4 @@
-package com.example.byeoldori.viewmodel.Observatory
+package com.example.byeoldori.domain.Observatory
 
 data class MarkerInfo(
     val name: String,
@@ -8,5 +8,7 @@ data class MarkerInfo(
     val rating: Float,
     val suitability: Int,
     val address: String,
-    val drawableRes: Int
+    val drawableRes: Int,
+    val latitude: Double,
+    val longitude: Double
 )

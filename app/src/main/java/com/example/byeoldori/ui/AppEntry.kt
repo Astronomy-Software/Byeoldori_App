@@ -31,15 +31,10 @@ fun AppEntry() {
         SplashScreen(onSplashFinished = {})   // 컴포저블 스플래시
         return
     }
-    // 로그인 분기 → MainRoot or AuthRoot
     val authVm: AuthViewModel = hiltViewModel() // ✅ Hilt ViewModelFactory 사용
     val signedIn by authVm.isSignedIn.collectAsState()
 
-//     테스트용 signedIn
-//    val signedIn = true
-//     val signedIn = false
     Box {
-        // 항상 깔려 있는 Live2D
         if (signedIn) {
             MainRoot()
         } else {

@@ -1,6 +1,7 @@
 // ObservatoryInfoCard.kt
 package com.example.byeoldori.ui.components.observatory
 
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
 import androidx.compose.material3.*
@@ -10,17 +11,20 @@ import androidx.compose.ui.graphics.*
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
 import com.example.byeoldori.R
+import com.example.byeoldori.domain.Observatory.CurrentWeather
+import com.example.byeoldori.domain.Observatory.MarkerInfo
+import com.example.byeoldori.domain.Observatory.ObservatoryType
 import com.example.byeoldori.ui.theme.*
-import com.example.byeoldori.viewmodel.Observatory.*
-import com.example.byeoldori.viewmodel.dummyCurrentWeather
-import com.example.byeoldori.viewmodel.dummyDailyForecasts
-import com.example.byeoldori.viewmodel.dummyHourlyForecasts
 import com.example.byeoldori.viewmodel.dummyReviews
+
+private const val TAG_CARD = "ObservatoryCard"
 
 @Composable
 fun ObservatoryInfoCard(
     info: MarkerInfo,
     listState: LazyListState,
+    currentLat: Double? = null,
+    currentLon: Double? = null,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -30,7 +34,6 @@ fun ObservatoryInfoCard(
         shape = RectangleShape,
         colors = CardDefaults.cardColors(containerColor = Color.Transparent)
     ) {
-        //그라데이션 배경
         Box(
             modifier = Modifier.fillMaxSize()
         ) {
@@ -50,18 +53,33 @@ fun ObservatoryInfoCard(
 
                 // 2) 현재 날씨 카드
                 item {
-                    WeatherInfoCard(currentWeather = dummyCurrentWeather)
+                    val lat = currentLat
+                    val lon = currentLon
+                    if (lat != null && lon != null) {
+                        Log.d(TAG_CARD, "CurrentWeatherSection(lat=$lat, lon=$lon)")
+                        CurrentWeatherSection(lat = lat, lon = lon)
+                    } else {
+                        Log.d(TAG_CARD, "No lat/lon -> show DUMMY")
+                        // 더미 표시
+                        WeatherInfoCard(currentWeather = CurrentWeather("14°","35%","→ 3 m/s","75%",75))
+                    }
                     Spacer(Modifier.height(16.dp))
                 }
                 //2-1) 시간별 섹션 (더미 주입)
                 item {
-                    WeatherHourlySection(forecasts = dummyHourlyForecasts)
+                    WeatherHourlyPanel(
+                        lat = info.latitude,
+                        lon = info.longitude
+                    )
                     Spacer(Modifier.height(12.dp))
                 }
 
                 //2-2) 일별 섹션 (더미 주입)
                 item {
-                    DailyForecastListSection(forecasts = dummyDailyForecasts)
+                    WeatherDailyPanel(
+                        lat = info.latitude,
+                        lon = info.longitude
+                    )
                     Spacer(Modifier.height(16.dp))
                 }
 
@@ -102,7 +120,9 @@ private fun Preview_ObservatoryInfoCard() {
         rating = 4.3f,
         suitability = 87,
         address = "경기도 오산시 오산천로 254-5",
-        drawableRes = R.drawable.img_dummy
+        drawableRes = R.drawable.img_dummy,
+        latitude = 37.33,
+        longitude = 126.23
     )
 
     MaterialTheme {
