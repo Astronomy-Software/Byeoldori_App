@@ -146,8 +146,6 @@ fun Live2DTestUI(
             }
         }
 
-
-
         // 모션 새로고침
         item {
             Button(onClick = { controller.refreshMotions() }) { Text("🔄 모션 새로고침") }

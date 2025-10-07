@@ -284,7 +284,7 @@ public class LAppLive2DManager {
      * 사용 가능한 모션 그룹들을 받습니다.
      */
     public List<String> getAvailableMotionGroups() {
-        if (models == null || models.size() <= currentModel || models.get(currentModel) == null) {
+        if (models.size() <= currentModel || models.get(currentModel) == null) {
             return Collections.emptyList();
         }
 
