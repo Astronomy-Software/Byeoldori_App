@@ -35,7 +35,7 @@ private fun Context.findActivity(): Activity? = when (this) {
  * @param modifier Composable View의 레이아웃 및 기타 속성을 정의합니다.
  */
 @Composable
-fun Live2DComposeView(modifier: Modifier = Modifier) {
+fun Live2DComposeView(modifier: Modifier = Modifier ) {
     val context = LocalContext.current
     val activity = context.findActivity()
         ?: throw IllegalStateException("Live2DComposeView must be used within an Activity context.")
@@ -50,6 +50,7 @@ fun Live2DComposeView(modifier: Modifier = Modifier) {
         modifier = modifier.width(200.dp).height(200.dp),
         factory = {
             LAppDelegate.getInstance().onStart(activity)
+            live2DView.setZOrderOnTop(true)
             live2DView
         }
     )
@@ -66,7 +67,7 @@ fun Live2DComposeView(modifier: Modifier = Modifier) {
             // LAppDelegate의 종료 로직 실행
             LAppDelegate.getInstance().onStop()
             LAppDelegate.getInstance().onDestroy()
-            LAppDelegate.releaseInstance() // 싱글톤 인스턴스 해제
+            LAppDelegate.releaseInstance()
         }
     }
 }

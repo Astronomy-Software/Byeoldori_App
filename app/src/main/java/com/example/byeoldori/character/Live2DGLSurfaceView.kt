@@ -18,13 +18,8 @@ class Live2DGLSurfaceView(context: Context) : GLSurfaceView(context) {
     private val live2DRenderer: GLRenderer = GLRenderer()
 
     init {
-        // OpenGL ES 2.0 이용 설정
         setEGLContextClientVersion(2)
-        // --- ★배경 투명화 설정 추가★ ---
-        // 1. EGL Config Chooser 설정: RGBA 8비트씩 할당하여 알파 채널을 확보합니다.
         setEGLConfigChooser(8, 8, 8, 8, 16, 0)
-
-        // 2. SurfaceView 홀더 포맷을 투명(TRANSLUCENT)으로 설정합니다.
         holder.setFormat(PixelFormat.TRANSLUCENT)
         // Live2D 렌더링을 담당하는 GLRenderer 연결
         setRenderer(live2DRenderer)
