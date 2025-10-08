@@ -219,7 +219,8 @@ fun EduProgramDetail(
                 LikeCommentBar(
                     key = likedKeyProgram(program.id),
                     likeCount = postLikeCount,
-                    onLikeCountChange = { postLikeCount = it },
+                    liked = liked.contains(likedKeyProgram(program.id)),
+                    onToggle = {},
                     onSyncLikeCount = { next ->
                         // 목록 원본 동기화(정렬/표시 일치)
                         val idx = dummyPrograms.indexOfFirst { it.id == program.id }

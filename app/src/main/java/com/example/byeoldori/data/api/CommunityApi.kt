@@ -1,14 +1,14 @@
 package com.example.byeoldori.data.api
 
-import com.example.byeoldori.data.model.dto.CommunityType
 import com.example.byeoldori.data.model.dto.CreateEducationRequest
 import com.example.byeoldori.data.model.dto.CreateFreeRequest
-import com.example.byeoldori.data.model.dto.CreatePostRequest
 import com.example.byeoldori.data.model.dto.CreateReviewRequest
 import com.example.byeoldori.data.model.dto.CreatedPostId
 import com.example.byeoldori.data.model.dto.FreePostResponse
 import com.example.byeoldori.data.model.dto.LikeToggleResponse
 import com.example.byeoldori.data.model.dto.PostResponse
+import com.example.byeoldori.data.model.dto.ReviewPostResponse
+import com.example.byeoldori.data.model.dto.ReviewResponse
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
@@ -26,11 +26,14 @@ interface CommunityApi {
         @Query("searchBy") searchBy: String = "TITLE"
     ): PostResponse
 
-    @POST("community/{type}/posts")
-    suspend fun createPost(
-        @Path("type") type: String,
-        @Body request: CreatePostRequest
-    ): CreatedPostId //응답은 Id로만
+    @GET("community/REVIEW/posts")
+    suspend fun getReviewPosts(
+        @Query("page") page: Int = 0,
+        @Query("size") size: Int = 20,
+        @Query("sortBy") sortBy: String = "LATEST",
+        @Query("keyword") keyword: String? = null,
+        @Query("searchBy") searchBy: String = "TITLE"
+    ): ReviewPostResponse
 
     @POST("community/FREE/posts")
     suspend fun createFreePost(@Body body: CreateFreeRequest): CreatedPostId
@@ -41,11 +44,15 @@ interface CommunityApi {
     @POST("community/EDUCATION/posts")
     suspend fun createEducationPost(@Body body: CreateEducationRequest): CreatedPostId
 
-
     @GET("community/posts/{postId}")
     suspend fun getPostDetail(
         @Path("postId") postId: Long
     ): FreePostResponse
+
+    @GET("community/posts/{postId}")
+    suspend fun getReviewDetail(
+        @Path("postId") postId: Long
+    ): ReviewResponse
 
     @POST("community/posts/{id}/likes/toggle")
     suspend fun toggleLike(@Path("id") id: Long): LikeToggleResponse

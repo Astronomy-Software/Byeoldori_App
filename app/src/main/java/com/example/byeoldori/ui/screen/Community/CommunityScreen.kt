@@ -9,7 +9,6 @@ import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.*
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.byeoldori.data.model.dto.CommunityType
 import com.example.byeoldori.data.model.dto.FreePostResponse
 import com.example.byeoldori.ui.components.community.*
 import com.example.byeoldori.ui.components.community.program.*
@@ -53,6 +52,7 @@ fun CommunityScreen(
     val selectedPost by vm.selectedPost.collectAsState()
     val postDetailState by vm.postDetail.collectAsState()
     val currentSort by vm.sort.collectAsState()
+    val reviewVm: ReviewViewModel = hiltViewModel()
 
     LaunchedEffect(tab) {
         if (tab == CommunityTab.Board) {
@@ -126,7 +126,8 @@ fun CommunityScreen(
                     if (j >= 0) {
                         dummyReviews[j] = dummyReviews[j].copy(likeCount = next)
                     }
-                }
+                },
+                vm = reviewVm
             )
         }
         tab == CommunityTab.Board && selectedPost != null -> {

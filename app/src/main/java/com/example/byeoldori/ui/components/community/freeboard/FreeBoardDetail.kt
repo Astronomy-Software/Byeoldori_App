@@ -42,17 +42,16 @@ fun FreeBoardDetail (
     val focusRequester = remember { FocusRequester() }
     var editingTarget by remember { mutableStateOf<ReviewComment?>(null) }
     var requestKeyboard by remember { mutableStateOf(false) }
-    //var postLikeCount by rememberSaveable { mutableStateOf(post.likeCount) }
     var parent by remember { mutableStateOf<ReviewComment?>(null) }
-    val likeState by vm.likeState.collectAsState()
+
+    val likeCounts by vm.likeCounts.collectAsState()
     val likedIds by vm.likedIds.collectAsState()
+
     val likeKey = likedKeyFree(post.id)
-    val isLiked = likeKey in likedIds
+    val liked = likeKey in likedIds
+    val likeCount = likeCounts[post.id] ?: apiPost?.likeCount ?: post.likeCount
 
 
-    var postLikeCount by rememberSaveable(post.id) {
-        mutableStateOf(apiPost?.likeCount ?: post.likeCount)
-    }
 
     LaunchedEffect(requestKeyboard) {
         if (requestKeyboard) {
@@ -62,12 +61,12 @@ fun FreeBoardDetail (
         }
     }
 
-    LaunchedEffect(likeState) {
-        val s = likeState
-        if (s is UiState.Success) {
-            postLikeCount = s.data.likes.toInt()   // 서버 최종값으로 맞추기
-        }
-    }
+//    LaunchedEffect(likeState) {
+//        val s = likeState
+//        if (s is UiState.Success) {
+//            postLikeCount = s.data.likes.toInt()   // 서버 최종값으로 맞추기
+//        }
+//    }
 
     Scaffold(
         contentWindowInsets = WindowInsets(0),
@@ -223,18 +222,10 @@ fun FreeBoardDetail (
                 //좋아요 + 댓글바
                 LikeCommentBar(
                     key = likedKeyFree(post.id),
-                    likeCount = postLikeCount,
-                    onLikeCountChange = {},
-                    onSyncLikeCount = { next ->
-                        // 목록 원본 동기화(정렬/표시 일치)
-//                        val idx = dummyFreePosts.indexOfFirst { it.id == post.id }
-//                        if (idx >= 0) dummyFreePosts[idx] = dummyFreePosts[idx].copy(likeCount = next)
-
-                        val key = likedKeyFree(post.id)
-                        LikeState.ids = if (key in LikeState.ids) LikeState.ids - key else LikeState.ids + key
-                        vm.toggleLikedLocal(likeKey)
-                        vm.toggleLike(post.id.toLong())
-                    },
+                    likeCount = likeCount,
+                    liked = liked,
+                    onToggle = { vm.toggleLike(post.id.toLong()) },
+                    onSyncLikeCount = {},
                     commentCount = dummyFreeComments.count { it.reviewId == post.id }
                 )
 

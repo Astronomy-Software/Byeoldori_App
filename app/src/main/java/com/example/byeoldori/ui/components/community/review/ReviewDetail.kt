@@ -18,8 +18,12 @@ import com.example.byeoldori.ui.components.community.*
 import com.example.byeoldori.ui.theme.*
 import com.example.byeoldori.domain.Community.ReviewComment
 import androidx.compose.ui.focus.*
+import androidx.compose.ui.text.input.TextFieldValue
+import com.example.byeoldori.data.model.dto.ReviewPostResponse
+import com.example.byeoldori.data.model.dto.ReviewResponse
 import com.example.byeoldori.domain.Observatory.Review
 import com.example.byeoldori.ui.mapper.toUi
+import com.example.byeoldori.viewmodel.ReviewViewModel
 import com.example.byeoldori.viewmodel.dummyReviewComments
 import com.example.byeoldori.viewmodel.dummyReviews
 
@@ -38,7 +42,9 @@ fun ReviewDetail(
     onShare: () -> Unit = {},
     onMore: () -> Unit = {},
     currentUser: String,
-    onSyncReviewLikeCount: (id: String, next: Int) -> Unit
+    onSyncReviewLikeCount: (id: String, next: Int) -> Unit,
+    apiDetail: ReviewResponse? = null, // 서버에서 가져온 상세(요약/카운트)
+    vm: ReviewViewModel
 ) {
     val imeVisible = rememberIsImeVisible()
     val tailRequester = remember { BringIntoViewRequester() } //키보드가 올라왔을 때 댓글창 숨어버리는 거 방지
@@ -169,7 +175,7 @@ fun ReviewDetail(
             item {
                 Spacer(Modifier.height(10.dp))
                 Text( // 제목
-                    text = review.title,
+                    text = apiDetail?.title ?: review.title,
                     style = MaterialTheme.typography.headlineSmall.copy(
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp,
@@ -190,14 +196,16 @@ fun ReviewDetail(
                     Spacer(Modifier.width(8.dp))
                     Column {
                         Text( //사용자 이름
-                            text = review.author,
+                            text = apiDetail?.authorNickname ?: review.author,
                             style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                             fontSize = 17.sp,
                             color = TextHighlight
                         )
                         Spacer(Modifier.height(4.dp))
                         Text( //작성일
-                            text = review.createdAt.toShortDate(),
+                            text = (apiDetail?.createdAt ?: review.createdAt.toShortDate()).let {
+                                if (apiDetail != null) it.toShortDate() else it
+                            },
                             style = MaterialTheme.typography.bodySmall.copy(color = TextDisabled),
                             fontSize = 17.sp
                         )
@@ -224,7 +232,11 @@ fun ReviewDetail(
                     enabled = false //수정 못하게
                 )
                 ContentInput(
-                    items = review.contentItems.toUi(),
+                    items = if (apiDetail != null) {
+                        listOf(EditorItem.Paragraph(value = TextFieldValue(apiDetail.contentSummary.orEmpty())))
+                    } else {
+                        review.contentItems.toUi()
+                    },
                     onItemsChange = {},
                     onCheck = {},
                     onPickImages = {},
@@ -237,7 +249,9 @@ fun ReviewDetail(
                 LikeCommentBar(
                     key = likedKeyReview(review.id),
                     likeCount = reviewLikeCount,
-                    onLikeCountChange = { reviewLikeCount = it },
+                    liked = LikeState.ids.contains(likedKeyReview(review.id)),
+                    onToggle = {},
+                   // onLikeCountChange = { reviewLikeCount = it },
                     onSyncLikeCount = { next ->
                         onSyncReviewLikeCount(review.id, next)
                     },
@@ -276,10 +290,10 @@ fun ReviewDetail(
     }
 }
 
-@Preview(showBackground = true, backgroundColor = 0xFF241860, widthDp = 500, heightDp = 1200)
-@Composable
-private fun Preview_ReviewDetail() {
-    MaterialTheme {
-        ReviewDetail(review = dummyReviews.first(), currentUser = "astro_user",onSyncReviewLikeCount = { _, _ -> })
-    }
-}
+//@Preview(showBackground = true, backgroundColor = 0xFF241860, widthDp = 500, heightDp = 1200)
+//@Composable
+//private fun Preview_ReviewDetail() {
+//    MaterialTheme {
+//        ReviewDetail(review = dummyReviews.first(), currentUser = "astro_user",onSyncReviewLikeCount = { _, _ -> })
+//    }
+//}

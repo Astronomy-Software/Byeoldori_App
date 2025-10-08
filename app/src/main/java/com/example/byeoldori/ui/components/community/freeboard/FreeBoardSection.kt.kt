@@ -91,8 +91,9 @@ fun FreeBoardSection(
     var searchText by remember { mutableStateOf("") } //초기값이 빈 문자열인 변할 수 있는 상태 객체
     var sort by remember { mutableStateOf(FreeBoardSort.Latest) }
     val listState = rememberLazyListState()
-    val likeState by vm.likeState.collectAsState()
-    val likedIds by vm.likedIds.collectAsState()
+
+    val likedIds   by vm.likedIds.collectAsState()
+    val likeCounts by vm.likeCounts.collectAsState()
 
     // 검색만
     val filtered = run {
@@ -159,12 +160,14 @@ fun FreeBoardSection(
                 items(filtered, key = { it.id }) { post ->
                     val likeKey = likedKeyFree(post.id)
                     val isLiked = likeKey in likedIds
+                    val count = likeCounts[post.id] ?: post.likeCount
                     val liveCommentCount = dummyFreeComments.count { it.reviewId == post.id }
+
                     Column {
                         FreeBoardItem(
                             post = post,
                             commentCount = liveCommentCount,
-                            likeCount = post.likeCount,
+                            likeCount = count,
                             isLiked = isLiked,
                             onClick = { onClickPost(post.id) },
                             onLikeClick = { vm.toggleLike(post.id.toLong()) }

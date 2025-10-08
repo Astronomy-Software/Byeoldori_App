@@ -1,23 +1,41 @@
 package com.example.byeoldori.data.repository
 
+import android.content.Context
 import android.util.Log
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringSetPreferencesKey
+import androidx.datastore.preferences.preferencesDataStore
 import com.example.byeoldori.data.api.CommunityApi
-import com.example.byeoldori.data.model.dto.CommunityType
 import com.example.byeoldori.data.model.dto.CreateFreeRequest
-import com.example.byeoldori.data.model.dto.CreatePostRequest
-import com.example.byeoldori.data.model.dto.Difficulty
-import com.example.byeoldori.data.model.dto.EduStatus
-import com.example.byeoldori.data.model.dto.EducationDto
 import com.example.byeoldori.data.model.dto.FreePostResponse
 import com.example.byeoldori.data.model.dto.LikeToggleResponse
-import com.example.byeoldori.data.model.dto.ReviewDto
 import com.example.byeoldori.data.model.dto.SearchBy
 import com.example.byeoldori.data.model.dto.SortBy
-import com.example.byeoldori.ui.components.community.freeboard.FreeBoardSort
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
-class CommunityRepository @Inject constructor(
+private val Context.likedDataStore by preferencesDataStore(name = "liked_store")
+object LikedPrefs {
+    private val LIKED_KEYS = stringSetPreferencesKey("liked_keys")
+
+    suspend fun saveLikedKeys(context: Context, keys: Set<String>) {
+        context.likedDataStore.edit { prefs ->
+            prefs[LIKED_KEYS] = keys
+        }
+    }
+
+    suspend fun loadLikedKeys(context: Context): Set<String> {
+        return context.likedDataStore.data
+            .map { it[LIKED_KEYS] ?: emptySet() }
+            .first()
+    }
+}
+
+class FreeRepository @Inject constructor(
     private val api: CommunityApi,
+    @ApplicationContext private val context: Context
 ) {
 
     suspend fun getAllPosts(
@@ -74,5 +92,12 @@ class CommunityRepository @Inject constructor(
             }
             throw e
         }
+    }
+    suspend fun saveLikedKeys(keys: Set<String>) {
+        LikedPrefs.saveLikedKeys(context, keys)
+    }
+
+    suspend fun loadLikedKeys(): Set<String> {
+        return LikedPrefs.loadLikedKeys(context)
     }
 }

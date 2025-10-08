@@ -4,11 +4,10 @@ import android.net.Uri
 import android.util.Log
 import kotlinx.coroutines.flow.asStateFlow
 import androidx.lifecycle.viewModelScope
-import com.example.byeoldori.data.model.dto.CommunityType
 import com.example.byeoldori.data.model.dto.FreePostResponse
 import com.example.byeoldori.data.model.dto.LikeToggleResponse
 import com.example.byeoldori.data.model.dto.SortBy
-import com.example.byeoldori.data.repository.CommunityRepository
+import com.example.byeoldori.data.repository.FreeRepository
 import com.example.byeoldori.ui.components.community.likedKeyFree
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,12 +15,13 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class CommunityViewModel @Inject constructor(
-    private val repo: CommunityRepository
+    private val repo: FreeRepository
 ): BaseViewModel() {
 
     private val _postsState = MutableStateFlow<UiState<List<FreePostResponse>>>(UiState.Idle)
@@ -45,13 +45,21 @@ class CommunityViewModel @Inject constructor(
     private val _likedIds = MutableStateFlow<Set<String>>(emptySet())
     val likedIds: StateFlow<Set<String>> = _likedIds
 
-    init { loadPosts() }
+    private val _likeCounts = MutableStateFlow<Map<String, Int>>(emptyMap())
+    val likeCounts: StateFlow<Map<String, Int>> = _likeCounts
+
+    init {
+        restoreLikedFromLocal()
+        loadPosts()
+    }
 
     fun loadPosts() = viewModelScope.launch {
         _postsState.value = UiState.Loading
         try {
             val posts = repo.getAllPosts(sort.value)
             _postsState.value = UiState.Success(posts)
+            //리스트 받아올 때 현재 개수 반영
+            _likeCounts.update { it + posts.associate { p-> p.id.toString() to p.likeCount } }
         } catch (e: Exception) {
             _postsState.value = UiState.Error(handleException(e))
         }
@@ -104,38 +112,60 @@ class CommunityViewModel @Inject constructor(
     fun clearCreateState() { _createState.value = UiState.Idle }
 
     fun toggleLike(postId: Long) = viewModelScope.launch {
+        val key = likedKeyFree(postId.toString())
         _likeState.value = UiState.Loading
-        runCatching {
-            repo.toggleLike(postId)
-        }.onSuccess { res ->
-            _likeState.value = UiState.Success(res)
-            Log.d("CommunityVM", "좋아요 성공: liked=${res.liked}, likes=${res.likes}")
 
-            val key = likedKeyFree(postId.toString())
+        //서버 반영
+        runCatching { repo.toggleLike(postId) }
+            .onSuccess { res ->
+                _likeState.value = UiState.Success(res)
+                // 서버 결과로 최종 보정
+                _likeCounts.update { it + (postId.toString() to res.likes.toInt()) }
+                _likedIds.update { ids -> if (res.liked) ids + key else ids - key }
 
-            val current = _postsState.value
-            if (current is UiState.Success) {
-                val updated = current.data.map { post ->
-                    if (post.id == postId) post.copy(likeCount = res.likes.toInt())
-                    else post
+                saveLikedToLocal()
+
+                // 목록/상세 보정
+                (_postsState.value as? UiState.Success)?.let { cur ->
+                    _postsState.value = UiState.Success(
+                        cur.data.map { p -> if (p.id == postId) p.copy(likeCount = res.likes.toInt()) else p }
+                    )
                 }
-                _postsState.value = UiState.Success(updated)
+                (_postDetail.value as? UiState.Success)?.let { cur ->
+                    if (cur.data.id == postId) {
+                        _postDetail.value =
+                            UiState.Success(cur.data.copy(likeCount = res.likes.toInt()))
+                    }
+                }
+                _likeState.value = UiState.Success(res)
+                Log.d("CommunityVM", "좋아요 성공: liked=${res.liked}, likes=${res.likes}")
             }
-        }.onFailure { e ->
-            if (e is retrofit2.HttpException) {
-                val code = e.code()
-                val body = e.response()?.errorBody()?.string()
-                Log.e("CommunityVM", "좋아요 실패: code=$code, body=$body")
-            } else {
-                Log.e("CommunityVM", "좋아요 실패: ${e.message}", e)
+            .onFailure { e ->
+                _likeState.value = UiState.Error("좋아요 토글 실패: ${e.message}")
+                Log.e("CommunityVM", "좋아요 실패", e)
             }
-            _likeState.value = UiState.Error("좋아요 토글 실패: ${e.message}")
+    }
+
+    fun saveLikedToLocal() {
+        viewModelScope.launch {
+            try {
+                repo.saveLikedKeys(_likedIds.value)
+            } catch (e: Exception) {
+                Log.e("CommunityVM", "saveLikedToLocal 실패", e)
+            }
         }
     }
 
-    fun toggleLikedLocal(key: String) {
-        val cur = _likedIds.value
-        _likedIds.value = if (key in cur) cur - key else cur + key
+    fun restoreLikedFromLocal() {
+        viewModelScope.launch {
+            try {
+                val saved = repo.loadLikedKeys()
+                _likedIds.value = saved
+                Log.d("CommunityVM", "restoreLikedFromLocal 복원됨: $saved")
+            } catch (e: Exception) {
+                Log.e("CommunityVM", "restoreLikedFromLocal 실패", e)
+            }
+        }
     }
 
 }
