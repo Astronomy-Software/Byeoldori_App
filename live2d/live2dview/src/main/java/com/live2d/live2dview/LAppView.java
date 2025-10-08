@@ -4,19 +4,15 @@
  * Use of this source code is governed by the Live2D Open Software license
  * that can be found at http://live2d.com/eula/live2d-open-software-license-agreement_en.html.
  */
-
 package com.live2d.live2dview;
 
-import static android.opengl.GLES20.GL_ONE;
-import static android.opengl.GLES20.GL_ONE_MINUS_SRC_ALPHA;
-import static com.live2d.live2dview.LAppDefine.*;
-
 import android.opengl.GLES20;
-import com.live2d.live2dview.TouchManager;
-import com.live2d.live2dview.LAppLive2DManager;
 import com.live2d.sdk.cubism.framework.math.CubismMatrix44;
 import com.live2d.sdk.cubism.framework.math.CubismViewMatrix;
 import com.live2d.sdk.cubism.framework.rendering.android.CubismOffscreenSurfaceAndroid;
+import com.live2d.live2dview.LAppDefine.*;
+import static android.opengl.GLES20.*;
+import static com.live2d.live2dview.LAppDefine.DEBUG_TOUCH_LOG_ENABLE;
 
 public class LAppView implements AutoCloseable {
     /**
@@ -29,9 +25,9 @@ public class LAppView implements AutoCloseable {
     }
 
     public LAppView() {
-        clearColor[0] = 1.0f;
-        clearColor[1] = 1.0f;
-        clearColor[2] = 1.0f;
+        clearColor[0] = 0.0f;
+        clearColor[1] = 0.0f;
+        clearColor[2] = 0.0f;
         clearColor[3] = 0.0f;
     }
 
@@ -48,7 +44,7 @@ public class LAppView implements AutoCloseable {
         float ratio = (float) width / (float) height;
         float left = -ratio;
         float right = ratio;
-        float bottom = LogicalView.LEFT.getValue();
+        float bottom = LAppDefine.LogicalView.LEFT.getValue();
         float top = LogicalView.RIGHT.getValue();
 
         // デバイスに対応する画面範囲。Xの左端、Xの右端、Yの下端、Yの上端
@@ -83,70 +79,70 @@ public class LAppView implements AutoCloseable {
     }
 
     // 画像を初期化する
-    public void initializeSprite() {
-        int windowWidth = LAppDelegate.getInstance().getWindowWidth();
-        int windowHeight = LAppDelegate.getInstance().getWindowHeight();
-
-        LAppTextureManager textureManager = LAppDelegate.getInstance().getTextureManager();
-
-        // 背景画像の読み込み
-        LAppTextureManager.TextureInfo backgroundTexture = textureManager.createTextureFromPngFile(ResourcePath.ROOT.getPath() + ResourcePath.BACK_IMAGE.getPath());
-
-
-        // x,yは画像の中心座標
-        float x = windowWidth * 0.5f;
-        float y = windowHeight * 0.5f;
-        float fWidth = backgroundTexture.width * 2.0f;
-        float fHeight = windowHeight * 0.95f;
-
-        int programId = spriteShader.getShaderId();
-
-        if (backSprite == null) {
-            backSprite = new LAppSprite(x, y, fWidth, fHeight, backgroundTexture.id, programId);
-        } else {
-            backSprite.resize(x, y, fWidth, fHeight);
-        }
-
-        // 歯車画像の読み込み
-        LAppTextureManager.TextureInfo gearTexture = textureManager.createTextureFromPngFile(ResourcePath.ROOT.getPath() + ResourcePath.GEAR_IMAGE.getPath());
-
-
-        x = windowWidth - gearTexture.width * 0.5f - 96.f;
-        y = windowHeight - gearTexture.height * 0.5f;
-        fWidth = (float) gearTexture.width;
-        fHeight = (float) gearTexture.height;
-
-        if (gearSprite == null) {
-            gearSprite = new LAppSprite(x, y, fWidth, fHeight, gearTexture.id, programId);
-        } else {
-            gearSprite.resize(x, y, fWidth, fHeight);
-        }
-
-        // 電源画像の読み込み
-        LAppTextureManager.TextureInfo powerTexture = textureManager.createTextureFromPngFile(ResourcePath.ROOT.getPath() + ResourcePath.POWER_IMAGE.getPath());
-
-
-        x = windowWidth - powerTexture.width * 0.5f - 96.0f;
-        y = powerTexture.height * 0.5f;
-        fWidth = (float) powerTexture.width;
-        fHeight = (float) powerTexture.height;
-
-        if (powerSprite == null) {
-            powerSprite = new LAppSprite(x, y, fWidth, fHeight, powerTexture.id, programId);
-        } else {
-            powerSprite.resize(x, y, fWidth, fHeight);
-        }
-
-        // 画面全体を覆うサイズ
-        x = windowWidth * 0.5f;
-        y = windowHeight * 0.5f;
-
-        if (renderingSprite == null) {
-            renderingSprite = new LAppSprite(x, y, windowWidth, windowHeight, 0, programId);
-        } else {
-            renderingSprite.resize(x, y, windowWidth, windowHeight);
-        }
-    }
+//    public void initializeSprite() {
+//        int windowWidth = LAppDelegate.getInstance().getWindowWidth();
+//        int windowHeight = LAppDelegate.getInstance().getWindowHeight();
+//
+//        LAppTextureManager textureManager = LAppDelegate.getInstance().getTextureManager();
+//
+//        // 背景画像の読み込み
+//        LAppTextureManager.TextureInfo backgroundTexture = textureManager.createTextureFromPngFile(ResourcePath.ROOT.getPath() + ResourcePath.BACK_IMAGE.getPath());
+//
+//
+//        // x,yは画像の中心座標
+//        float x = windowWidth * 0.5f;
+//        float y = windowHeight * 0.5f;
+//        float fWidth = backgroundTexture.width * 2.0f;
+//        float fHeight = windowHeight * 0.95f;
+//
+//        int programId = spriteShader.getShaderId();
+//
+//        if (backSprite == null) {
+//            backSprite = new LAppSprite(x, y, fWidth, fHeight, backgroundTexture.id, programId);
+//        } else {
+//            backSprite.resize(x, y, fWidth, fHeight);
+//        }
+//
+//        // 歯車画像の読み込み
+//        LAppTextureManager.TextureInfo gearTexture = textureManager.createTextureFromPngFile(ResourcePath.ROOT.getPath() + ResourcePath.GEAR_IMAGE.getPath());
+//
+//
+//        x = windowWidth - gearTexture.width * 0.5f - 96.f;
+//        y = windowHeight - gearTexture.height * 0.5f;
+//        fWidth = (float) gearTexture.width;
+//        fHeight = (float) gearTexture.height;
+//
+//        if (gearSprite == null) {
+//            gearSprite = new LAppSprite(x, y, fWidth, fHeight, gearTexture.id, programId);
+//        } else {
+//            gearSprite.resize(x, y, fWidth, fHeight);
+//        }
+//
+//        // 電源画像の読み込み
+//        LAppTextureManager.TextureInfo powerTexture = textureManager.createTextureFromPngFile(ResourcePath.ROOT.getPath() + ResourcePath.POWER_IMAGE.getPath());
+//
+//
+//        x = windowWidth - powerTexture.width * 0.5f - 96.0f;
+//        y = powerTexture.height * 0.5f;
+//        fWidth = (float) powerTexture.width;
+//        fHeight = (float) powerTexture.height;
+//
+//        if (powerSprite == null) {
+//            powerSprite = new LAppSprite(x, y, fWidth, fHeight, powerTexture.id, programId);
+//        } else {
+//            powerSprite.resize(x, y, fWidth, fHeight);
+//        }
+//
+//        // 画面全体を覆うサイズ
+//        x = windowWidth * 0.5f;
+//        y = windowHeight * 0.5f;
+//
+//        if (renderingSprite == null) {
+//            renderingSprite = new LAppSprite(x, y, windowWidth, windowHeight, 0, programId);
+//        } else {
+//            renderingSprite.resize(x, y, windowWidth, windowHeight);
+//        }
+//    }
 
     // 描画する
     public void render() {
@@ -154,14 +150,14 @@ public class LAppView implements AutoCloseable {
         int maxWidth = LAppDelegate.getInstance().getWindowWidth();
         int maxHeight = LAppDelegate.getInstance().getWindowHeight();
 
-        backSprite.setWindowSize(maxWidth, maxHeight);
-        gearSprite.setWindowSize(maxWidth, maxHeight);
-        powerSprite.setWindowSize(maxWidth, maxHeight);
-
-        // UIと背景の描画
-        backSprite.render();
-        gearSprite.render();
-        powerSprite.render();
+//        backSprite.setWindowSize(maxWidth, maxHeight);
+//        gearSprite.setWindowSize(maxWidth, maxHeight);
+//        powerSprite.setWindowSize(maxWidth, maxHeight);
+//
+//        // UIと背景の描画
+//        backSprite.render();
+//        gearSprite.render();
+//        powerSprite.render();
 
         if (isChangedModel) {
             isChangedModel = false;
@@ -325,16 +321,16 @@ public class LAppView implements AutoCloseable {
 
         live2DManager.onTap(x, y);
 
-        // 歯車ボタンにタップしたか
-        if (gearSprite.isHit(pointX, pointY)) {
-            isChangedModel = true;
-        }
-
-        // 電源ボタンにタップしたか
-        if (powerSprite.isHit(pointX, pointY)) {
-            // アプリを終了する
-            LAppDelegate.getInstance().deactivateApp();
-        }
+//        // 歯車ボタンにタップしたか
+//        if (gearSprite.isHit(pointX, pointY)) {
+//            isChangedModel = true;
+//        }
+//
+//        // 電源ボタンにタップしたか
+//        if (powerSprite.isHit(pointX, pointY)) {
+//            // アプリを終了する
+//            LAppDelegate.getInstance().deactivateApp();
+//        }
 
     }
 

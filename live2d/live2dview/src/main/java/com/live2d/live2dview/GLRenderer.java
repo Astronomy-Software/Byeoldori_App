@@ -8,7 +8,7 @@
 package com.live2d.live2dview;
 
 import android.opengl.GLSurfaceView;
-import com.live2d.live2dview.LAppDelegate;
+
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 

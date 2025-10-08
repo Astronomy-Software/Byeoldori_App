@@ -12,9 +12,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.opengl.GLES20;
 import android.opengl.GLUtils;
-
-import com.live2d.live2dview.LAppDefine;
-import com.live2d.live2dview.LAppDelegate;
 import com.live2d.sdk.cubism.framework.CubismFramework;
 
 import java.io.IOException;

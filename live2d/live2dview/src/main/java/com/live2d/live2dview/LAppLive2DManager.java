@@ -9,8 +9,6 @@ package com.live2d.live2dview;
 
 import static com.live2d.live2dview.LAppDefine.*;
 
-import android.content.res.AssetManager;
-
 import com.live2d.sdk.cubism.framework.math.CubismMatrix44;
 import com.live2d.sdk.cubism.framework.motion.ACubismMotion;
 import com.live2d.sdk.cubism.framework.motion.IBeganMotionCallback;
@@ -20,6 +18,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import android.content.res.AssetManager;
 
 /**
  * サンプルアプリケーションにおいてCubismModelを管理するクラス。
@@ -277,6 +277,18 @@ public class LAppLive2DManager {
         public void execute(ACubismMotion motion) {
             LAppPal.printLog("Motion Finished: " + motion);
         }
+    }
+
+    /**
+     * 사용자 추가함수
+     * 사용 가능한 모션 그룹들을 받습니다.
+     */
+    public List<String> getAvailableMotionGroups() {
+        if (models.size() <= currentModel || models.get(currentModel) == null) {
+            return Collections.emptyList();
+        }
+
+        return models.get(currentModel).getMotionGroupNames();
     }
 
     private static final FinishedMotion finishedMotion = new FinishedMotion();
