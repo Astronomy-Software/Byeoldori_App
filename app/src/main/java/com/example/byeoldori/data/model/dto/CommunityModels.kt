@@ -13,25 +13,6 @@ data class CreateFreeRequest(
 )
 
 @JsonClass(generateAdapter = true)
-data class CreateEducationRequest(
-    val title: String,
-    val content: String,
-    val education: EducationDto,
-    val imageUrls: List<String>? = null
-)
-
-@JsonClass(generateAdapter = true)
-data class EducationDto(
-    val summary: String,
-    val difficulty: Difficulty,
-    val tags: String,
-    val status: EduStatus
-)
-
-enum class Difficulty { BEGINNER, INTERMEDIATE, ADVANCED }
-enum class EduStatus { DRAFT, PUBLISHED }
-
-@JsonClass(generateAdapter = true)
 data class FreePostResponse(
     val id: Long,
     val type: String,

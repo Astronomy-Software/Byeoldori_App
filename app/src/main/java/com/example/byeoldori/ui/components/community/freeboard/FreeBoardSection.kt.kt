@@ -28,18 +28,42 @@ import com.example.byeoldori.viewmodel.dummyFreeComments
 import com.example.byeoldori.viewmodel.dummyFreePosts
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
 
 enum class FreeBoardSort(val label: String) {
     Latest("최신순"), Like("좋아요순"), View("조회수순")
 }
 
-fun formatCreatedAt(createdAt: String): String {
-    return try {
-        val parsed = LocalDateTime.parse(createdAt, DateTimeFormatter.ISO_DATE_TIME)
-        parsed.format(DateTimeFormatter.ofPattern("yy.MM.dd")) // "25.10.03"
-    } catch (e: Exception) {
-        createdAt // 실패하면 원본 표시
+//fun formatCreatedAt(createdAt: String): String {
+//    return try {
+//        val parsed = LocalDateTime.parse(createdAt, DateTimeFormatter.ISO_DATE_TIME)
+//        parsed.format(DateTimeFormatter.ofPattern("yy.MM.dd")) // "25.10.03"
+//    } catch (e: Exception) {
+//        createdAt // 실패하면 원본 표시
+//    }
+//}
+
+fun formatCreatedAt(createdAt: String?): String {
+    if (createdAt.isNullOrBlank()) return ""
+
+    val patterns = listOf(
+        "yyyy-MM-dd'T'HH:mm:ss.SSSSSS", // ← 현재 서버 포맷 (마이크로초 6자리)
+        "yyyy-MM-dd'T'HH:mm:ss.SSS",    // 밀리초 3자리
+        "yyyy-MM-dd'T'HH:mm:ss",        // 초까지
+        "yyyyMMddHHmm"                  // 예전 형태 (중기예보 등)
+    )
+
+    for (pattern in patterns) {
+        try {
+            val date = LocalDateTime.parse(createdAt, DateTimeFormatter.ofPattern(pattern))
+            return date.format(DateTimeFormatter.ofPattern("yy.MM.dd"))
+        } catch (_: DateTimeParseException) {
+            continue
+        }
     }
+
+    // 모든 포맷 실패 시 원문 반환
+    return createdAt
 }
 
 fun FreePost.asReview(): Review =

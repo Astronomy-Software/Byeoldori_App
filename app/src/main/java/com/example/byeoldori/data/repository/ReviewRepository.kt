@@ -52,7 +52,7 @@ class ReviewRepository @Inject constructor(
     ): List<ReviewResponse> {
         val res = api.getReviewPosts(
             page = 0,
-            size = 20,
+            size = 50,
             sortBy = sortBy.name,
             searchBy = searchBy.name,
             keyword = keyword

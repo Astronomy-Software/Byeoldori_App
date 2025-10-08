@@ -9,6 +9,8 @@ import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.*
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.byeoldori.data.model.dto.EducationDetailResponse
+import com.example.byeoldori.data.model.dto.EducationResponse
 import com.example.byeoldori.data.model.dto.FreePostResponse
 import com.example.byeoldori.ui.components.community.*
 import com.example.byeoldori.ui.components.community.program.*
@@ -39,7 +41,6 @@ fun CommunityScreen(
     var showWriteForm by remember { mutableStateOf(false) }
     val reviews = remember { mutableStateListOf<Review>().apply { addAll(dummyReviews) } }
     var showSuccessDialog by remember { mutableStateOf(false) }
-    var lastSubmittedReview by remember { mutableStateOf<Review?>(null) }
     var selectedReview by remember { mutableStateOf<Review?>(null) }
     var selectedFreePost by remember { mutableStateOf<String?>(null) }
     var selectedProgram by remember { mutableStateOf<EduProgram?>(null) }
@@ -58,6 +59,12 @@ fun CommunityScreen(
     val apiDetail = (detailState as? UiState.Success)?.data
     val apiSummary = reviewVm.selectedPost.collectAsState().value
 
+    val eduVm: EducationViewModel = hiltViewModel()
+    val eduState by eduVm.postsState.collectAsState()
+    val eduSelectedId by eduVm.selectedPostId.collectAsState()
+    val eduSelectedPost by eduVm.selectedPost.collectAsState()
+    val eduDetailState by eduVm.detail.collectAsState()
+
     LaunchedEffect(tab) {
         if (tab == CommunityTab.Board) {
             vm.loadPosts()
@@ -66,6 +73,16 @@ fun CommunityScreen(
     LaunchedEffect(selectedId) {
         val idLong = selectedId?.toLongOrNull()
         if (idLong != null) vm.loadPostDetail(idLong)
+    }
+
+    LaunchedEffect(tab) {
+        if (tab == CommunityTab.Program) {
+            eduVm.loadPosts()
+        }
+    }
+
+    LaunchedEffect(eduSelectedId) {
+        eduSelectedId?.toLongOrNull()?.let { eduVm.loadEducationDetail(it) }
     }
 
     when {
@@ -147,12 +164,18 @@ fun CommunityScreen(
             return
         }
 
-        selectedProgram != null -> {
+        tab == CommunityTab.Program && eduSelectedPost != null -> {
+            val apiPost = eduSelectedPost
+            val apiDetail = (eduDetailState as? UiState.Success<EducationDetailResponse>)?.data
+            val programUi = apiPost!!.toEduProgram()
+
             EduProgramDetail(
-                program = selectedProgram!!,
-                onBack = { selectedProgram = null },
-                currentUser = currentUser
+                program = programUi,
+                onBack = { eduVm.clearSelection() },
+                currentUser = currentUser,
+                onStartProgram = { }
             )
+            return
         }
 
         else -> {
@@ -213,22 +236,49 @@ fun CommunityScreen(
                             }
                         )
                     }
-
                     CommunityTab.Program -> {
-                        EduProgramSection(
-                            eduProgramsAll = dummyPrograms,
-                            onWriteClick = {}, //추후 추가
-                            onClickProgram = { id ->
-                                val program = dummyPrograms.find { it.id == id }
-                                if (program != null) selectedProgram = program
+                        when (eduState) {
+                            is UiState.Idle, UiState.Loading -> {
+                                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                    CircularProgressIndicator()
+                                }
                             }
-                        )
+                            is UiState.Success -> {
+                                val posts = (eduState as UiState.Success<List<EducationResponse>>).data
+                                EduProgramSection(
+                                    eduProgramsAll = posts.map { it.toEduProgram() },
+                                    onWriteClick = { /* 교육 글쓰기 있으면 연결 */ },
+                                    onClickProgram = { id ->
+                                        eduVm.selectPost(id)           // 상세 선택
+                                    },
+                                    vm = eduVm                        // (필요 시 내부에서 sort/search 사용)
+                                )
+                            }
+                            is UiState.Error -> {
+                                val msg = (eduState as UiState.Error).message ?: "에러 발생"
+                                Log.e("CommunityScreen", "교육 프로그램 에러: $msg")
+                            }
+                        }
                     }
+
 
                     CommunityTab.Home -> {
                         val recentReviews by remember { derivedStateOf { reviews.sortedByDescending { it.createdAt }.take(8) } }
                         val recentPrograms = remember { dummyPrograms.sortedByDescending { it.createdAt }.take(8) }
                         val popularFreePost = remember { dummyFreePosts.sortedByDescending { it.likeCount }.take(8) }
+
+//                        val reviewList = when (val s = reviewVm.postsState.collectAsState().value) {
+//                            is UiState.Success -> s.data.map { it.toCard() }
+//                            else -> emptyList()
+//                        }
+//                        val eduList = when (val s = eduVm.postsState.collectAsState().value) {
+//                            is UiState.Success -> s.data.map { it.toEduProgram() }
+//                            else -> emptyList()
+//                        }
+//                        val freeList = when (val s = vm.postsState.collectAsState().value) {
+//                            is UiState.Success -> s.data.map { it.toFreePost() }
+//                            else -> emptyList()
+//                        }
 
                         HomeSection(
                             recentReviews = recentReviews,

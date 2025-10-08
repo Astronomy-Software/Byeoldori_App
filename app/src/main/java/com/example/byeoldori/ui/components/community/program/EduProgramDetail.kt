@@ -11,15 +11,22 @@ import androidx.compose.ui.focus.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.byeoldori.R
+import com.example.byeoldori.data.model.dto.EducationDetailResponse
+import com.example.byeoldori.data.model.dto.EducationResponse
 import com.example.byeoldori.domain.Community.EduProgram
 import com.example.byeoldori.domain.Community.ReviewComment
 import com.example.byeoldori.ui.components.community.*
+import com.example.byeoldori.ui.components.community.freeboard.formatCreatedAt
 import com.example.byeoldori.ui.components.community.review.*
 import com.example.byeoldori.ui.mapper.toUi
 import com.example.byeoldori.ui.theme.*
+import com.example.byeoldori.viewmodel.EducationViewModel
+import com.example.byeoldori.viewmodel.UiState
 import com.example.byeoldori.viewmodel.dummyProgramComments
 import com.example.byeoldori.viewmodel.dummyPrograms
 
@@ -31,6 +38,7 @@ fun EduProgramDetail(
     onShare: () -> Unit = {},
     onMore: () -> Unit = {},
     currentUser: String,
+    vm: EducationViewModel = hiltViewModel(),
     onStartProgram: () -> Unit = {}
 ) {
     var input by rememberSaveable { mutableStateOf("") }
@@ -41,6 +49,8 @@ fun EduProgramDetail(
     var liked by rememberSaveable { mutableStateOf(setOf<String>()) }
     var postLikeCount by rememberSaveable { mutableStateOf(program.likeCount) }
     var parent by remember { mutableStateOf<ReviewComment?>(null) }
+    val detailState by vm.detail.collectAsState()
+    val postsState by vm.postsState.collectAsState()
 
     LaunchedEffect(requestKeyboard) {
         if (requestKeyboard) {
@@ -50,6 +60,10 @@ fun EduProgramDetail(
         }
     }
 
+    LaunchedEffect(program.id) {
+        vm.loadEducationDetail(program.id.toLong())
+    }
+
     // 화면 들어올 때 LikeState → 로컬 liked 로 반영
     LaunchedEffect(program.id) {
         liked = LikeState.ids
@@ -57,6 +71,9 @@ fun EduProgramDetail(
             .map { it.removePrefix("programComment:") } //접두사를 제거해서 댓글 고유의 ID만 남김
             .toSet()
     }
+    val apiDetail = (detailState as? UiState.Success<EducationDetailResponse>)?.data
+    val apiPost = (postsState as? UiState.Success<List<EducationResponse>>)
+        ?.data?.firstOrNull { it.id.toString() == program.id }
 
     Scaffold(
         contentWindowInsets = WindowInsets(0),
@@ -161,7 +178,7 @@ fun EduProgramDetail(
         ) {
             item {
                 Spacer(Modifier.height(10.dp))
-                Text(text = program.title, fontSize = 24.sp, color = TextHighlight) //제목
+                Text(text = apiPost?.title ?: program.title, fontSize = 24.sp, color = TextHighlight) //제목
                 Spacer(Modifier.height(10.dp))
 
                 Row(verticalAlignment = Alignment.CenterVertically
@@ -178,10 +195,10 @@ fun EduProgramDetail(
                     )
                     Spacer(Modifier.width(8.dp))
                     Column { //작성자
-                        Text(text = program.author, fontSize = 17.sp, color = TextHighlight)
+                        Text(text = apiPost?.authorNickname ?: program.author, fontSize = 17.sp, color = TextHighlight)
                         Spacer(Modifier.height(4.dp))
                         Text( //작성일
-                            text = program.createdAt.toShortDate(),
+                            text =  formatCreatedAt(apiPost?.createdAt) ?: program.createdAt.toShortDate(),
                             style = MaterialTheme.typography.bodySmall.copy(color = TextDisabled),
                             fontSize = 17.sp
                         )
@@ -189,7 +206,14 @@ fun EduProgramDetail(
                 }
                 Spacer(Modifier.height(16.dp))
                 ContentInput( //내용 입력(텍스트 + 이미지)
-                    items = program.contentItems.toUi(),
+                    items = when {
+                        apiDetail?.content != null -> listOf(
+                            EditorItem.Paragraph(
+                                value = TextFieldValue(apiDetail.content)
+                            )
+                        )
+                        else -> program.contentItems.toUi()
+                    },
                     onItemsChange = {},
                     onPickImages = {},
                     onCheck = {},

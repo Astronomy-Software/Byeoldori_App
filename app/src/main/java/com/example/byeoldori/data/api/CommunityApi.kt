@@ -4,6 +4,8 @@ import com.example.byeoldori.data.model.dto.CreateEducationRequest
 import com.example.byeoldori.data.model.dto.CreateFreeRequest
 import com.example.byeoldori.data.model.dto.CreateReviewRequest
 import com.example.byeoldori.data.model.dto.CreatedPostId
+import com.example.byeoldori.data.model.dto.EducationDetailResponse
+import com.example.byeoldori.data.model.dto.EducationPostResponse
 import com.example.byeoldori.data.model.dto.FreePostResponse
 import com.example.byeoldori.data.model.dto.LikeToggleResponse
 import com.example.byeoldori.data.model.dto.PostResponse
@@ -21,7 +23,7 @@ interface CommunityApi {
     suspend fun getPosts(
         @Path("type") type: String,
         @Query("page") page: Int = 0,
-        @Query("size") size: Int = 20,
+        @Query("size") size: Int = 50,
         @Query("sortBy") sortBy: String = "LATEST",
         @Query("keyword") keyword: String? = null,
         @Query("searchBy") searchBy: String = "TITLE"
@@ -30,11 +32,20 @@ interface CommunityApi {
     @GET("community/REVIEW/posts")
     suspend fun getReviewPosts(
         @Query("page") page: Int = 0,
-        @Query("size") size: Int = 20,
+        @Query("size") size: Int = 50,
         @Query("sortBy") sortBy: String = "LATEST",
         @Query("keyword") keyword: String? = null,
         @Query("searchBy") searchBy: String = "TITLE"
     ): ReviewPostResponse
+
+    @GET("community/EDUCATION/posts")
+    suspend fun getEducationPosts(
+        @Query("page") page: Int = 0,
+        @Query("size") size: Int = 50,
+        @Query("sortBy") sortBy: String = "LATEST",
+        @Query("keyword") keyword: String? = null,
+        @Query("searchBy") searchBy: String = "TITLE"
+    ): EducationPostResponse
 
     @POST("community/FREE/posts")
     suspend fun createFreePost(@Body body: CreateFreeRequest): CreatedPostId
@@ -54,6 +65,11 @@ interface CommunityApi {
     suspend fun getReviewDetail(
         @Path("postId") postId: Long
     ): ReviewDetailResponse
+
+    @GET("community/posts/{postId}")
+    suspend fun getEducationDetail(
+        @Path("postId") postId: Long
+    ): EducationDetailResponse
 
     @POST("community/posts/{id}/likes/toggle")
     suspend fun toggleLike(@Path("id") id: Long): LikeToggleResponse

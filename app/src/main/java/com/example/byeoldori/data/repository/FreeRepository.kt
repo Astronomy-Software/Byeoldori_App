@@ -46,7 +46,7 @@ class FreeRepository @Inject constructor(
         return api.getPosts(
             type = "FREE",
             page = 0,
-            size = 20,
+            size = 50,
             sortBy = sortBy.name,      // API에서 String 파라미터이므로 .name 유지
             searchBy = searchBy.name,
             keyword = keyword
