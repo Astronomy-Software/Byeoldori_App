@@ -19,14 +19,10 @@ import com.example.byeoldori.ui.theme.*
 import com.example.byeoldori.domain.Community.ReviewComment
 import androidx.compose.ui.focus.*
 import androidx.compose.ui.text.input.TextFieldValue
-import com.example.byeoldori.data.model.dto.ReviewDetailResponse
-import com.example.byeoldori.data.model.dto.ReviewPostResponse
-import com.example.byeoldori.data.model.dto.ReviewResponse
+import com.example.byeoldori.data.model.dto.*
 import com.example.byeoldori.domain.Observatory.Review
 import com.example.byeoldori.ui.mapper.toUi
-import com.example.byeoldori.viewmodel.ReviewViewModel
-import com.example.byeoldori.viewmodel.dummyReviewComments
-import com.example.byeoldori.viewmodel.dummyReviews
+import com.example.byeoldori.viewmodel.*
 
 @Composable
 fun rememberIsImeVisible(): Boolean {
@@ -46,7 +42,7 @@ fun ReviewDetail(
     onSyncReviewLikeCount: (id: String, next: Int) -> Unit,
     apiDetail: ReviewDetailResponse? = null, // 서버에서 가져온 상세(요약/카운트)
     apiPost: ReviewResponse? = null,
-    vm: ReviewViewModel
+    vm: ReviewViewModel? = null
 ) {
     val imeVisible = rememberIsImeVisible()
     val tailRequester = remember { BringIntoViewRequester() } //키보드가 올라왔을 때 댓글창 숨어버리는 거 방지
@@ -297,10 +293,10 @@ fun ReviewDetail(
     }
 }
 
-//@Preview(showBackground = true, backgroundColor = 0xFF241860, widthDp = 500, heightDp = 1200)
-//@Composable
-//private fun Preview_ReviewDetail() {
-//    MaterialTheme {
-//        ReviewDetail(review = dummyReviews.first(), currentUser = "astro_user",onSyncReviewLikeCount = { _, _ -> })
-//    }
-//}
+@Preview(showBackground = true, backgroundColor = 0xFF241860, widthDp = 500, heightDp = 1200)
+@Composable
+private fun Preview_ReviewDetail() {
+    MaterialTheme {
+        ReviewDetail(review = dummyReviews.first(), currentUser = "astro_user",onSyncReviewLikeCount = { _, _ -> })
+    }
+}

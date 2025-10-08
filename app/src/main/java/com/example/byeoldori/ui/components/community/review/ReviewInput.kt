@@ -185,7 +185,7 @@ fun Label(
     }
 }
 
-@Preview(showBackground = true, backgroundColor = 0xFF000000, widthDp = 500)
+@Preview(showBackground = true, backgroundColor = 0xFF241860, widthDp = 500)
 @Composable
 private fun Preview_ReviewInputSection() {
     MaterialTheme {
@@ -195,7 +195,6 @@ private fun Preview_ReviewInputSection() {
         var start by rememberSaveable { mutableStateOf("") }
         var end by rememberSaveable { mutableStateOf("") }
         var rating by rememberSaveable { mutableStateOf("") }
-        var siteScore by rememberSaveable { mutableStateOf("") }
 
         ReviewInput(
             target = target,

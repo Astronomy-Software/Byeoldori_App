@@ -1,8 +1,6 @@
 package com.example.byeoldori.ui.components.community.review
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.*
 import androidx.compose.foundation.shape.CircleShape
@@ -15,27 +13,21 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.byeoldori.R
-import com.example.byeoldori.data.model.dto.ReviewResponse
-import com.example.byeoldori.data.model.dto.SortBy
+import com.example.byeoldori.data.model.dto.*
 import com.example.byeoldori.domain.Content
-import com.example.byeoldori.ui.components.community.EditorItem
 import com.example.byeoldori.ui.components.community.SortBar
 import com.example.byeoldori.ui.components.observatory.ReviewCard
 import com.example.byeoldori.ui.theme.*
 import com.example.byeoldori.domain.Observatory.Review
-import com.example.byeoldori.ui.components.community.freeboard.FreeBoardSort
 import com.example.byeoldori.ui.components.community.freeboard.formatCreatedAt
-import com.example.byeoldori.viewmodel.ReviewViewModel
-import com.example.byeoldori.viewmodel.UiState
-import com.example.byeoldori.viewmodel.dummyReviewComments
-import com.example.byeoldori.viewmodel.dummyReviews
+import com.example.byeoldori.viewmodel.*
 
 // 정렬 타입
 enum class ReviewSort(val label: String) {
     Latest("최신순"), Like("좋아요순"), View("조회수순")
 }
 
-fun ReviewResponse.toDomain(): Review = Review(
+fun ReviewResponse.toReview(): Review = Review(
     id = id.toString(),
     title = title,
     author = authorNickname ?: "익명",
@@ -61,7 +53,7 @@ fun ReviewResponse.toDomain(): Review = Review(
 // Review 탭 콘텐츠
 @Composable
 fun CommuReviewSection(
-    vm: ReviewViewModel = hiltViewModel(),
+    vm: ReviewViewModel? = null,
     reviewsAll: List<Review>,
     onWriteClick: () -> Unit = {},
     onReviewClick: (Review) -> Unit,
@@ -72,9 +64,10 @@ fun CommuReviewSection(
     var sort by remember { mutableStateOf(ReviewSort.Latest) }
     val gridState = rememberLazyGridState()
 
-    val state by vm.postsState.collectAsState()
-    val likeCounts by vm.likeCounts.collectAsState()
-    val scores by vm.scores.collectAsState()
+    val state by (vm?.postsState?.collectAsState() ?: remember { mutableStateOf<UiState<List<ReviewResponse>>>(UiState.Idle) })
+    val likeCounts by (vm?.likeCounts?.collectAsState() ?: remember { mutableStateOf<Map<String, Int>>(emptyMap()) })
+    val scores by (vm?.scores?.collectAsState() ?: remember { mutableStateOf<Map<String, Int>>(emptyMap()) })
+    val currentSort by (vm?.sort?.collectAsState() ?: remember { mutableStateOf(SortBy.LATEST) })
 
     val apiList by remember(state) {
         mutableStateOf(
@@ -82,35 +75,35 @@ fun CommuReviewSection(
                 is UiState.Success ->
                     (state as UiState.Success<List<ReviewResponse>>)
                         .data
-                        .map { it.toDomain() }  // rating=0 기본
+                        .map { it.toReview() }  // rating=0 기본
                 else -> emptyList()
             }
         )
     }
 
-    val merged by remember(apiList, scores) {
-        mutableStateOf(
-            apiList.map { r -> r.copy(rating = scores[r.id] ?: r.rating) }
-        )
+    val networkList: List<Review> = when (state) {
+        is UiState.Success -> (state as UiState.Success<List<ReviewResponse>>)
+            .data.map { it.toReview() }
+        else -> emptyList()
+    }
+    val baseList = if (networkList.isNotEmpty()) networkList else reviewsAll
+
+    val merged = remember(baseList, scores) {
+        baseList.map { r -> r.copy(rating = scores[r.id] ?: r.rating) }
     }
 
-    val filtered by remember(searchText, merged) {
-        mutableStateOf(
-            if (searchText.isBlank()) merged
-            else {
-                val k = searchText.trim().lowercase()
-                merged.filter { r ->
-                    r.title.lowercase().contains(k) ||
-                            r.author.lowercase().contains(k) ||
-                            r.contentItems
-                                .filterIsInstance<Content.Text>()
-                                .any { it.text.lowercase().contains(k) }
-                }
+    val filtered = remember(searchText, merged) {
+        if (searchText.isBlank()) merged
+        else {
+            val k = searchText.trim().lowercase()
+            merged.filter { r ->
+                r.title.lowercase().contains(k) ||
+                        r.author.lowercase().contains(k) ||
+                        r.contentItems.filterIsInstance<Content.Text>()
+                            .any { it.text.lowercase().contains(k) }
             }
-        )
+        }
     }
-
-    val currentSort by vm.sort.collectAsState()
     val uiSort = when (currentSort) {
         SortBy.LATEST -> ReviewSort.Latest
         SortBy.LIKES  -> ReviewSort.Like
@@ -148,51 +141,51 @@ fun CommuReviewSection(
                             ReviewSort.Like   -> SortBy.LIKES
                             ReviewSort.View   -> SortBy.VIEWS
                         }
-                        vm.setSort(serverSort)
+                        vm?.setSort(serverSort)
                     }
                 )
             }
             Spacer(Modifier.height(12.dp))
 
-            when (state) {
-                is UiState.Loading -> { Text("로딩 중…", style = MaterialTheme.typography.bodyMedium) }
-
-                is UiState.Error -> {
-                    val msg = (state as UiState.Error).message
-                    Text("에러: $msg", color = Color.Red, style = MaterialTheme.typography.bodyMedium)
-                }
-
-                is UiState.Success -> {
-                    LazyVerticalGrid(
-                        state = gridState,
-                        columns = GridCells.Fixed(2), //컬럼 개수 2개
-                        verticalArrangement = Arrangement.spacedBy(12.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        items(
-                            items = filtered,
-                            key = { it.id }
-                        ) { review ->
-                            LaunchedEffect(review.id) {
-                                review.id.toLongOrNull()?.let { vm.ensureScoreLoaded(it) }
-                            }
-                            ReviewCard(
-                                review = review,
-                                modifier = Modifier.clickable { onReviewClick(review) },
-                                onSyncLikeCount = { next ->            // ★ NEW: 카드에서 좋아요 바꾸면
-                                   // onSyncReviewLikeCount(review.id, next)  // 상위 reviews 동기화
-                                    //vm.updateLocalLikeCount(review.id, next)
-                                    //vm.toggleLike(review.id.toLong())
-                                }
-                            )
-                        }
-                        item { Spacer(Modifier.height(60.dp)) }
+            LazyVerticalGrid(
+                state = gridState,
+                columns = GridCells.Fixed(2), //컬럼 개수 2개
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.fillMaxSize()
+            ) {
+                items(items = filtered, key = { it.id }) { review ->
+                    LaunchedEffect(review.id) {
+                        review.id.toLongOrNull()?.let { vm?.ensureScoreLoaded(it) }
                     }
+                    ReviewCard(
+                        review = review,
+                        modifier = Modifier.clickable { onReviewClick(review) },
+                        onSyncLikeCount = { next ->            // ★ NEW: 카드에서 좋아요 바꾸면
+                        // onSyncReviewLikeCount(review.id, next)  // 상위 reviews 동기화
+                        //vm.updateLocalLikeCount(review.id, next)
+                        //vm.toggleLike(review.id.toLong())
+                        }
+                    )
                 }
-                UiState.Idle -> Unit
+                item { Spacer(Modifier.height(60.dp)) }
             }
         }
+        when (state) {
+            is UiState.Loading -> Text(
+                "로딩 중…",
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.align(Alignment.Center)
+            )
+            is UiState.Error -> Text(
+                "에러: ${(state as UiState.Error).message}",
+                color = Color.Red,
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.align(Alignment.Center)
+            )
+            else -> Unit
+        }
+
         //리뷰 작성 버튼
         Box(
             modifier = Modifier
@@ -214,16 +207,18 @@ fun CommuReviewSection(
     }
 }
 
-@Preview(showBackground = true, widthDp = 360, heightDp = 600)
+@Preview(showBackground = true, widthDp = 360, heightDp = 840)
 @Composable
 private fun Preview_ScreenWithWriteButton() {
     MaterialTheme {
         CommuReviewSection(
+            vm = null,
             reviewsAll = dummyReviews,
             onWriteClick = {  },
             onReviewClick = { review ->
                 println("리뷰 클릭됨: ${review.title}")
             },
+            onChangeSort = { },
             onSyncReviewLikeCount = { id, next ->
                 val idx = dummyReviews.indexOfFirst { it.id == id }
                 if (idx >= 0) dummyReviews[idx] = dummyReviews[idx].copy(likeCount = next)

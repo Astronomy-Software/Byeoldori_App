@@ -179,10 +179,12 @@ fun EduProgramSection(
                             items = filtered,
                             key = { it.id }
                         ) { program ->
-                            ReviewCard(
-                                review = program.asReview(),
-                                modifier = Modifier.clickable { onClickProgram(program.id) }
-                            )
+                            Box(
+                                Modifier
+                                    .clickable { onClickProgram(program.id) }
+                            ) {
+                                ReviewCard(review = program.asReview())
+                            }
                         }
                         item { Spacer(Modifier.height(60.dp)) }
                     }

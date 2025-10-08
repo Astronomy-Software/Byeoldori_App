@@ -18,14 +18,8 @@ import com.example.byeoldori.R
 import com.example.byeoldori.domain.Community.FreePost
 import com.example.byeoldori.ui.components.community.*
 import com.example.byeoldori.ui.components.community.review.*
-import com.example.byeoldori.ui.mapper.toDomain
 import com.example.byeoldori.ui.mapper.toUi
-import com.example.byeoldori.viewmodel.CommunityViewModel
-import com.example.byeoldori.viewmodel.UiState
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
-import androidx.compose.ui.Alignment
-import kotlinx.serialization.json.JsonNull.content
+import com.example.byeoldori.viewmodel.*
 
 @Composable
 fun FreeBoardWriteForm (
@@ -37,7 +31,7 @@ fun FreeBoardWriteForm (
     now: () -> Long = { System.currentTimeMillis() },
     onSubmitPost: (FreePost) -> Unit,
     initialPost: FreePost? = null, //?
-    vm: CommunityViewModel = hiltViewModel(),
+    vm: CommunityViewModel? = null,
     onClose: () -> Unit
 ) {
     var showCancelDialog by remember { mutableStateOf(false) }
@@ -59,7 +53,8 @@ fun FreeBoardWriteForm (
                 ?: listOf<EditorItem>(EditorItem.Paragraph())
         )
     }
-    val createState by vm.createState.collectAsState()
+    val createState by (vm?.createState?.collectAsState()
+        ?: remember { mutableStateOf<UiState<Any>>(UiState.Idle) })
 
     Box(Modifier.fillMaxSize()) {
         LazyColumn(
@@ -80,7 +75,7 @@ fun FreeBoardWriteForm (
                         if (title.isBlank() || bodyText.isBlank()) {
                             showValidationDialog = true
                         } else {
-                            vm.createPost(title, bodyText, imageUris) // ← 진짜 본문 전달
+                            vm?.createPost(title, bodyText, imageUris) // ← 진짜 본문 전달
                         }
                     },
                     onTempSave = onTempSave,
@@ -149,14 +144,14 @@ fun FreeBoardWriteForm (
         }
         is UiState.Success -> {
             LaunchedEffect(s.data) {
-                vm.clearCreateState()
+                vm?.clearCreateState()
                 onSubmit()
                 //onClose()
             }
         }
         is UiState.Error -> {
             Log.e("FreeBoardWriteForm", "게시글 저장 실패: ${s.message}")
-            vm.clearCreateState()
+            vm?.clearCreateState()
         }
         else -> Unit
     }

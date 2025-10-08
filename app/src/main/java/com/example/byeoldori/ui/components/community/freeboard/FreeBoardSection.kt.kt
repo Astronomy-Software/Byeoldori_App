@@ -1,6 +1,5 @@
 package com.example.byeoldori.ui.components.community.freeboard
 
-import androidx.compose.runtime.Composable
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
@@ -13,35 +12,19 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
 import com.example.byeoldori.R
-import com.example.byeoldori.data.model.dto.FreePostResponse
-import com.example.byeoldori.data.model.dto.SortBy
-import com.example.byeoldori.ui.components.community.EditorItem
-import com.example.byeoldori.ui.components.community.LikeState
-import com.example.byeoldori.ui.components.community.SortBar
-import com.example.byeoldori.ui.components.community.likedKeyFree
+import com.example.byeoldori.data.model.dto.*
+import com.example.byeoldori.ui.components.community.*
 import com.example.byeoldori.ui.theme.*
 import com.example.byeoldori.domain.Community.FreePost
 import com.example.byeoldori.domain.Content
 import com.example.byeoldori.domain.Observatory.Review
-import com.example.byeoldori.viewmodel.CommunityViewModel
-import com.example.byeoldori.viewmodel.dummyFreeComments
-import com.example.byeoldori.viewmodel.dummyFreePosts
+import com.example.byeoldori.viewmodel.*
 import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
-import java.time.format.DateTimeParseException
+import java.time.format.*
 
 enum class FreeBoardSort(val label: String) {
     Latest("최신순"), Like("좋아요순"), View("조회수순")
 }
-
-//fun formatCreatedAt(createdAt: String): String {
-//    return try {
-//        val parsed = LocalDateTime.parse(createdAt, DateTimeFormatter.ISO_DATE_TIME)
-//        parsed.format(DateTimeFormatter.ofPattern("yy.MM.dd")) // "25.10.03"
-//    } catch (e: Exception) {
-//        createdAt // 실패하면 원본 표시
-//    }
-//}
 
 fun formatCreatedAt(createdAt: String?): String {
     if (createdAt.isNullOrBlank()) return ""
@@ -110,14 +93,17 @@ fun FreeBoardSection(
     onClickPost: (String) -> Unit = {},
     currentSort: SortBy,
     onChangeSort: (SortBy) -> Unit = {},
-    vm: CommunityViewModel
+    vm: CommunityViewModel? = null
 ){
     var searchText by remember { mutableStateOf("") } //초기값이 빈 문자열인 변할 수 있는 상태 객체
     var sort by remember { mutableStateOf(FreeBoardSort.Latest) }
     val listState = rememberLazyListState()
 
-    val likedIds   by vm.likedIds.collectAsState()
-    val likeCounts by vm.likeCounts.collectAsState()
+    val likedIds by (vm?.likedIds?.collectAsState()
+        ?: remember { mutableStateOf<Set<String>>(emptySet()) })
+
+    val likeCounts by (vm?.likeCounts?.collectAsState()
+        ?: remember { mutableStateOf<Map<String, Int>>(emptyMap()) })
 
     // 검색만
     val filtered = run {
@@ -194,7 +180,7 @@ fun FreeBoardSection(
                             likeCount = count,
                             isLiked = isLiked,
                             onClick = { onClickPost(post.id) },
-                            onLikeClick = { vm.toggleLike(post.id.toLong()) }
+                            onLikeClick = { vm?.toggleLike(post.id.toLong()) }
                         )
                         Divider(
                             color = Color.White.copy(alpha = 0.8f),
@@ -223,30 +209,18 @@ fun FreeBoardSection(
         }
     }
 }
-//
-//@Preview(
-//    showBackground = true,
-//    backgroundColor = 0xFF241860,
-//    widthDp = 420,
-//    heightDp = 840
-//)
-//@Composable
-//private fun Preview_FreeBoardSection_Empty() {
-//    // ✅ HiltViewModel은 프리뷰에서 직접 생성 불가하므로 더미 구현 사용
-//    val fakeVm = object : CommunityViewModel(
-//        repo = com.example.byeoldori.data.repository.CommunityRepository(
-//            api = com.example.byeoldori.data.api.FakeCommunityApi()
-//        )
-//    ) {}
-//
-//    MaterialTheme {
-//        FreeBoardSection(
-//            freeBoardsAll = dummyFreePosts,
-//            onWriteClick = {},
-//            onClickPost = {},
-//            currentSort = SortBy.LATEST,
-//            onChangeSort = {},
-//            vm = fakeVm // ✅ 더미 뷰모델 전달
-//        )
-//    }
-//}
+
+@Preview(showBackground = true, backgroundColor = 0xFF241860, widthDp = 420, heightDp = 840)
+@Composable
+private fun Preview_FreeBoardSection_Empty() {
+    MaterialTheme {
+        FreeBoardSection(
+            freeBoardsAll = dummyFreePosts,
+            onWriteClick = {},
+            onClickPost = {},
+            currentSort = SortBy.LATEST,
+            onChangeSort = {},
+            vm = null
+        )
+    }
+}

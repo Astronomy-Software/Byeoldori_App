@@ -16,19 +16,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.byeoldori.R
-import com.example.byeoldori.data.model.dto.EducationDetailResponse
-import com.example.byeoldori.data.model.dto.EducationResponse
-import com.example.byeoldori.domain.Community.EduProgram
-import com.example.byeoldori.domain.Community.ReviewComment
+import com.example.byeoldori.data.model.dto.*
+import com.example.byeoldori.domain.Community.*
 import com.example.byeoldori.ui.components.community.*
 import com.example.byeoldori.ui.components.community.freeboard.formatCreatedAt
 import com.example.byeoldori.ui.components.community.review.*
 import com.example.byeoldori.ui.mapper.toUi
 import com.example.byeoldori.ui.theme.*
-import com.example.byeoldori.viewmodel.EducationViewModel
-import com.example.byeoldori.viewmodel.UiState
-import com.example.byeoldori.viewmodel.dummyProgramComments
-import com.example.byeoldori.viewmodel.dummyPrograms
+import com.example.byeoldori.viewmodel.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,7 +33,8 @@ fun EduProgramDetail(
     onShare: () -> Unit = {},
     onMore: () -> Unit = {},
     currentUser: String,
-    vm: EducationViewModel = hiltViewModel(),
+    //vm: EducationViewModel? = hiltViewModel(),
+    vm: EducationViewModel? = null,
     onStartProgram: () -> Unit = {}
 ) {
     var input by rememberSaveable { mutableStateOf("") }
@@ -49,8 +45,14 @@ fun EduProgramDetail(
     var liked by rememberSaveable { mutableStateOf(setOf<String>()) }
     var postLikeCount by rememberSaveable { mutableStateOf(program.likeCount) }
     var parent by remember { mutableStateOf<ReviewComment?>(null) }
-    val detailState by vm.detail.collectAsState()
-    val postsState by vm.postsState.collectAsState()
+    //val detailState by vm.detail.collectAsState()
+    //val postsState by vm.postsState.collectAsState()
+
+    val detailState by (vm?.detail?.collectAsState()
+        ?: remember { mutableStateOf<UiState<EducationDetailResponse>>(UiState.Idle) })
+
+    val postsState by (vm?.postsState?.collectAsState()
+        ?: remember { mutableStateOf<UiState<List<EducationResponse>>>(UiState.Idle) })
 
     LaunchedEffect(requestKeyboard) {
         if (requestKeyboard) {
@@ -61,7 +63,7 @@ fun EduProgramDetail(
     }
 
     LaunchedEffect(program.id) {
-        vm.loadEducationDetail(program.id.toLong())
+        vm?.loadEducationDetail(program.id.toLong())
     }
 
     // 화면 들어올 때 LikeState → 로컬 liked 로 반영
@@ -284,7 +286,7 @@ fun EduProgramDetail(
     }
 }
 
-@Preview(showBackground = true, backgroundColor = 0xFF241860, widthDp = 420, heightDp = 840)
+@Preview(showBackground = true, backgroundColor = 0xFF241860, widthDp = 420, heightDp = 1000)
 @Composable
 private fun Preview_EduProgramDetail() {
     val sample = remember { dummyPrograms.first() }
@@ -293,6 +295,8 @@ private fun Preview_EduProgramDetail() {
         onBack = {},
         onShare = {},
         onMore = {},
-        currentUser = "astro_user"
+        currentUser = "astro_user",
+        onStartProgram = {},
+        vm = null
     )
 }

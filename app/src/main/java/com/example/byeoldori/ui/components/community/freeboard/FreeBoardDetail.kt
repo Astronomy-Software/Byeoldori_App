@@ -15,16 +15,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
 import com.example.byeoldori.R
 import com.example.byeoldori.data.model.dto.FreePostResponse
-import com.example.byeoldori.domain.Community.FreePost
-import com.example.byeoldori.domain.Community.ReviewComment
+import com.example.byeoldori.domain.Community.*
 import com.example.byeoldori.ui.components.community.*
 import com.example.byeoldori.ui.components.community.review.*
 import com.example.byeoldori.ui.mapper.toUi
 import com.example.byeoldori.ui.theme.*
-import com.example.byeoldori.viewmodel.CommunityViewModel
-import com.example.byeoldori.viewmodel.UiState
-import com.example.byeoldori.viewmodel.dummyFreeComments
-import com.example.byeoldori.viewmodel.dummyFreePosts
+import com.example.byeoldori.viewmodel.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,7 +31,7 @@ fun FreeBoardDetail (
     onMore: () -> Unit = {},
     currentUser: String,
     apiPost: FreePostResponse? = null, //api에서 받은 Post,
-    vm: CommunityViewModel
+    vm: CommunityViewModel? = null
 ) {
     var input by rememberSaveable { mutableStateOf("") }
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -44,8 +40,11 @@ fun FreeBoardDetail (
     var requestKeyboard by remember { mutableStateOf(false) }
     var parent by remember { mutableStateOf<ReviewComment?>(null) }
 
-    val likeCounts by vm.likeCounts.collectAsState()
-    val likedIds by vm.likedIds.collectAsState()
+    val likeCounts by (vm?.likeCounts?.collectAsState()
+        ?: remember { mutableStateOf<Map<String, Int>>(emptyMap()) })
+
+    val likedIds by (vm?.likedIds?.collectAsState()
+        ?: remember { mutableStateOf<Set<String>>(emptySet()) })
 
     val likeKey = likedKeyFree(post.id)
     val liked = likeKey in likedIds
@@ -224,7 +223,7 @@ fun FreeBoardDetail (
                     key = likedKeyFree(post.id),
                     likeCount = likeCount,
                     liked = liked,
-                    onToggle = { vm.toggleLike(post.id.toLong()) },
+                    onToggle = { vm?.toggleLike(post.id.toLong()) },
                     onSyncLikeCount = {},
                     commentCount = dummyFreeComments.count { it.reviewId == post.id }
                 )
@@ -261,15 +260,17 @@ fun FreeBoardDetail (
     }
 }
 
-//@Preview(showBackground = true, backgroundColor = 0xFF241860, widthDp = 420, heightDp = 840)
-//@Composable
-//private fun Preview_FreeBoardDetail() {
-//    val sample = remember { dummyFreePosts.first() }
-//    FreeBoardDetail(
-//        post = sample,
-//        onBack = {},
-//        onShare = {},
-//        onMore = {},
-//        currentUser = "astro_user"
-//    )
-//}
+@Preview(showBackground = true, backgroundColor = 0xFF241860, widthDp = 420, heightDp = 1000)
+@Composable
+private fun Preview_FreeBoardDetail() {
+    val sample = remember { dummyFreePosts.first() }
+    FreeBoardDetail(
+        post = sample,
+        onBack = {},
+        onShare = {},
+        onMore = {},
+        currentUser = "astro_user",
+        apiPost = null,
+        vm = null
+    )
+}

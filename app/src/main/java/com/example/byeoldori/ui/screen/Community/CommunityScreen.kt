@@ -9,19 +9,15 @@ import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.*
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.byeoldori.data.model.dto.EducationDetailResponse
-import com.example.byeoldori.data.model.dto.EducationResponse
-import com.example.byeoldori.data.model.dto.FreePostResponse
+import com.example.byeoldori.data.model.dto.*
 import com.example.byeoldori.ui.components.community.*
 import com.example.byeoldori.ui.components.community.program.*
 import com.example.byeoldori.ui.theme.*
 import com.example.byeoldori.ui.components.community.freeboard.*
-import com.example.byeoldori.ui.components.community.review.CommuReviewSection
-import com.example.byeoldori.ui.components.community.review.ReviewDetail
+import com.example.byeoldori.ui.components.community.review.*
 import com.example.byeoldori.domain.Community.EduProgram
 import com.example.byeoldori.domain.Observatory.Review
 import com.example.byeoldori.viewmodel.*
-import com.example.byeoldori.ui.components.community.review.ReviewWriteForm
 
 // --- 탭 정의 ---
 enum class CommunityTab(val label: String, val routeSeg: String) {
@@ -78,6 +74,14 @@ fun CommunityScreen(
     LaunchedEffect(tab) {
         if (tab == CommunityTab.Program) {
             eduVm.loadPosts()
+        }
+    }
+
+    LaunchedEffect(tab) {
+        if (tab == CommunityTab.Home) {
+            reviewVm.loadPosts()
+            eduVm.loadPosts()
+            vm.loadPosts()
         }
     }
 
@@ -263,30 +267,41 @@ fun CommunityScreen(
 
 
                     CommunityTab.Home -> {
-                        val recentReviews by remember { derivedStateOf { reviews.sortedByDescending { it.createdAt }.take(8) } }
-                        val recentPrograms = remember { dummyPrograms.sortedByDescending { it.createdAt }.take(8) }
-                        val popularFreePost = remember { dummyFreePosts.sortedByDescending { it.likeCount }.take(8) }
+//                        val recentReviews by remember { derivedStateOf { reviews.sortedByDescending { it.createdAt }.take(8) } }
+//                        val recentPrograms = remember { dummyPrograms.sortedByDescending { it.createdAt }.take(8) }
+//                        val popularFreePost = remember { dummyFreePosts.sortedByDescending { it.likeCount }.take(8) }
 
-//                        val reviewList = when (val s = reviewVm.postsState.collectAsState().value) {
-//                            is UiState.Success -> s.data.map { it.toCard() }
-//                            else -> emptyList()
-//                        }
-//                        val eduList = when (val s = eduVm.postsState.collectAsState().value) {
-//                            is UiState.Success -> s.data.map { it.toEduProgram() }
-//                            else -> emptyList()
-//                        }
-//                        val freeList = when (val s = vm.postsState.collectAsState().value) {
-//                            is UiState.Success -> s.data.map { it.toFreePost() }
-//                            else -> emptyList()
-//                        }
+                        val reviewList = when (val s = reviewVm.postsState.collectAsState().value) {
+                            is UiState.Success -> s.data.map { it.toReview() }
+                            else -> emptyList()
+                        }
+                        val eduList = when (val s = eduVm.postsState.collectAsState().value) {
+                            is UiState.Success -> s.data.map { it.toEduProgram() }
+                            else -> emptyList()
+                        }
+                        val freeList = when (val s = vm.postsState.collectAsState().value) {
+                            is UiState.Success -> s.data.map { it.toFreePost() }
+                            else -> emptyList()
+                        }
 
                         HomeSection(
-                            recentReviews = recentReviews,
-                            recentEduPrograms = recentPrograms,
-                            popularFreePosts = popularFreePost,
-                            onReviewClick = { selectedReview = it },
-                            onProgramClick = { selectedProgram = it },
-                            onFreePostClick = { selectedFreePost = it.id },
+                            recentReviews = reviewList.take(20),
+                            recentEduPrograms = eduList.take(20),
+                            popularFreePosts = freeList.sortedByDescending { it.likeCount }.take(20),
+                            onReviewClick = { review ->
+                                reviewVm.selectPost(review.id)             // 상세 대상 선택
+                                onSelectTab(CommunityTab.Review)
+                                review.id.toLongOrNull()?.let { reviewVm.loadReviewDetail(it) } // (선택) 즉시 로드
+                            },
+                            onProgramClick = { program ->
+                                eduVm.selectPost(program.id)              // 상세 대상 선택
+                                onSelectTab(CommunityTab.Program)         //Program 탭으로 전환
+                                program.id.toLongOrNull()?.let { eduVm.loadEducationDetail(it) }
+                            },
+                            onFreePostClick = { free ->
+                                vm.selectPost(free.id)
+                                onSelectTab(CommunityTab.Board)
+                            },
                             onSyncReviewLikeCount = { id, next ->
                                 val i = reviews.indexOfFirst { it.id == id }
                                 if (i >= 0) reviews[i] = reviews[i].copy(likeCount = next)

@@ -228,23 +228,6 @@ fun ReviewWriteForm(
                 }
             )
         }
-        if (showSuccessDialog) {
-            AlertDialog(
-                onDismissRequest = { /* 사용자가 꼭 확인을 누르게 하려면 비워둬도 됨 */ },
-                title = { Text("알림") },
-                text = { Text("관측 후기가 정상적으로 등록되었습니다.") },
-                confirmButton = {
-                    TextButton(onClick = {
-                        showSuccessDialog = false
-                        handledSuccess = false
-                        vm?.resetCreateState()   //상태 초기화해서 다음 작성 때 자동 닫힘 방지
-                        onSubmit()               //작성 폼 닫기 및 상위 후처리
-                    }) {
-                        Text("확인")
-                    }
-                }
-            )
-        }
     }
 }
 
