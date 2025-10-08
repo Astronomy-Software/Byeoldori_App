@@ -42,3 +42,20 @@ data class ReviewPostResponse(
     val totalElements: Int,
     val totalPages: Int
 )
+
+@JsonClass(generateAdapter = true)
+data class ReviewDetailResponse(
+    val id: Long,
+    val type: String,
+    val title: String,
+    val content: String,
+    val authorId: Long,
+    val images: List<String> = emptyList(),
+    val review: ReviewDto?,     // ★ 관측 정보 들어감
+    val viewCount: Int,
+    val likeCount: Int,
+    val commentCount: Int,
+    val createdAt: String,
+    val updatedAt: String
+)
+

@@ -52,7 +52,11 @@ fun CommunityScreen(
     val selectedPost by vm.selectedPost.collectAsState()
     val postDetailState by vm.postDetail.collectAsState()
     val currentSort by vm.sort.collectAsState()
+
     val reviewVm: ReviewViewModel = hiltViewModel()
+    val detailState by reviewVm.detail.collectAsState()
+    val apiDetail = (detailState as? UiState.Success)?.data
+    val apiSummary = reviewVm.selectedPost.collectAsState().value
 
     LaunchedEffect(tab) {
         if (tab == CommunityTab.Board) {
@@ -69,21 +73,20 @@ fun CommunityScreen(
             // 작성 화면만 표시 (탭/목록 숨김)
             ReviewWriteForm(
                 author = currentUser,
-                onCancel = { showWriteForm = false },   // 취소 → 다시 탭 화면으로
-                onSubmit = { showWriteForm = false },   // 등록 → 저장 처리 후 목록으로
+                onCancel = {
+                    showWriteForm = false
+                    successMessage = "작성 취소되었습니다"
+                    showSuccessDialog = true
+                },   // 취소 → 다시 탭 화면으로
+                onSubmit = {
+                    showWriteForm = false
+                    successMessage = "리뷰가 등록되었습니다"
+                    showSuccessDialog = true
+                    reviewVm.resetCreateState()
+                },
                 onTempSave = {},
                 onMore = { /* 더보기 */ },
-                onSubmitReview = { newReview ->
-                    if (reviews.none { it.id == newReview.id }) {
-                        reviews.add(0, newReview)
-                    }
-                    if (dummyReviews.none { it.id == newReview.id }) {
-                        dummyReviews.add(0, newReview)
-                    }
-                    lastSubmittedReview = newReview
-                    showWriteForm = false        // 작성창 닫기
-                    showSuccessDialog = true
-                },
+                vm = reviewVm,
                 initialReview = null
             )
 
@@ -93,7 +96,7 @@ fun CommunityScreen(
                 author = currentUser,
                 onCancel = {
                     showFreeBoardWriteForm = false
-                    //successMessage = "작성 취소되었습니다"
+                    successMessage = "작성 취소되었습니다"
                     showSuccessDialog = true
                 },
                 onSubmit = {
@@ -107,14 +110,16 @@ fun CommunityScreen(
                     dummyFreePosts.add(0, newPost)
                     showFreeBoardWriteForm = false
                     showSuccessDialog = true
-                },
-                onClose = { showFreeBoardWriteForm = false }
+            },
+                onClose = {}
             )
         }
         selectedReview != null -> {
             ReviewDetail(
                 review = selectedReview!!,
                 onBack = { selectedReview = null },  // 뒤로가기 누르면 다시 목록으로
+                apiDetail = apiDetail,
+                apiPost = apiSummary,
                 currentUser = currentUser,
                 onSyncReviewLikeCount = { id, next ->
                     val idx = reviews.indexOfFirst { it.id == id }
@@ -185,8 +190,19 @@ fun CommunityScreen(
                     CommunityTab.Review -> {
                         CommuReviewSection(
                             reviewsAll = reviews,
-                            onWriteClick = { showWriteForm = true },
-                            onReviewClick = { review -> selectedReview = review },
+                            onWriteClick = {
+                                reviewVm.resetCreateState()
+                                showWriteForm = true
+                            },
+                            onReviewClick = { review ->
+                                selectedReview = review
+                                val idStr = review.id               // String
+                                reviewVm.selectPost(idStr)          // selectPost(String)용
+
+                                idStr.toLongOrNull()?.let { idL ->  // 상세 API는 Long 필요
+                                    reviewVm.loadReviewDetail(idL)
+                                }
+                            },
                             onSyncReviewLikeCount = { id, next ->
                                 val i = reviews.indexOfFirst { it.id == id }
                                 if (i >= 0) reviews[i] = reviews[i].copy(likeCount = next)
@@ -269,7 +285,7 @@ fun CommunityScreen(
             title = { Text("알림",color = Color.Black) },
             text = {
                 Column {
-                    Text("정상적으로 등록되었습니다.", color = Color.Black)
+                    //Text("정상적으로 등록되었습니다.", color = Color.Black)
                     Spacer(Modifier.height(8.dp))
                     Text(successMessage, color = Color.DarkGray)
                 }

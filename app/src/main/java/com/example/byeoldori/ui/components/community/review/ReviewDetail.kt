@@ -19,6 +19,7 @@ import com.example.byeoldori.ui.theme.*
 import com.example.byeoldori.domain.Community.ReviewComment
 import androidx.compose.ui.focus.*
 import androidx.compose.ui.text.input.TextFieldValue
+import com.example.byeoldori.data.model.dto.ReviewDetailResponse
 import com.example.byeoldori.data.model.dto.ReviewPostResponse
 import com.example.byeoldori.data.model.dto.ReviewResponse
 import com.example.byeoldori.domain.Observatory.Review
@@ -43,7 +44,8 @@ fun ReviewDetail(
     onMore: () -> Unit = {},
     currentUser: String,
     onSyncReviewLikeCount: (id: String, next: Int) -> Unit,
-    apiDetail: ReviewResponse? = null, // 서버에서 가져온 상세(요약/카운트)
+    apiDetail: ReviewDetailResponse? = null, // 서버에서 가져온 상세(요약/카운트)
+    apiPost: ReviewResponse? = null,
     vm: ReviewViewModel
 ) {
     val imeVisible = rememberIsImeVisible()
@@ -114,7 +116,12 @@ fun ReviewDetail(
                         }
                     }
                 )
-                Divider(color = Color.LightGray.copy(alpha = 0.4f), thickness = 1.dp)
+                //Divider(color = Color.LightGray.copy(alpha = 0.4f), thickness = 1.dp)
+                Divider(
+                    color = Color.White.copy(alpha = 0.6f),
+                    thickness = 2.dp,
+                    modifier = Modifier.padding(top = 6.dp, bottom = 12.dp)
+                )
             }
         },
         bottomBar = {
@@ -175,7 +182,7 @@ fun ReviewDetail(
             item {
                 Spacer(Modifier.height(10.dp))
                 Text( // 제목
-                    text = apiDetail?.title ?: review.title,
+                    text = apiPost?.title ?: review.title,
                     style = MaterialTheme.typography.headlineSmall.copy(
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp,
@@ -185,26 +192,24 @@ fun ReviewDetail(
                 Spacer(Modifier.height(10.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     // 프로필 이미지 (임시)
-                    review.profile?.let {
                         Icon(
-                            painter = painterResource(it),
+                            painter = painterResource(R.drawable.profile1),
                             contentDescription = "프로필 이미지",
                             tint = Color.Unspecified,
                             modifier = Modifier.size(50.dp)
                         )
-                    }
                     Spacer(Modifier.width(8.dp))
                     Column {
                         Text( //사용자 이름
-                            text = apiDetail?.authorNickname ?: review.author,
+                            text = apiPost?.authorNickname ?: review.author,
                             style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                             fontSize = 17.sp,
                             color = TextHighlight
                         )
                         Spacer(Modifier.height(4.dp))
                         Text( //작성일
-                            text = (apiDetail?.createdAt ?: review.createdAt.toShortDate()).let {
-                                if (apiDetail != null) it.toShortDate() else it
+                            text = (apiPost?.createdAt ?: review.createdAt.toShortDate()).let {
+                                if (apiPost != null) it.toShortDate() else it
                             },
                             style = MaterialTheme.typography.bodySmall.copy(color = TextDisabled),
                             fontSize = 17.sp
@@ -213,29 +218,31 @@ fun ReviewDetail(
                 }
                 Spacer(Modifier.height(16.dp))
                 ReviewInput(
-                    target = review.target ?: "",
+                    target = apiDetail?.review?.target ?: review.target?.takeIf { it.isNotBlank() } ?: "—",
                     onTargetChange = {},
-                    site = review.site ?: "",
+                    site = apiDetail?.review?.location ?: review.site?.takeIf { it.isNotBlank() } ?: "—",
                     onSiteChange = {},
-                    equipment = review.equipment ?: "",
+                    equipment = apiDetail?.review?.equipment ?: review.equipment?.takeIf { it.isNotBlank() } ?: "—",
                     onEquipmentChange = {},
-                    date = review.date ?: "",
-                    startTime = review.startTime ?: "",
-                    endTime = review.endTime ?: "",
+                    date = apiDetail?.review?.observationDate ?: review.date?.takeIf { it.isNotBlank() } ?: "—",
                     onTimeChange = { _, _ -> },
-                    rating = review.rating.toString() + "/5",
+                    rating = apiDetail?.review?.score?.let { "$it/5" }
+                        ?: if (review.rating > 0) { "${review.rating}/5" } else { "미입력" },
                     onRatingChange = {},
-                    siteScore = review.siteScore.toString() + "/5",
-                    onSiteScoreChange = {},
                     onDateChange = {},
                     modifier = Modifier.fillMaxWidth(),
                     enabled = false //수정 못하게
                 )
+               // Divider(color = Color.LightGray.copy(alpha = 0.4f), thickness = 1.dp)
                 ContentInput(
-                    items = if (apiDetail != null) {
-                        listOf(EditorItem.Paragraph(value = TextFieldValue(apiDetail.contentSummary.orEmpty())))
-                    } else {
-                        review.contentItems.toUi()
+                    items = when {
+                        apiPost?.contentSummary != null -> listOf(
+                            EditorItem.Paragraph(value = TextFieldValue(apiPost.contentSummary))
+                        )
+                        apiDetail?.content != null -> listOf(
+                            EditorItem.Paragraph(value = TextFieldValue(apiDetail.content))
+                        )
+                        else -> review.contentItems.toUi()
                     },
                     onItemsChange = {},
                     onCheck = {},

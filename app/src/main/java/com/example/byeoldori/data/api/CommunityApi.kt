@@ -7,6 +7,7 @@ import com.example.byeoldori.data.model.dto.CreatedPostId
 import com.example.byeoldori.data.model.dto.FreePostResponse
 import com.example.byeoldori.data.model.dto.LikeToggleResponse
 import com.example.byeoldori.data.model.dto.PostResponse
+import com.example.byeoldori.data.model.dto.ReviewDetailResponse
 import com.example.byeoldori.data.model.dto.ReviewPostResponse
 import com.example.byeoldori.data.model.dto.ReviewResponse
 import retrofit2.http.Body
@@ -52,7 +53,7 @@ interface CommunityApi {
     @GET("community/posts/{postId}")
     suspend fun getReviewDetail(
         @Path("postId") postId: Long
-    ): ReviewResponse
+    ): ReviewDetailResponse
 
     @POST("community/posts/{id}/likes/toggle")
     suspend fun toggleLike(@Path("id") id: Long): LikeToggleResponse

@@ -17,6 +17,8 @@ import com.example.byeoldori.R
 import com.example.byeoldori.ui.components.community.*
 import com.example.byeoldori.domain.Observatory.Review
 import com.example.byeoldori.ui.mapper.toDomain
+import com.example.byeoldori.viewmodel.ReviewViewModel
+import com.example.byeoldori.viewmodel.UiState
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.UUID
@@ -29,7 +31,7 @@ fun ReviewWriteForm(
     onTempSave: () -> Unit,         // 임시 저장
     onMore: () -> Unit,
     now: () -> Long = { System.currentTimeMillis() },
-    onSubmitReview: (Review) -> Unit,
+    vm: ReviewViewModel? = null,
     initialReview: Review? = null
 ) {
     // --- 상태들 ---
@@ -62,35 +64,23 @@ fun ReviewWriteForm(
         mutableStateOf(listOf<EditorItem>(EditorItem.Paragraph())) //리뷰 본문
     }
     var date by rememberSaveable { mutableStateOf(initialReview?.date ?: "") }
+    val createStateState = vm?.createState?.collectAsState()
+    val createState = createStateState?.value ?: UiState.Idle
+    var handledSuccess by remember { mutableStateOf(false) }
+    var showSuccessDialog by remember { mutableStateOf(false) }
 
     fun formatNow(now: Long): String {
         val date = LocalDateTime.ofEpochSecond(now / 1000, 0, java.time.ZoneOffset.UTC)
         return date.format(DateTimeFormatter.ofPattern("yy.MM.dd"))
     }
 
-    fun makeReview(): Review {
-        val createdAt = now()
-        val createdAtStr = formatNow(createdAt)
-        return Review(
-            id = UUID.randomUUID().toString(),
-            title = title,
-            author = author,
-            rating = ratingInt,
-            likeCount = 0,
-            commentCount = 0,
-            profile = R.drawable.profile1,
-            viewCount = 0,
-            createdAt = createdAtStr,
-            target = target,
-            site = site,
-            date = date,
-            siteScore = siteScoreInt,
-            equipment = equipment,
-            startTime = startTime,
-            endTime = endTime,
-            contentItems = items.toDomain()
-        )
-    }
+    fun buildContentText(items: List<EditorItem>): String =
+        items.joinToString("\n") {
+            when (it) {
+                is EditorItem.Paragraph -> it.value.text
+                else -> ""
+            }
+        }
 
     fun validateRequirement(): Boolean {
         return title.isNotBlank() &&
@@ -98,9 +88,12 @@ fun ReviewWriteForm(
                 site.isNotBlank() &&
                 equipment.isNotBlank() &&
                 date.isNotBlank() &&
-                ratingInt > 0 &&
-                siteScoreInt > 0
+                ratingInt > 0
     }
+
+//    LaunchedEffect(Unit) {
+//        vm?.resetCreateState()
+//    }
 
     Box(Modifier.fillMaxSize()) {
         LazyColumn(
@@ -115,8 +108,17 @@ fun ReviewWriteForm(
                 WriteBar(
                     onSubmit = {
                         if(validateRequirement()) {
-                            onSubmitReview(makeReview()) //입력된 값을 모아서 Review객체 생성
-                            onSubmit()
+                            //onSubmitReview(makeReview()) //입력된 값을 모아서 Review객체 생성
+                            //onSubmit()
+                            vm?.createReview(
+                                title = title.trim(),
+                                content = buildContentText(items),
+                                location = site.trim(),
+                                target = target.trim(),
+                                equipment = equipment.trim(),
+                                observationDate = date,
+                                score = ratingInt
+                            )
                         } else {
                             showValidationDialog = true
                         }
@@ -147,13 +149,9 @@ fun ReviewWriteForm(
                     onSiteChange = { site = it },
                     equipment = equipment,
                     onEquipmentChange = { equipment = it },
-                    startTime = startTime,
-                    endTime = endTime,
                     onTimeChange = { s, e -> startTime = s; endTime = e },
                     rating = rating,
                     onRatingChange = { showRatingPicker = true },
-                    siteScore = siteScore,
-                    onSiteScoreChange = { showSiteScorePicker = true },
                     modifier = Modifier.padding(vertical = 5.dp),
                     date = date,
                     onDateChange = { picked -> date = picked }
@@ -177,6 +175,22 @@ fun ReviewWriteForm(
                 )
             }
         }
+
+        when (val s = createState) {
+            is UiState.Loading -> {
+                LinearProgressIndicator(Modifier.fillMaxWidth())
+            }
+            is UiState.Success -> {
+                LaunchedEffect(s) {
+                    onSubmit()
+                }
+            }
+            is UiState.Error -> {
+                Text(s.message ?: "작성 실패", color = Color.Red)
+            }
+            UiState.Idle -> Unit
+        }
+
         if (showCancelDialog) {
             AlertDialog(
                 onDismissRequest = { showCancelDialog = false },
@@ -204,24 +218,30 @@ fun ReviewWriteForm(
                 onDismiss = { showRatingPicker = false }
             )
         }
-        if (showSiteScorePicker) { //관측지 점수 선택
-            ScoreLabel(
-                show = showSiteScorePicker,
-                score = siteScoreInt,
-                onSelected = { n ->
-                    siteScoreInt = n
-                    siteScore = "$n/5"
-                    showSiteScorePicker = false
-                },
-                onDismiss = { showSiteScorePicker = false }
-            )
-        }
+
         if (showValidationDialog) {
             AlertDialog(
                 onDismissRequest = { showValidationDialog = false },
                 text = { Text("필수 항목을 모두 입력해주세요.") },
                 confirmButton = {
                     TextButton(onClick = { showValidationDialog = false }) { Text("확인") }
+                }
+            )
+        }
+        if (showSuccessDialog) {
+            AlertDialog(
+                onDismissRequest = { /* 사용자가 꼭 확인을 누르게 하려면 비워둬도 됨 */ },
+                title = { Text("알림") },
+                text = { Text("관측 후기가 정상적으로 등록되었습니다.") },
+                confirmButton = {
+                    TextButton(onClick = {
+                        showSuccessDialog = false
+                        handledSuccess = false
+                        vm?.resetCreateState()   //상태 초기화해서 다음 작성 때 자동 닫힘 방지
+                        onSubmit()               //작성 폼 닫기 및 상위 후처리
+                    }) {
+                        Text("확인")
+                    }
                 }
             )
         }
@@ -237,8 +257,7 @@ private fun Preview_ReviewWriteForm_Box() {
             onCancel = {},
             onSubmit = {},
             onTempSave = {},
-            onMore = {},
-            onSubmitReview = {}
+            onMore = {}
         )
     }
 }

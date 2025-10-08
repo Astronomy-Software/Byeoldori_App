@@ -61,32 +61,6 @@ fun FreeBoardWriteForm (
     }
     val createState by vm.createState.collectAsState()
 
-    fun formatNow(now: Long): String {
-        val date = LocalDateTime.ofEpochSecond(now / 1000, 0, java.time.ZoneOffset.UTC)
-        return date.format(DateTimeFormatter.ofPattern("yy.MM.dd"))
-    }
-
-    fun makePost(): FreePost {
-        val createdAt = now()
-        val createdAtStr = formatNow(createdAt)
-        return FreePost(
-            id = createdAt.toString(),
-            title = title,
-            author = author,
-            profile = R.drawable.profile1,
-            likeCount = 0,
-            commentCount = 0,
-            viewCount = 0,
-            createdAt = createdAtStr,
-            contentItems = items.toDomain()
-        )
-    }
-    fun validate(): Boolean {
-        val hasTitle = title.isNotBlank()
-        val hasContent = items.any { it is EditorItem.Paragraph && it.value.text.isNotBlank() }
-        return hasTitle && hasContent
-    }
-
     Box(Modifier.fillMaxSize()) {
         LazyColumn(
             modifier = Modifier
@@ -175,9 +149,9 @@ fun FreeBoardWriteForm (
         }
         is UiState.Success -> {
             LaunchedEffect(s.data) {
-                //onSubmit()
                 vm.clearCreateState()
-                onClose()
+                onSubmit()
+                //onClose()
             }
         }
         is UiState.Error -> {

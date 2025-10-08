@@ -16,9 +16,7 @@ import android.app.TimePickerDialog
 fun DateSelection(
     label: String = "관측 일시를 선택하세요",
     date: String,
-    start: String,
-    end: String,
-    onPicked: (date: String, start: String, end: String) -> Unit,
+    onPicked: (date: String) -> Unit,
     use24HourView: Boolean = true
 ) {
     val context = LocalContext.current
@@ -50,24 +48,12 @@ fun DateSelection(
                     // 날짜 선택
                     DatePickerDialog(context, { _, yy, mm, dd ->
                         val pickedDate = "%04d-%02d-%02d".format(yy, mm + 1, dd)
-
-                        // 시작 시간
-                        TimePickerDialog(context, { _, sh, smin ->
-                            val startPicked = "%02d:%02d".format(sh, smin)
-
-                            // 종료 시간
-                            TimePickerDialog(context, { _, eh, emin ->
-                                val endPicked = "%02d:%02d".format(eh, emin)
-                                onPicked(pickedDate, startPicked, endPicked)
-                            }, h, min, use24HourView).apply { setTitle("관측 종료 시간") }.show()
-
-                        }, h, min, use24HourView).apply { setTitle("관측 시작 시간") }.show()
-
+                        onPicked(pickedDate) //
                     }, y, m, d).apply { setTitle("관측 일자") }.show()
                 }
                 .padding(vertical = 8.dp)
         ) {
-            if (date.isEmpty() && start.isEmpty() && end.isEmpty()) {
+            if (date.isEmpty()) {
                 Text(
                     "관측 일자를 선택해주세요",
                     fontSize = 14.sp,
@@ -75,7 +61,7 @@ fun DateSelection(
                 )
             } else {
                 Text(
-                    "$displayDate $start ~ $end",
+                    displayDate,
                     fontSize = 14.sp,
                     color = TextHighlight
                 )

@@ -39,7 +39,7 @@ fun ReviewResponse.toDomain(): Review = Review(
     id = id.toString(),
     title = title,
     author = authorNickname ?: "익명",
-    profile = null, // 서버에 프로필 리소스 없으면 null 유지
+    profile = R.drawable.profile1, // 서버에 프로필 리소스 없으면 null 유지
     createdAt = formatCreatedAt(createdAt),
     viewCount = viewCount,
     likeCount = likeCount,
@@ -74,27 +74,40 @@ fun CommuReviewSection(
 
     val state by vm.postsState.collectAsState()
     val likeCounts by vm.likeCounts.collectAsState()
+    val scores by vm.scores.collectAsState()
 
-    val reviewsAll by remember(state) {
+    val apiList by remember(state) {
         mutableStateOf(
             when (state) {
-                is UiState.Success -> (state as UiState.Success<List<ReviewResponse>>).data.map { it.toDomain() }
+                is UiState.Success ->
+                    (state as UiState.Success<List<ReviewResponse>>)
+                        .data
+                        .map { it.toDomain() }  // rating=0 기본
                 else -> emptyList()
             }
         )
     }
 
-    // 검색만
-    val filtered = run {
-        val q = searchText.trim()
-        if (q.isEmpty()) reviewsAll else {
-            val k = q.lowercase()
-            reviewsAll.filter { r ->
-                r.title.lowercase().contains(k) ||
-                r.author.lowercase().contains(k) ||
-                r.contentItems.filterIsInstance<EditorItem.Paragraph>().any { it.value.text.lowercase().contains(k) }
+    val merged by remember(apiList, scores) {
+        mutableStateOf(
+            apiList.map { r -> r.copy(rating = scores[r.id] ?: r.rating) }
+        )
+    }
+
+    val filtered by remember(searchText, merged) {
+        mutableStateOf(
+            if (searchText.isBlank()) merged
+            else {
+                val k = searchText.trim().lowercase()
+                merged.filter { r ->
+                    r.title.lowercase().contains(k) ||
+                            r.author.lowercase().contains(k) ||
+                            r.contentItems
+                                .filterIsInstance<Content.Text>()
+                                .any { it.text.lowercase().contains(k) }
+                }
             }
-        }
+        )
     }
 
     val currentSort by vm.sort.collectAsState()
@@ -129,12 +142,13 @@ fun CommuReviewSection(
                     options = ReviewSort.entries.toList(),
                     label = { it.label },
                     onSelect = {
+                        sort = it
                         val serverSort = when (it) {
                             ReviewSort.Latest -> SortBy.LATEST
                             ReviewSort.Like   -> SortBy.LIKES
                             ReviewSort.View   -> SortBy.VIEWS
                         }
-                        onChangeSort(serverSort)
+                        vm.setSort(serverSort)
                     }
                 )
             }
@@ -160,6 +174,9 @@ fun CommuReviewSection(
                             items = filtered,
                             key = { it.id }
                         ) { review ->
+                            LaunchedEffect(review.id) {
+                                review.id.toLongOrNull()?.let { vm.ensureScoreLoaded(it) }
+                            }
                             ReviewCard(
                                 review = review,
                                 modifier = Modifier.clickable { onReviewClick(review) },

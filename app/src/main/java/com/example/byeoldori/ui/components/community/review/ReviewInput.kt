@@ -25,13 +25,9 @@ fun ReviewInput (
     onEquipmentChange: (String) -> Unit,
     date: String,
     onDateChange: (String) -> Unit,
-    startTime: String,
-    endTime: String,
     onTimeChange: (String, String) -> Unit,
     rating: String,
     onRatingChange: () -> Unit,
-    siteScore: String,
-    onSiteScoreChange: () -> Unit,
     modifier: Modifier,
     enabled: Boolean = true
 ) {
@@ -81,18 +77,15 @@ fun ReviewInput (
                     DateSelection(
                         label = "관측 일자",
                         date = date,
-                        start = startTime,
-                        end = endTime,
-                        onPicked = { pickedDate, start, end ->
-                            onDateChange(pickedDate)   // date 상태 갱신
-                            onTimeChange(start, end)   // 시간 상태 갱신
+                        onPicked = { pickedDate ->
+                            onDateChange(pickedDate)
                         }
                     )
                 } else {
                     //읽기 모드
                     Label(
                         title = "관측 일자",
-                        value = if (date.isBlank()) "" else "${date.toShortDate()}  $startTime ~ $endTime",
+                        value = if (date.isBlank()) "" else "${date.toShortDate()}",
                         placeholder = "관측 일자를 선택해주세요",
                         selectable = false,
                         enabled = false
@@ -113,16 +106,6 @@ fun ReviewInput (
                     selectable = true,
                     placeholder = "관측 평점을 입력해주세요",
                     onClick = onRatingChange,
-                    enabled = enabled
-                )
-            }
-            Box(Modifier.weight(1f).fillMaxHeight()) {
-                Label(
-                    title = "관측지 점수",
-                    value = siteScore,
-                    selectable = true,
-                    placeholder = "관측지의 점수를 입력해주세요",
-                    onClick = onSiteScoreChange,
                     enabled = enabled
                 )
             }
@@ -222,13 +205,9 @@ private fun Preview_ReviewInputSection() {
             equipment = equipment,
             onEquipmentChange = { equipment = it },
             date = "",
-            startTime = start,
-            endTime = end,
             onTimeChange = { s, e -> start = s; end = e },
             rating = rating,
             onRatingChange = {},
-            siteScore = siteScore,
-            onSiteScoreChange = {},
             onDateChange = {},
             modifier = Modifier.padding(horizontal = 20.dp, vertical = 5.dp)
         )

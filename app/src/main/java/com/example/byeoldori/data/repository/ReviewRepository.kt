@@ -10,6 +10,7 @@ import com.example.byeoldori.data.model.dto.CreateFreeRequest
 import com.example.byeoldori.data.model.dto.CreateReviewRequest
 import com.example.byeoldori.data.model.dto.FreePostResponse
 import com.example.byeoldori.data.model.dto.LikeToggleResponse
+import com.example.byeoldori.data.model.dto.ReviewDetailResponse
 import com.example.byeoldori.data.model.dto.ReviewDto
 import com.example.byeoldori.data.model.dto.ReviewPostResponse
 import com.example.byeoldori.data.model.dto.ReviewResponse
@@ -59,7 +60,7 @@ class ReviewRepository @Inject constructor(
         return res.content
     }
 
-    suspend fun getReviewDetail(postId: Long): ReviewResponse {
+    suspend fun getReviewDetail(postId: Long): ReviewDetailResponse {
         return api.getReviewDetail(postId)
     }
 
