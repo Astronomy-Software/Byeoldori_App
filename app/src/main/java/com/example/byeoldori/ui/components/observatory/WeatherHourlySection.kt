@@ -147,7 +147,7 @@ fun ForecastItem(forecast: HourlyForecast) {
         }
 
         Text("관측 적합도", color = TextHighlight, fontSize = 12.sp)
-        Text(forecast.suitability, color = Color(0xFF75FF75), fontSize = 18.sp)
+        Text(forecast.suitability.toPercent(), color = Color(0xFF75FF75), fontSize = 18.sp)
     }
 }
 
@@ -155,12 +155,12 @@ fun ForecastItem(forecast: HourlyForecast) {
 @Composable
 private fun Preview_WeatherHourlySection() {
     val previewHourly = listOf(
-        HourlyForecast("5.23", "4시", "15°", "cloud_sun", "60%", "85%"),
-        HourlyForecast("5.23", "5시", "16°", "sunny",     "55%", "82%"),
-        HourlyForecast("5.23", "6시", "17°", "rain",      "70%", "60%"),
-        HourlyForecast("5.24", "1시", "13°", "cloud_moon","80%", "90%"),
-        HourlyForecast("5.24", "2시", "12°", "cloud_sun", "85%", "88%"),
-        HourlyForecast("5.24", "3시", "14°", "sunny",     "60%", "60%")
+        HourlyForecast("5.23", "4시", "15°", "cloud_sun", "60%", 85),
+        HourlyForecast("5.23", "5시", "16°", "sunny",     "55%", 82),
+        HourlyForecast("5.23", "6시", "17°", "rain",      "70%", 60),
+        HourlyForecast("5.24", "1시", "13°", "cloud_moon","80%", 90),
+        HourlyForecast("5.24", "2시", "12°", "cloud_sun", "85%", 88),
+        HourlyForecast("5.24", "3시", "14°", "sunny",     "60%", 60)
     )
     MaterialTheme {
         Surface(color = Color.Black) { WeatherHourlySection(previewHourly) }

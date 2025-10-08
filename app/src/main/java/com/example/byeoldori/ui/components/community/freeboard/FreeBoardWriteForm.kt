@@ -1,6 +1,7 @@
 package com.example.byeoldori.ui.components.community.freeboard
 
 import android.net.Uri
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.*
@@ -12,12 +13,13 @@ import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.byeoldori.R
 import com.example.byeoldori.domain.Community.FreePost
 import com.example.byeoldori.ui.components.community.*
 import com.example.byeoldori.ui.components.community.review.*
-import com.example.byeoldori.ui.mapper.toDomain
 import com.example.byeoldori.ui.mapper.toUi
+import com.example.byeoldori.viewmodel.*
 
 @Composable
 fun FreeBoardWriteForm (
@@ -28,12 +30,15 @@ fun FreeBoardWriteForm (
     onMore: () -> Unit,
     now: () -> Long = { System.currentTimeMillis() },
     onSubmitPost: (FreePost) -> Unit,
-    initialPost: FreePost? = null //?
+    initialPost: FreePost? = null, //?
+    vm: CommunityViewModel? = null,
+    onClose: () -> Unit
 ) {
     var showCancelDialog by remember { mutableStateOf(false) }
     var showValidationDialog by remember { mutableStateOf(false) }
     var title by rememberSaveable { mutableStateOf("") }
     var pendingOnPicked by remember { mutableStateOf<((List<Uri>) -> Unit)?>(null) }
+    var imageUris by remember { mutableStateOf<List<Uri>>(emptyList()) }
 
     val pickImages = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickMultipleVisualMedia(maxItems = 10)
@@ -48,26 +53,8 @@ fun FreeBoardWriteForm (
                 ?: listOf<EditorItem>(EditorItem.Paragraph())
         )
     }
-
-    fun makePost(): FreePost {
-        val createdAt = now()
-        return FreePost(
-            id = createdAt.toString(),
-            title = title,
-            author = author,
-            profile = R.drawable.profile1,
-            likeCount = 0,
-            commentCount = 0,
-            viewCount = 0,
-            createdAt = createdAt,
-            contentItems = items.toDomain()
-        )
-    }
-    fun validate(): Boolean {
-        val hasTitle = title.isNotBlank()
-        val hasContent = items.any { it is EditorItem.Paragraph && it.value.text.isNotBlank() }
-        return hasTitle && hasContent
-    }
+    val createState by (vm?.createState?.collectAsState()
+        ?: remember { mutableStateOf<UiState<Any>>(UiState.Idle) })
 
     Box(Modifier.fillMaxSize()) {
         LazyColumn(
@@ -80,11 +67,15 @@ fun FreeBoardWriteForm (
             item {
                 WriteBar(
                     onSubmit = {
-                        if (validate()) {
-                            onSubmitPost(makePost())
-                            onSubmit()
-                        } else {
+                        val bodyText = items
+                            .filterIsInstance<EditorItem.Paragraph>()
+                            .joinToString("\n") { it.value.text.trim() }
+                            .trim()
+
+                        if (title.isBlank() || bodyText.isBlank()) {
                             showValidationDialog = true
+                        } else {
+                            vm?.createPost(title, bodyText, imageUris) // ← 진짜 본문 전달
                         }
                     },
                     onTempSave = onTempSave,
@@ -147,7 +138,25 @@ fun FreeBoardWriteForm (
             )
         }
     }
+    when (val s = createState) {
+        UiState.Loading -> {
+            CircularProgressIndicator()
+        }
+        is UiState.Success -> {
+            LaunchedEffect(s.data) {
+                vm?.clearCreateState()
+                onSubmit()
+                //onClose()
+            }
+        }
+        is UiState.Error -> {
+            Log.e("FreeBoardWriteForm", "게시글 저장 실패: ${s.message}")
+            vm?.clearCreateState()
+        }
+        else -> Unit
+    }
 }
+
 
 @Preview(showBackground = true, widthDp = 360, heightDp = 720, backgroundColor = 0xFF241860)
 @Composable
@@ -159,7 +168,9 @@ private fun Preview_FreeBoardWriteForm() {
             onSubmit = {},
             onTempSave = {},
             onMore = {},
-            onSubmitPost = {}
+            onSubmitPost = {},
+            initialPost = null,
+            onClose = {}
         )
     }
 }

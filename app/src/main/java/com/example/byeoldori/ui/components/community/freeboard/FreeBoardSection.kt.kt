@@ -1,6 +1,5 @@
 package com.example.byeoldori.ui.components.community.freeboard
 
-import androidx.compose.runtime.Composable
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
@@ -13,18 +12,41 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
 import com.example.byeoldori.R
-import com.example.byeoldori.ui.components.community.EditorItem
-import com.example.byeoldori.ui.components.community.LikeState
-import com.example.byeoldori.ui.components.community.SortBar
-import com.example.byeoldori.ui.components.community.likedKeyFree
+import com.example.byeoldori.data.model.dto.*
+import com.example.byeoldori.ui.components.community.*
 import com.example.byeoldori.ui.theme.*
 import com.example.byeoldori.domain.Community.FreePost
+import com.example.byeoldori.domain.Content
 import com.example.byeoldori.domain.Observatory.Review
-import com.example.byeoldori.viewmodel.dummyFreeComments
-import com.example.byeoldori.viewmodel.dummyFreePosts
+import com.example.byeoldori.viewmodel.*
+import java.time.LocalDateTime
+import java.time.format.*
 
 enum class FreeBoardSort(val label: String) {
     Latest("최신순"), Like("좋아요순"), View("조회수순")
+}
+
+fun formatCreatedAt(createdAt: String?): String {
+    if (createdAt.isNullOrBlank()) return ""
+
+    val patterns = listOf(
+        "yyyy-MM-dd'T'HH:mm:ss.SSSSSS", // ← 현재 서버 포맷 (마이크로초 6자리)
+        "yyyy-MM-dd'T'HH:mm:ss.SSS",    // 밀리초 3자리
+        "yyyy-MM-dd'T'HH:mm:ss",        // 초까지
+        "yyyyMMddHHmm"                  // 예전 형태 (중기예보 등)
+    )
+
+    for (pattern in patterns) {
+        try {
+            val date = LocalDateTime.parse(createdAt, DateTimeFormatter.ofPattern(pattern))
+            return date.format(DateTimeFormatter.ofPattern("yy.MM.dd"))
+        } catch (_: DateTimeParseException) {
+            continue
+        }
+    }
+
+    // 모든 포맷 실패 시 원문 반환
+    return createdAt
 }
 
 fun FreePost.asReview(): Review =
@@ -48,36 +70,59 @@ fun FreePost.asReview(): Review =
         contentItems = contentItems
     )
 
+fun FreePostResponse.toFreePost(): FreePost {
+    val formattedDate = formatCreatedAt(createdAt)
+
+    return FreePost(
+        id = id.toString(),
+        title = title,
+        author = authorNickname.toString(),
+        likeCount = likeCount,
+        commentCount = commentCount,
+        viewCount = viewCount,
+        createdAt = formattedDate,
+        contentItems = listOf(Content.Text(contentSummary)),
+        profile = null
+    )
+}
+
 @Composable
 fun FreeBoardSection(
     freeBoardsAll: List<FreePost>,
     onWriteClick: () -> Unit = {},
-    onClickProgram: (String) -> Unit = {}
+    onClickPost: (String) -> Unit = {},
+    currentSort: SortBy,
+    onChangeSort: (SortBy) -> Unit = {},
+    vm: CommunityViewModel? = null
 ){
     var searchText by remember { mutableStateOf("") } //초기값이 빈 문자열인 변할 수 있는 상태 객체
     var sort by remember { mutableStateOf(FreeBoardSort.Latest) }
     val listState = rememberLazyListState()
 
-    // 검색 + 정렬 적용
-    val filtered = remember(searchText, sort, freeBoardsAll, LikeState.ids) {
-        val q = searchText.trim() //양끝 공백 제거
-        val base = if (q.isEmpty()) freeBoardsAll //검색어가 비어있으면 전체 리스트 사용
-        else {
-            freeBoardsAll.filter { r ->
-                val matchesTitle = r.title.contains(q, ignoreCase = true)
-                val matchesAuthor = r.author.contains(q, ignoreCase = true)
-                val matchesContent = r.contentItems
-                    .filterIsInstance<EditorItem.Paragraph>()
-                    .any { it.value.text.contains(q, ignoreCase = true) }
+    val likedIds by (vm?.likedIds?.collectAsState()
+        ?: remember { mutableStateOf<Set<String>>(emptySet()) })
 
-                matchesTitle || matchesAuthor || matchesContent
+    val likeCounts by (vm?.likeCounts?.collectAsState()
+        ?: remember { mutableStateOf<Map<String, Int>>(emptyMap()) })
+
+    // 검색만
+    val filtered = run {
+        val q = searchText.trim()
+        if (q.isEmpty()) freeBoardsAll else {
+            freeBoardsAll.filter { r ->
+                val k = q.lowercase()
+                r.title.lowercase().contains(k) ||
+                        r.author.lowercase().contains(k) ||
+                        r.contentItems.filterIsInstance<EditorItem.Paragraph>()
+                            .any { it.value.text.lowercase().contains(k) }
             }
         }
-        when (sort) {
-            FreeBoardSort.Latest -> base.sortedByDescending { it.createdAt}
-            FreeBoardSort.Like -> base.sortedByDescending { it.likeCount }
-            FreeBoardSort.View -> base.sortedByDescending { it.viewCount }
-        }
+    }
+
+    val uiSort = when (currentSort) {
+        SortBy.LATEST -> FreeBoardSort.Latest
+        SortBy.LIKES  -> FreeBoardSort.Like
+        SortBy.VIEWS  -> FreeBoardSort.View
     }
 
     LaunchedEffect(sort) {
@@ -102,10 +147,17 @@ fun FreeBoardSection(
             ) {
                 // 정렬 바
                 SortBar(
-                    current = sort,
+                    current = uiSort,
                     options = FreeBoardSort.entries.toList(),
                     label = { it.label },
-                    onSelect = { sort = it }
+                    onSelect = {
+                        val serverSort = when (it) {
+                            FreeBoardSort.Latest -> SortBy.LATEST
+                            FreeBoardSort.Like   -> SortBy.LIKES
+                            FreeBoardSort.View   -> SortBy.VIEWS
+                        }
+                        onChangeSort(serverSort)
+                    }
                 )
             }
             Spacer(Modifier.height(12.dp))
@@ -116,13 +168,19 @@ fun FreeBoardSection(
                 modifier = Modifier.fillMaxSize()
             ) {
                 items(filtered, key = { it.id }) { post ->
+                    val likeKey = likedKeyFree(post.id)
+                    val isLiked = likeKey in likedIds
+                    val count = likeCounts[post.id] ?: post.likeCount
                     val liveCommentCount = dummyFreeComments.count { it.reviewId == post.id }
+
                     Column {
                         FreeBoardItem(
                             post = post,
                             commentCount = liveCommentCount,
-                            likeCount = post.likeCount,
-                            onClick = { onClickProgram(post.id) }
+                            likeCount = count,
+                            isLiked = isLiked,
+                            onClick = { onClickPost(post.id) },
+                            onLikeClick = { vm?.toggleLike(post.id.toLong()) }
                         )
                         Divider(
                             color = Color.White.copy(alpha = 0.8f),
@@ -159,7 +217,10 @@ private fun Preview_FreeBoardSection_Empty() {
         FreeBoardSection(
             freeBoardsAll = dummyFreePosts,
             onWriteClick = {},
-            onClickProgram = {}
+            onClickPost = {},
+            currentSort = SortBy.LATEST,
+            onChangeSort = {},
+            vm = null
         )
     }
 }

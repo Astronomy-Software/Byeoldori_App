@@ -1,8 +1,6 @@
 package com.example.byeoldori.ui.components.community.review
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.*
 import androidx.compose.foundation.shape.CircleShape
@@ -13,58 +11,107 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.byeoldori.R
-import com.example.byeoldori.ui.components.community.EditorItem
+import com.example.byeoldori.data.model.dto.*
+import com.example.byeoldori.domain.Content
 import com.example.byeoldori.ui.components.community.SortBar
 import com.example.byeoldori.ui.components.observatory.ReviewCard
 import com.example.byeoldori.ui.theme.*
 import com.example.byeoldori.domain.Observatory.Review
-import com.example.byeoldori.viewmodel.dummyReviewComments
-import com.example.byeoldori.viewmodel.dummyReviews
+import com.example.byeoldori.ui.components.community.freeboard.formatCreatedAt
+import com.example.byeoldori.viewmodel.*
 
 // 정렬 타입
 enum class ReviewSort(val label: String) {
     Latest("최신순"), Like("좋아요순"), View("조회수순")
 }
 
+fun ReviewResponse.toReview(): Review = Review(
+    id = id.toString(),
+    title = title,
+    author = authorNickname ?: "익명",
+    profile = R.drawable.profile1, // 서버에 프로필 리소스 없으면 null 유지
+    createdAt = formatCreatedAt(createdAt),
+    viewCount = viewCount,
+    likeCount = likeCount,
+    commentCount = commentCount,
+    // 목록에서는 요약만 있으므로 가볍게 파라그래프 하나로 구성
+    contentItems = listOf(Content.Text(contentSummary.orEmpty())),
+    // 아래 필드는 상세 조회 시 채워넣을 수 있음
+    target = "",
+    site = "",
+    equipment = "",
+    date = "",
+    startTime = "",
+    endTime = "",
+    rating = 0,
+    siteScore = 0
+)
+
+
 // Review 탭 콘텐츠
 @Composable
 fun CommuReviewSection(
+    vm: ReviewViewModel? = null,
     reviewsAll: List<Review>,
     onWriteClick: () -> Unit = {},
     onReviewClick: (Review) -> Unit,
+    onChangeSort: (SortBy) -> Unit = {},
     onSyncReviewLikeCount: (id: String, next: Int) -> Unit
 ) {
     var searchText by remember { mutableStateOf("") } //초기값이 빈 문자열인 변할 수 있는 상태 객체
     var sort by remember { mutableStateOf(ReviewSort.Latest) }
     val gridState = rememberLazyGridState()
 
-    // 검색 + 정렬 적용
-    val filtered by remember(searchText, sort) {
-        derivedStateOf {
-            val q = searchText.trim()
-            val base = if (q.isEmpty()) reviewsAll else {
-                reviewsAll.filter { r ->
-                    val matchesTitle   = r.title.contains(q, ignoreCase = true)
-                    val matchesAuthor  = r.author.contains(q, ignoreCase = true)
-                    val matchesContent = r.contentItems
-                        .filterIsInstance<EditorItem.Paragraph>()
-                        .any { it.value.text.contains(q, ignoreCase = true) }
-                    matchesTitle || matchesAuthor || matchesContent
-                }
+    val state by (vm?.postsState?.collectAsState() ?: remember { mutableStateOf<UiState<List<ReviewResponse>>>(UiState.Idle) })
+    val likeCounts by (vm?.likeCounts?.collectAsState() ?: remember { mutableStateOf<Map<String, Int>>(emptyMap()) })
+    val scores by (vm?.scores?.collectAsState() ?: remember { mutableStateOf<Map<String, Int>>(emptyMap()) })
+    val currentSort by (vm?.sort?.collectAsState() ?: remember { mutableStateOf(SortBy.LATEST) })
+
+    val apiList by remember(state) {
+        mutableStateOf(
+            when (state) {
+                is UiState.Success ->
+                    (state as UiState.Success<List<ReviewResponse>>)
+                        .data
+                        .map { it.toReview() }  // rating=0 기본
+                else -> emptyList()
             }
-            when (sort) {
-                ReviewSort.Latest -> base.sortedByDescending { it.createdAt }
-                ReviewSort.Like   -> base.sortedByDescending { it.likeCount }
-                ReviewSort.View   -> base.sortedByDescending { it.viewCount }
+        )
+    }
+
+    val networkList: List<Review> = when (state) {
+        is UiState.Success -> (state as UiState.Success<List<ReviewResponse>>)
+            .data.map { it.toReview() }
+        else -> emptyList()
+    }
+    val baseList = if (networkList.isNotEmpty()) networkList else reviewsAll
+
+    val merged = remember(baseList, scores) {
+        baseList.map { r -> r.copy(rating = scores[r.id] ?: r.rating) }
+    }
+
+    val filtered = remember(searchText, merged) {
+        if (searchText.isBlank()) merged
+        else {
+            val k = searchText.trim().lowercase()
+            merged.filter { r ->
+                r.title.lowercase().contains(k) ||
+                        r.author.lowercase().contains(k) ||
+                        r.contentItems.filterIsInstance<Content.Text>()
+                            .any { it.text.lowercase().contains(k) }
             }
         }
     }
+    val uiSort = when (currentSort) {
+        SortBy.LATEST -> ReviewSort.Latest
+        SortBy.LIKES  -> ReviewSort.Like
+        SortBy.VIEWS  -> ReviewSort.View
+    }
 
     //정렬 기준이 바뀔 때 스크롤 맨 위로 이동
-    LaunchedEffect(sort) {
-        gridState.scrollToItem(0)
-    }
+    LaunchedEffect(sort) { gridState.scrollToItem(0) }
 
     Box(Modifier.fillMaxSize()) {
         Column(
@@ -84,14 +131,22 @@ fun CommuReviewSection(
             ) {
                 // 정렬 바
                 SortBar(
-                    current = sort,
+                    current = uiSort,
                     options = ReviewSort.entries.toList(),
                     label = { it.label },
-                    onSelect = { sort = it }
+                    onSelect = {
+                        sort = it
+                        val serverSort = when (it) {
+                            ReviewSort.Latest -> SortBy.LATEST
+                            ReviewSort.Like   -> SortBy.LIKES
+                            ReviewSort.View   -> SortBy.VIEWS
+                        }
+                        vm?.setSort(serverSort)
+                    }
                 )
             }
             Spacer(Modifier.height(12.dp))
-            // 2열 그리드
+
             LazyVerticalGrid(
                 state = gridState,
                 columns = GridCells.Fixed(2), //컬럼 개수 2개
@@ -99,25 +154,38 @@ fun CommuReviewSection(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier.fillMaxSize()
             ) {
-                items(
-                    items = filtered,
-                    key = { it.id }
-                ) { review ->
-                    val liveCommentCount = dummyReviewComments.count { it.reviewId == review.id }
-                    val liveLikeCount = review.likeCount
+                items(items = filtered, key = { it.id }) { review ->
+                    LaunchedEffect(review.id) {
+                        review.id.toLongOrNull()?.let { vm?.ensureScoreLoaded(it) }
+                    }
                     ReviewCard(
-                        review = review.copy(
-                            commentCount = liveCommentCount,
-                        ),
+                        review = review,
                         modifier = Modifier.clickable { onReviewClick(review) },
                         onSyncLikeCount = { next ->            // ★ NEW: 카드에서 좋아요 바꾸면
-                            onSyncReviewLikeCount(review.id, next)  // 상위 reviews 동기화
+                        // onSyncReviewLikeCount(review.id, next)  // 상위 reviews 동기화
+                        //vm.updateLocalLikeCount(review.id, next)
+                        //vm.toggleLike(review.id.toLong())
                         }
                     )
                 }
                 item { Spacer(Modifier.height(60.dp)) }
             }
         }
+        when (state) {
+            is UiState.Loading -> Text(
+                "로딩 중…",
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.align(Alignment.Center)
+            )
+            is UiState.Error -> Text(
+                "에러: ${(state as UiState.Error).message}",
+                color = Color.Red,
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.align(Alignment.Center)
+            )
+            else -> Unit
+        }
+
         //리뷰 작성 버튼
         Box(
             modifier = Modifier
@@ -139,16 +207,18 @@ fun CommuReviewSection(
     }
 }
 
-@Preview(showBackground = true, widthDp = 360, heightDp = 600)
+@Preview(showBackground = true, widthDp = 360, heightDp = 840)
 @Composable
 private fun Preview_ScreenWithWriteButton() {
     MaterialTheme {
         CommuReviewSection(
+            vm = null,
             reviewsAll = dummyReviews,
             onWriteClick = {  },
             onReviewClick = { review ->
                 println("리뷰 클릭됨: ${review.title}")
             },
+            onChangeSort = { },
             onSyncReviewLikeCount = { id, next ->
                 val idx = dummyReviews.indexOfFirst { it.id == id }
                 if (idx >= 0) dummyReviews[idx] = dummyReviews[idx].copy(likeCount = next)

@@ -14,7 +14,10 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.byeoldori.R
+import com.example.byeoldori.data.model.dto.EducationResponse
+import com.example.byeoldori.data.model.dto.SortBy
 import com.example.byeoldori.ui.components.community.EditorItem
 import com.example.byeoldori.ui.components.community.SortBar
 import com.example.byeoldori.ui.components.observatory.ReviewCard
@@ -22,6 +25,9 @@ import com.example.byeoldori.ui.theme.*
 import com.example.byeoldori.domain.Community.EduProgram
 import com.example.byeoldori.domain.Content
 import com.example.byeoldori.domain.Observatory.Review
+import com.example.byeoldori.ui.components.community.freeboard.formatCreatedAt
+import com.example.byeoldori.viewmodel.EducationViewModel
+import com.example.byeoldori.viewmodel.UiState
 import com.example.byeoldori.viewmodel.dummyProgramComments
 
 // EduProgram → Review 변환 (임시 어댑터)
@@ -35,7 +41,7 @@ fun EduProgram.asReview(): Review =
         commentCount = dummyProgramComments.count { it.reviewId == id },
         profile = R.drawable.profile1,
         viewCount = viewCount,
-        createdAt = createdAt,
+        createdAt = formatCreatedAt(createdAt),
         target = "",
         site = "",
         date = "",
@@ -46,6 +52,22 @@ fun EduProgram.asReview(): Review =
         contentItems =  contentItems
     )
 
+
+fun EducationResponse.toEduProgram(): EduProgram {
+    return EduProgram(
+        id = id.toString(),
+        title = title,
+        author = authorNickname ?: "익명",
+        rating = 0f, // 교육에는 별점이 없으므로 0 기본값
+        likeCount = likeCount,
+        commentCount = commentCount,
+        viewCount = viewCount,
+        profile = R.drawable.profile1,
+        createdAt = formatCreatedAt(createdAt),
+        contentItems = listOf(Content.Text(contentSummary.orEmpty()))
+    )
+}
+
 // 정렬 타입
 enum class EduProgramSort(val label: String) {
     Latest("최신순"), Like("좋아요순"), View("조회수순")
@@ -55,30 +77,52 @@ enum class EduProgramSort(val label: String) {
 fun EduProgramSection(
     eduProgramsAll: List<EduProgram>,
     onWriteClick: () -> Unit = {},
-    onClickProgram: (String) -> Unit = {}
+    onClickProgram: (String) -> Unit = {},
+    vm: EducationViewModel = hiltViewModel()
 ) {
     var searchText by remember { mutableStateOf("") } //초기값이 빈 문자열인 변할 수 있는 상태 객체
     var sort by remember { mutableStateOf(EduProgramSort.Latest) }
     val gridState = rememberLazyGridState()
 
-    // 검색 + 정렬 적용
-    val filtered = remember(searchText, sort, eduProgramsAll) {
-        val q = searchText.trim() //양끝 공백 제거
-        val base = if (q.isEmpty()) eduProgramsAll //검색어가 비어있으면 전체 리스트 사용
-        else {
-            eduProgramsAll.filter { r -> //제목,작성자를 검색(대소문자 구분X)
-                r.title.contains(q, ignoreCase = true) ||
-                        r.author.contains(q, ignoreCase = true)
-            }
-        }
-        when (sort) {
-            EduProgramSort.Latest -> base.sortedByDescending { it.createdAt}
-            EduProgramSort.Like -> base.sortedByDescending { it.likeCount }
-            EduProgramSort.View -> base.sortedByDescending { it.viewCount }
-        }
+    val state by vm.postsState.collectAsState()
+    val currentSort by vm.sort.collectAsState()
+
+    val uiSort = when (currentSort) {
+        SortBy.LATEST -> EduProgramSort.Latest
+        SortBy.LIKES  -> EduProgramSort.Like
+        SortBy.VIEWS  -> EduProgramSort.View
     }
 
-    LaunchedEffect(sort) {
+    // API 응답을 EduProgram으로 매핑
+    val apiList by remember(state) {
+        mutableStateOf(
+            when (state) {
+                is UiState.Success ->
+                    (state as UiState.Success<List<EducationResponse>>)
+                        .data.map { it.toEduProgram() }
+                else -> emptyList()
+            }
+        )
+    }
+
+    // 검색 필터링
+    val filtered by remember(searchText, apiList) {
+        mutableStateOf(
+            if (searchText.isBlank()) apiList
+            else {
+                val k = searchText.trim().lowercase()
+                apiList.filter { p ->
+                    p.title.lowercase().contains(k) ||
+                            p.author.lowercase().contains(k) ||
+                            p.contentItems
+                                .filterIsInstance<Content.Text>()
+                                .any { it.text.lowercase().contains(k) }
+                }
+            }
+        )
+    }
+
+    LaunchedEffect(uiSort) {
         gridState.scrollToItem(0)
     }
 
@@ -100,31 +144,52 @@ fun EduProgramSection(
             ) {
                 // 정렬 바
                 SortBar(
-                    current = sort,
+                    current = uiSort,
                     options = EduProgramSort.entries.toList(),
                     label = { it.label },
-                    onSelect = { sort = it }
+                    onSelect = {
+                        val serverSort = when (it) {
+                            EduProgramSort.Latest -> SortBy.LATEST
+                            EduProgramSort.Like   -> SortBy.LIKES
+                            EduProgramSort.View   -> SortBy.VIEWS
+                        }
+                        vm.setSort(serverSort)
+                    }
                 )
             }
             Spacer(Modifier.height(12.dp))
-            // 2열 그리드
-            LazyVerticalGrid(
-                state = gridState,
-                columns = GridCells.Fixed(2), //컬럼 개수 2개
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.fillMaxSize()
-            ) {
-                items(
-                    items = filtered,
-                    key = { it.id }
-                ) { eduProgram ->
-                    ReviewCard(
-                        review = eduProgram.asReview(),
-                        modifier = Modifier.clickable { onClickProgram(eduProgram.id) }
-                    )
+
+            when (state) {
+                is UiState.Loading -> {
+                    Text("로딩 중…", style = MaterialTheme.typography.bodyMedium)
                 }
-                item { Spacer(Modifier.height(60.dp)) }
+                is UiState.Error -> {
+                    val msg = (state as UiState.Error).message
+                    Text("에러: $msg", color = Color.Red, style = MaterialTheme.typography.bodyMedium)
+                }
+                is UiState.Success -> {
+                    LazyVerticalGrid(
+                        state = gridState,
+                        columns = GridCells.Fixed(2), //컬럼 개수 2개
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        items(
+                            items = filtered,
+                            key = { it.id }
+                        ) { program ->
+                            Box(
+                                Modifier
+                                    .clickable { onClickProgram(program.id) }
+                            ) {
+                                ReviewCard(review = program.asReview())
+                            }
+                        }
+                        item { Spacer(Modifier.height(60.dp)) }
+                    }
+                }
+                UiState.Idle -> Unit
             }
         }
         //작성 버튼
@@ -169,7 +234,7 @@ private fun Preview_EduProgramSection_Default() {
                     commentCount = 8 + i,
                     viewCount = 200 + i * 15,
                     profile = R.drawable.profile1,
-                    createdAt = 202510290000L - i, // Long 더미
+                    createdAt = "25.10${29-1}", //String으로 변환
                     contentItems = listOf(
                        Content.Text("이 강의는 망원경 기초와 관측 매너를 다룹니다.")
                     )

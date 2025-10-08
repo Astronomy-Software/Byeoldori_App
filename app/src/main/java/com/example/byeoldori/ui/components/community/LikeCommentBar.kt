@@ -29,41 +29,29 @@ fun likedKeyProgramComment(commentId: String) = "programComment:$commentId"
 fun LikeCommentBar (
     key: String,
     likeCount: Int,
-    onLikeCountChange: (Int) -> Unit,
-    onSyncLikeCount: (Int) -> Unit = {},
+    liked: Boolean, //외부에서 주입
+    onToggle: () -> Unit,
+    onSyncLikeCount: (Int) -> Unit,
     commentCount: Int,
 ) {
-    //val isLiked by remember { derivedStateOf { key in FreeBoardState.likedPostIds  } }
-    val isLiked by remember { derivedStateOf { key in LikeState.ids } }
-
     Column() {
         Divider(color = Color.White.copy(alpha = 0.6f), thickness = 1.dp)
         Row(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 12.dp),
+                .fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
             //좋아요
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.clickable {
-                    val add = key !in LikeState.ids
-                    LikeState.ids = if (add)LikeState.ids + key
-                    else LikeState.ids - key
-
-                    val next = (likeCount + if (add) 1 else -1).coerceAtLeast(0)
-                    onLikeCountChange(next)
-                    onSyncLikeCount(next)
-                }
-            ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = { onToggle() }) {
                 Icon(
-                    painter = painterResource(R.drawable.ic_thumbs_up),
-                    contentDescription = "좋아요",
-                    tint = if (isLiked) Purple500 else Color.Unspecified,
-                    modifier = Modifier.size(20.dp)
-                )
+                        painter = painterResource(R.drawable.ic_thumbs_up),
+                        contentDescription = "좋아요",
+                        tint = if (liked) Purple500 else Color.Unspecified,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
                 Spacer(Modifier.width(10.dp))
                 Text(text = "좋아요   $likeCount", color = TextHighlight, fontSize = 14.sp)
             }
@@ -96,7 +84,8 @@ fun Preview_LikeCommentBar() {
         LikeCommentBar(
             key = likedKeyFree("post1"),
             likeCount = 21,
-            onLikeCountChange = {},
+            liked = true,
+            onToggle = {},
             onSyncLikeCount = {},
             commentCount = 21
         )

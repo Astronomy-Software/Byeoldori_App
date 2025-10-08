@@ -40,11 +40,12 @@ fun HomeSection(
         PagerSection(
             title = "최근 추가된 관측지 리뷰",
             items = recentReviews,
-            itemContent = { review: Review ->
+            itemContent = { review ->
                 Box(Modifier.clickable { onReviewClick(review) }) {
                     ReviewCard(
                         review = review,
-                        commentCount = dummyReviewComments.count { it.reviewId == review.id },
+                        //commentCount = dummyReviewComments.count { it.reviewId == review.id },
+                        commentCount = 0,
                         onSyncLikeCount = { next ->
                             onSyncReviewLikeCount(review.id, next)
                         }
@@ -55,7 +56,7 @@ fun HomeSection(
         PagerSection(
             title = "새로운 교육 프로그램",
             items = recentEduPrograms,
-            itemContent = { program: EduProgram ->
+            itemContent = { program ->
                 Box(Modifier.clickable { onProgramClick(program) }) {
                     ReviewCard(review = program.asReview())
                 }
@@ -64,11 +65,12 @@ fun HomeSection(
         PagerSection(
             title = "인기 자유게시판 게시물",
             items = popularFreePosts,
-            itemContent = { post: FreePost ->
+            itemContent = { post ->
                 Box(Modifier.clickable { onFreePostClick(post) }) {
                     ReviewCard(
                         review = post.asReview(),
-                        commentCount = dummyFreeComments.count { it.reviewId == post.id }
+                        commentCount = post.commentCount
+                        //commentCount = dummyFreeComments.count { it.reviewId == post.id }
                     )
                 }
             }

@@ -12,6 +12,6 @@ data class FreePost(
     val commentCount: Int,
     //val imageRes: Int,
     val viewCount: Int,
-    val createdAt: Long,
+    val createdAt: String,
     val contentItems: List<Content>
 )

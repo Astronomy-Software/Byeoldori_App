@@ -86,7 +86,7 @@ fun DailyForecastRow(forecast: DailyForecast) {
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         // 날짜
-        Text(forecast.date, color = TextHighlight, fontSize = 18.sp, maxLines = 1,modifier = Modifier.weight(1f))
+        Text(forecast.date, color = TextHighlight, fontSize = 17.sp, maxLines = 1,modifier = Modifier.weight(1.5f))
 
         // 강수 확률
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1.2f)) {
@@ -120,7 +120,7 @@ fun DailyForecastRow(forecast: DailyForecast) {
         // 관측 적합도
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text("관측 적합도", color = TextHighlight, fontSize = 12.sp)
-            Text(forecast.suitability, color = Color(0xFF75FF75), fontSize = 16.sp)
+            Text(forecast.suitability.toPercent(), color = Color(0xFF75FF75), fontSize = 16.sp)
         }
     }
 }
@@ -129,12 +129,12 @@ fun DailyForecastRow(forecast: DailyForecast) {
 @Composable
 private fun Preview_WeatherDailySection() {
     val previewDaily = listOf(
-        DailyForecast("5.27", "100%", "sunny",      "cloud",      "27°", "13°", "85%"),
-        DailyForecast("5.28", "80%",  "cloud",      "rain",       "25°", "12°", "60%"),
-        DailyForecast("5.29", "90%",  "rain",       "rain",       "23°", "11°", "45%"),
-        DailyForecast("5.30", "100%", "rain",       "rain",       "22°", "10°", "20%"),
-        DailyForecast("5.31", "100%", "cloud_sun",  "rain",       "23°", "9°",  "40%"),
-        DailyForecast("10.10",  "100%", "rain",       "cloud_moon", "22°", "11°", "35%")
+        DailyForecast("10.11", "100%", "sunny",      "cloud",      "27°", "13°", 85),
+        DailyForecast("10.12", "80%",  "cloud",      "rain",       "25°", "12°", 60),
+        DailyForecast("5.29", "90%",  "rain",       "rain",       "23°", "11°", 45),
+        DailyForecast("5.30", "100%", "rain",       "rain",       "22°", "10°", 20),
+        DailyForecast("5.31", "100%", "cloud_sun",  "rain",       "23°", "9°",  40),
+        DailyForecast("10.10",  "100%", "rain",       "cloud_moon", "22°", "11°", 35)
     )
     MaterialTheme {
         Surface(color = Color.Black) { DailyForecastListSection(previewDaily) }

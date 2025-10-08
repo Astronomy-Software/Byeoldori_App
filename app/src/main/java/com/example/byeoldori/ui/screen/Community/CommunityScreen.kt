@@ -1,5 +1,6 @@
 package com.example.byeoldori.ui.screen.Community
 
+import android.util.Log
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -7,16 +8,16 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.*
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.byeoldori.data.model.dto.*
 import com.example.byeoldori.ui.components.community.*
 import com.example.byeoldori.ui.components.community.program.*
 import com.example.byeoldori.ui.theme.*
 import com.example.byeoldori.ui.components.community.freeboard.*
-import com.example.byeoldori.ui.components.community.review.CommuReviewSection
-import com.example.byeoldori.ui.components.community.review.ReviewDetail
+import com.example.byeoldori.ui.components.community.review.*
 import com.example.byeoldori.domain.Community.EduProgram
 import com.example.byeoldori.domain.Observatory.Review
 import com.example.byeoldori.viewmodel.*
-import com.example.byeoldori.ui.components.community.review.ReviewWriteForm
 
 // --- 탭 정의 ---
 enum class CommunityTab(val label: String, val routeSeg: String) {
@@ -29,13 +30,13 @@ enum class CommunityTab(val label: String, val routeSeg: String) {
 @Composable
 fun CommunityScreen(
     tab: CommunityTab,
-    onSelectTab: (CommunityTab) -> Unit
+    onSelectTab: (CommunityTab) -> Unit,
+    vm: CommunityViewModel = hiltViewModel()
 ) {
     val tabs = CommunityTab.entries
     var showWriteForm by remember { mutableStateOf(false) }
     val reviews = remember { mutableStateListOf<Review>().apply { addAll(dummyReviews) } }
     var showSuccessDialog by remember { mutableStateOf(false) }
-    var lastSubmittedReview by remember { mutableStateOf<Review?>(null) }
     var selectedReview by remember { mutableStateOf<Review?>(null) }
     var selectedFreePost by remember { mutableStateOf<String?>(null) }
     var selectedProgram by remember { mutableStateOf<EduProgram?>(null) }
@@ -43,26 +44,70 @@ fun CommunityScreen(
     var showFreeBoardWriteForm by remember { mutableStateOf(false) }
     var successMessage by remember { mutableStateOf("") }
 
+    val state by vm.postsState.collectAsState()
+    val selectedId by vm.selectedPostId.collectAsState()
+    val selectedPost by vm.selectedPost.collectAsState()
+    val postDetailState by vm.postDetail.collectAsState()
+    val currentSort by vm.sort.collectAsState()
+
+    val reviewVm: ReviewViewModel = hiltViewModel()
+    val detailState by reviewVm.detail.collectAsState()
+    val apiDetail = (detailState as? UiState.Success)?.data
+    val apiSummary = reviewVm.selectedPost.collectAsState().value
+
+    val eduVm: EducationViewModel = hiltViewModel()
+    val eduState by eduVm.postsState.collectAsState()
+    val eduSelectedId by eduVm.selectedPostId.collectAsState()
+    val eduSelectedPost by eduVm.selectedPost.collectAsState()
+    val eduDetailState by eduVm.detail.collectAsState()
+
+    LaunchedEffect(tab) {
+        if (tab == CommunityTab.Board) {
+            vm.loadPosts()
+        }
+    }
+    LaunchedEffect(selectedId) {
+        val idLong = selectedId?.toLongOrNull()
+        if (idLong != null) vm.loadPostDetail(idLong)
+    }
+
+    LaunchedEffect(tab) {
+        if (tab == CommunityTab.Program) {
+            eduVm.loadPosts()
+        }
+    }
+
+    LaunchedEffect(tab) {
+        if (tab == CommunityTab.Home) {
+            reviewVm.loadPosts()
+            eduVm.loadPosts()
+            vm.loadPosts()
+        }
+    }
+
+    LaunchedEffect(eduSelectedId) {
+        eduSelectedId?.toLongOrNull()?.let { eduVm.loadEducationDetail(it) }
+    }
+
     when {
         showWriteForm -> {
             // 작성 화면만 표시 (탭/목록 숨김)
             ReviewWriteForm(
                 author = currentUser,
-                onCancel = { showWriteForm = false },   // 취소 → 다시 탭 화면으로
-                onSubmit = { showWriteForm = false },   // 등록 → 저장 처리 후 목록으로
+                onCancel = {
+                    showWriteForm = false
+                    successMessage = "작성 취소되었습니다"
+                    showSuccessDialog = true
+                },   // 취소 → 다시 탭 화면으로
+                onSubmit = {
+                    showWriteForm = false
+                    successMessage = "리뷰가 등록되었습니다"
+                    showSuccessDialog = true
+                    reviewVm.resetCreateState()
+                },
                 onTempSave = {},
                 onMore = { /* 더보기 */ },
-                onSubmitReview = { newReview ->
-                    if (reviews.none { it.id == newReview.id }) {
-                        reviews.add(0, newReview)
-                    }
-                    if (dummyReviews.none { it.id == newReview.id }) {
-                        dummyReviews.add(0, newReview)
-                    }
-                    lastSubmittedReview = newReview
-                    showWriteForm = false        // 작성창 닫기
-                    showSuccessDialog = true
-                },
+                vm = reviewVm,
                 initialReview = null
             )
 
@@ -72,7 +117,7 @@ fun CommunityScreen(
                 author = currentUser,
                 onCancel = {
                     showFreeBoardWriteForm = false
-                    //successMessage = "작성 취소되었습니다"
+                    successMessage = "작성 취소되었습니다"
                     showSuccessDialog = true
                 },
                 onSubmit = {
@@ -86,13 +131,16 @@ fun CommunityScreen(
                     dummyFreePosts.add(0, newPost)
                     showFreeBoardWriteForm = false
                     showSuccessDialog = true
-                }
+            },
+                onClose = {}
             )
         }
         selectedReview != null -> {
             ReviewDetail(
                 review = selectedReview!!,
                 onBack = { selectedReview = null },  // 뒤로가기 누르면 다시 목록으로
+                apiDetail = apiDetail,
+                apiPost = apiSummary,
                 currentUser = currentUser,
                 onSyncReviewLikeCount = { id, next ->
                     val idx = reviews.indexOfFirst { it.id == id }
@@ -104,26 +152,34 @@ fun CommunityScreen(
                     if (j >= 0) {
                         dummyReviews[j] = dummyReviews[j].copy(likeCount = next)
                     }
-                }
+                },
+                vm = reviewVm
             )
         }
-        selectedFreePost != null -> {
-            val post = dummyFreePosts.find { it.id == selectedFreePost }
-            if(post != null) {
-                FreeBoardDetail(
-                    post = post,
-                    onBack = { selectedFreePost = null },
-                    currentUser = currentUser
+        tab == CommunityTab.Board && selectedPost != null -> {
+            val apiPost = (postDetailState as? UiState.Success)?.data
+            FreeBoardDetail(
+                post = selectedPost!!.toFreePost(),
+                apiPost = apiPost,
+                onBack = { vm.clearSelection() },
+                currentUser = currentUser,
+                vm = vm
+            )
+            return
+        }
 
-                )
-            }
-        }
-        selectedProgram != null -> {
+        tab == CommunityTab.Program && eduSelectedPost != null -> {
+            val apiPost = eduSelectedPost
+            val apiDetail = (eduDetailState as? UiState.Success<EducationDetailResponse>)?.data
+            val programUi = apiPost!!.toEduProgram()
+
             EduProgramDetail(
-                program = selectedProgram!!,
-                onBack = { selectedProgram = null },
-                currentUser = currentUser
+                program = programUi,
+                onBack = { eduVm.clearSelection() },
+                currentUser = currentUser,
+                onStartProgram = { }
             )
+            return
         }
 
         else -> {
@@ -161,8 +217,19 @@ fun CommunityScreen(
                     CommunityTab.Review -> {
                         CommuReviewSection(
                             reviewsAll = reviews,
-                            onWriteClick = { showWriteForm = true },
-                            onReviewClick = { review -> selectedReview = review },
+                            onWriteClick = {
+                                reviewVm.resetCreateState()
+                                showWriteForm = true
+                            },
+                            onReviewClick = { review ->
+                                selectedReview = review
+                                val idStr = review.id               // String
+                                reviewVm.selectPost(idStr)          // selectPost(String)용
+
+                                idStr.toLongOrNull()?.let { idL ->  // 상세 API는 Long 필요
+                                    reviewVm.loadReviewDetail(idL)
+                                }
+                            },
                             onSyncReviewLikeCount = { id, next ->
                                 val i = reviews.indexOfFirst { it.id == id }
                                 if (i >= 0) reviews[i] = reviews[i].copy(likeCount = next)
@@ -173,30 +240,68 @@ fun CommunityScreen(
                             }
                         )
                     }
-
                     CommunityTab.Program -> {
-                        EduProgramSection(
-                            eduProgramsAll = dummyPrograms,
-                            onWriteClick = {}, //추후 추가
-                            onClickProgram = { id ->
-                                val program = dummyPrograms.find { it.id == id }
-                                if (program != null) selectedProgram = program
+                        when (eduState) {
+                            is UiState.Idle, UiState.Loading -> {
+                                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                    CircularProgressIndicator()
+                                }
                             }
-                        )
+                            is UiState.Success -> {
+                                val posts = (eduState as UiState.Success<List<EducationResponse>>).data
+                                EduProgramSection(
+                                    eduProgramsAll = posts.map { it.toEduProgram() },
+                                    onWriteClick = { /* 교육 글쓰기 있으면 연결 */ },
+                                    onClickProgram = { id ->
+                                        eduVm.selectPost(id)           // 상세 선택
+                                    },
+                                    vm = eduVm                        // (필요 시 내부에서 sort/search 사용)
+                                )
+                            }
+                            is UiState.Error -> {
+                                val msg = (eduState as UiState.Error).message ?: "에러 발생"
+                                Log.e("CommunityScreen", "교육 프로그램 에러: $msg")
+                            }
+                        }
                     }
 
+
                     CommunityTab.Home -> {
-                        val recentReviews by remember { derivedStateOf { reviews.sortedByDescending { it.createdAt }.take(8) } }
-                        val recentPrograms = remember { dummyPrograms.sortedByDescending { it.createdAt }.take(8) }
-                        val popularFreePost = remember { dummyFreePosts.sortedByDescending { it.likeCount }.take(8) }
+//                        val recentReviews by remember { derivedStateOf { reviews.sortedByDescending { it.createdAt }.take(8) } }
+//                        val recentPrograms = remember { dummyPrograms.sortedByDescending { it.createdAt }.take(8) }
+//                        val popularFreePost = remember { dummyFreePosts.sortedByDescending { it.likeCount }.take(8) }
+
+                        val reviewList = when (val s = reviewVm.postsState.collectAsState().value) {
+                            is UiState.Success -> s.data.map { it.toReview() }
+                            else -> emptyList()
+                        }
+                        val eduList = when (val s = eduVm.postsState.collectAsState().value) {
+                            is UiState.Success -> s.data.map { it.toEduProgram() }
+                            else -> emptyList()
+                        }
+                        val freeList = when (val s = vm.postsState.collectAsState().value) {
+                            is UiState.Success -> s.data.map { it.toFreePost() }
+                            else -> emptyList()
+                        }
 
                         HomeSection(
-                            recentReviews = recentReviews,
-                            recentEduPrograms = recentPrograms,
-                            popularFreePosts = popularFreePost,
-                            onReviewClick = { selectedReview = it },
-                            onProgramClick = { selectedProgram = it },
-                            onFreePostClick = { selectedFreePost = it.id },
+                            recentReviews = reviewList.take(20),
+                            recentEduPrograms = eduList.take(20),
+                            popularFreePosts = freeList.sortedByDescending { it.likeCount }.take(20),
+                            onReviewClick = { review ->
+                                reviewVm.selectPost(review.id)             // 상세 대상 선택
+                                onSelectTab(CommunityTab.Review)
+                                review.id.toLongOrNull()?.let { reviewVm.loadReviewDetail(it) } // (선택) 즉시 로드
+                            },
+                            onProgramClick = { program ->
+                                eduVm.selectPost(program.id)              // 상세 대상 선택
+                                onSelectTab(CommunityTab.Program)         //Program 탭으로 전환
+                                program.id.toLongOrNull()?.let { eduVm.loadEducationDetail(it) }
+                            },
+                            onFreePostClick = { free ->
+                                vm.selectPost(free.id)
+                                onSelectTab(CommunityTab.Board)
+                            },
                             onSyncReviewLikeCount = { id, next ->
                                 val i = reviews.indexOfFirst { it.id == id }
                                 if (i >= 0) reviews[i] = reviews[i].copy(likeCount = next)
@@ -209,11 +314,26 @@ fun CommunityScreen(
                     }
 
                     CommunityTab.Board -> {
-                        FreeBoardSection(
-                            freeBoardsAll = dummyFreePosts,
-                            onClickProgram = { id -> selectedFreePost = id },
-                            onWriteClick = { showFreeBoardWriteForm = true }
-                        )
+                        when (state) {
+                            is UiState.Idle, UiState.Loading -> {
+                                CircularProgressIndicator()
+                            }
+                            is UiState.Success -> {
+                                val posts = (state as UiState.Success<List<FreePostResponse>>).data
+                                FreeBoardSection(
+                                    freeBoardsAll = posts.map { it.toFreePost() },
+                                    onClickPost = { id -> vm.selectPost(id) },
+                                    onWriteClick = { showFreeBoardWriteForm = true },
+                                    currentSort = currentSort,
+                                    onChangeSort = { vm.setSort(it) },
+                                    vm = vm
+                                )
+                            }
+                            is UiState.Error -> {
+                                val msg = (state as UiState.Error).message ?: "에러 발생"
+                                Log.e("CommunityScreen", "자유게시판 에러: $msg")
+                            }
+                        }
                     }
                 }
             }
@@ -230,7 +350,7 @@ fun CommunityScreen(
             title = { Text("알림",color = Color.Black) },
             text = {
                 Column {
-                    Text("정상적으로 등록되었습니다.", color = Color.Black)
+                    //Text("정상적으로 등록되었습니다.", color = Color.Black)
                     Spacer(Modifier.height(8.dp))
                     Text(successMessage, color = Color.DarkGray)
                 }
