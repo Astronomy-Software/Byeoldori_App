@@ -67,7 +67,8 @@ fun FreePost.asReview(): Review =
         startTime = "",
         endTime = "",
         siteScore = 0,
-        contentItems = contentItems
+        contentItems = contentItems,
+        liked = this.liked,
     )
 
 fun FreePostResponse.toFreePost(): FreePost {
@@ -82,7 +83,8 @@ fun FreePostResponse.toFreePost(): FreePost {
         viewCount = viewCount,
         createdAt = formattedDate,
         contentItems = listOf(Content.Text(contentSummary)),
-        profile = null
+        profile = null,
+        liked = liked
     )
 }
 
@@ -168,8 +170,6 @@ fun FreeBoardSection(
                 modifier = Modifier.fillMaxSize()
             ) {
                 items(filtered, key = { it.id }) { post ->
-                    val likeKey = likedKeyFree(post.id)
-                    val isLiked = likeKey in likedIds
                     val count = likeCounts[post.id] ?: post.likeCount
                     val liveCommentCount = dummyFreeComments.count { it.reviewId == post.id }
 
@@ -178,7 +178,7 @@ fun FreeBoardSection(
                             post = post,
                             commentCount = liveCommentCount,
                             likeCount = count,
-                            isLiked = isLiked,
+                            isLiked = post.liked,
                             onClick = { onClickPost(post.id) },
                             onLikeClick = { vm?.toggleLike(post.id.toLong()) }
                         )

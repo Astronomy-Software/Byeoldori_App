@@ -42,17 +42,28 @@ fun EduProgramDetail(
     val focusRequester = remember { FocusRequester() }
     var editingTarget by remember { mutableStateOf<ReviewComment?>(null) }
     var requestKeyboard by remember { mutableStateOf(false) }
-    var liked by rememberSaveable { mutableStateOf(setOf<String>()) }
-    var postLikeCount by rememberSaveable { mutableStateOf(program.likeCount) }
     var parent by remember { mutableStateOf<ReviewComment?>(null) }
-    //val detailState by vm.detail.collectAsState()
-    //val postsState by vm.postsState.collectAsState()
 
     val detailState by (vm?.detail?.collectAsState()
         ?: remember { mutableStateOf<UiState<EducationDetailResponse>>(UiState.Idle) })
 
     val postsState by (vm?.postsState?.collectAsState()
         ?: remember { mutableStateOf<UiState<List<EducationResponse>>>(UiState.Idle) })
+
+    val apiDetail = (detailState as? UiState.Success<EducationDetailResponse>)?.data
+    val apiPost = (postsState as? UiState.Success<List<EducationResponse>>)
+        ?.data?.firstOrNull { it.id.toString() == program.id }
+
+    var likeCount by rememberSaveable(program.id) {
+        mutableStateOf(apiPost?.likeCount ?: program.likeCount)
+    }
+    var liked by rememberSaveable(program.id) {
+        mutableStateOf(apiPost?.liked ?: program.liked)
+    }
+
+    var likedCommentIds by rememberSaveable(program.id) {
+        mutableStateOf<Set<String>>(emptySet())
+    }
 
     LaunchedEffect(requestKeyboard) {
         if (requestKeyboard) {
@@ -66,16 +77,6 @@ fun EduProgramDetail(
         vm?.loadEducationDetail(program.id.toLong())
     }
 
-    // 화면 들어올 때 LikeState → 로컬 liked 로 반영
-    LaunchedEffect(program.id) {
-        liked = LikeState.ids
-            .filter { it.startsWith("programComment:") }
-            .map { it.removePrefix("programComment:") } //접두사를 제거해서 댓글 고유의 ID만 남김
-            .toSet()
-    }
-    val apiDetail = (detailState as? UiState.Success<EducationDetailResponse>)?.data
-    val apiPost = (postsState as? UiState.Success<List<EducationResponse>>)
-        ?.data?.firstOrNull { it.id.toString() == program.id }
 
     Scaffold(
         contentWindowInsets = WindowInsets(0),
@@ -207,6 +208,14 @@ fun EduProgramDetail(
                     }
                 }
                 Spacer(Modifier.height(16.dp))
+
+                apiDetail?.education?.summary?.let { summary ->
+                    Text(
+                        text = summary,
+                        style = MaterialTheme.typography.bodyLarge.copy(color = Color.White),
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
+                }
                 ContentInput( //내용 입력(텍스트 + 이미지)
                     items = when {
                         apiDetail?.content != null -> listOf(
@@ -244,9 +253,16 @@ fun EduProgramDetail(
                 //좋아요 + 댓글바
                 LikeCommentBar(
                     key = likedKeyProgram(program.id),
-                    likeCount = postLikeCount,
-                    liked = liked.contains(likedKeyProgram(program.id)),
-                    onToggle = {},
+                    likeCount = likeCount,
+                    liked = liked,
+                    onToggle = {
+                        program.id.toLongOrNull()?.let { pid ->
+                            vm?.toggleLike(pid) { res ->
+                                liked = res.liked// 상세 즉시 반영
+                                likeCount = res.likes.toInt()
+                            }
+                        }
+                    },
                     onSyncLikeCount = { next ->
                         // 목록 원본 동기화(정렬/표시 일치)
                         val idx = dummyPrograms.indexOfFirst { it.id == program.id }
@@ -259,9 +275,9 @@ fun EduProgramDetail(
                     postId = program.id,
                     currentUser = currentUser,
                     comments = dummyProgramComments,
-                    liked = liked,
+                    liked = likedCommentIds,
                     onLikedChange = { newLikedIds ->
-                        liked = newLikedIds
+                        likedCommentIds = newLikedIds
                         val base = LikeState.ids.filterNot { it.startsWith("programComment:") }.toSet()
                         val withComments = base + newLikedIds.map { likedKeyProgramComment(it) }
                         LikeState.ids = withComments

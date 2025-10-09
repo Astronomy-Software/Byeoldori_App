@@ -22,4 +22,5 @@ data class Review (
     val startTime: String,
     val endTime: String,
     val contentItems: List<Content>, //본문 + 이미지
+    val liked: Boolean = false
 )

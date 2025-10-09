@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -144,6 +145,50 @@ class EducationViewModel @Inject constructor(
         }.onFailure { e ->
             _createState.value = UiState.Error(e.message ?: "교육 글 작성 오류")
         }
+    }
+
+
+    fun toggleLike(
+        postId: Long,
+        onResult: ((LikeToggleResponse) -> Unit)? = null
+    ) = viewModelScope.launch {
+        val key = "edu:$postId"
+        _likeState.value = UiState.Loading
+
+        runCatching { repo.toggleLike(postId) }
+            .onSuccess { res ->
+                _likeState.value = UiState.Success(res)
+
+                //likeCount, liked 상태 반영
+                _likeCounts.update { it + (postId.toString() to res.likes.toInt()) }
+                _likedIds.update { ids -> if (res.liked) ids + key else ids - key }
+
+                //목록 갱신
+                (_postsState.value as? UiState.Success)?.let { cur ->
+                    _postsState.value = UiState.Success(
+                        cur.data.map { p ->
+                            if (p.id == postId)
+                                p.copy(likeCount = res.likes.toInt(), liked = res.liked)
+                            else p
+                        }
+                    )
+                }
+
+                //상세 갱신
+                (_detail.value as? UiState.Success)?.let { cur ->
+                    if (cur.data.id == postId) {
+                        _detail.value = UiState.Success(
+                            cur.data.copy(likeCount = res.likes.toInt(), liked = res.liked)
+                        )
+                    }
+                }
+                onResult?.invoke(res)
+                Log.d("EducationVM", "좋아요 성공: liked=${res.liked}, likes=${res.likes}")
+            }
+            .onFailure { e ->
+                _likeState.value = UiState.Error("좋아요 토글 실패: ${e.message}")
+                Log.e("EducationVM", "좋아요 실패", e)
+            }
     }
 
 }

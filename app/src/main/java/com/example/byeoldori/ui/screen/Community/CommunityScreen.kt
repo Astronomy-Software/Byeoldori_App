@@ -16,6 +16,7 @@ import com.example.byeoldori.ui.theme.*
 import com.example.byeoldori.ui.components.community.freeboard.*
 import com.example.byeoldori.ui.components.community.review.*
 import com.example.byeoldori.domain.Community.EduProgram
+import com.example.byeoldori.domain.Community.FreePost
 import com.example.byeoldori.domain.Observatory.Review
 import com.example.byeoldori.viewmodel.*
 
@@ -85,6 +86,13 @@ fun CommunityScreen(
         }
     }
 
+    LaunchedEffect(tab) {
+        if (tab == CommunityTab.Review) {
+            reviewVm.loadPosts()
+        }
+    }
+
+
     LaunchedEffect(eduSelectedId) {
         eduSelectedId?.toLongOrNull()?.let { eduVm.loadEducationDetail(it) }
     }
@@ -142,20 +150,49 @@ fun CommunityScreen(
                 apiDetail = apiDetail,
                 apiPost = apiSummary,
                 currentUser = currentUser,
-                onSyncReviewLikeCount = { id, next ->
+                onSyncReviewLikeCount = { id, liked, next ->
                     val idx = reviews.indexOfFirst { it.id == id }
                     if (idx >= 0) {
-                        reviews[idx] = reviews[idx].copy(likeCount = next)
+                        reviews[idx] = reviews[idx].copy(liked = liked, likeCount = next)
                     }
-                    //dummyReviews도 같이 갱신
+                    // (옵션) 더미 리스트도 같이 갱신
                     val j = dummyReviews.indexOfFirst { it.id == id }
                     if (j >= 0) {
-                        dummyReviews[j] = dummyReviews[j].copy(likeCount = next)
+                        dummyReviews[j] = dummyReviews[j].copy(liked = liked, likeCount = next)
                     }
                 },
                 vm = reviewVm
             )
         }
+        selectedFreePost != null -> {
+            val apiPost = (postDetailState as? UiState.Success)?.data
+
+            val uiPost = selectedPost?.toFreePost()
+                ?: dummyFreePosts.firstOrNull { it.id == selectedFreePost }
+                ?: FreePost( // 최후 fallback (혹시라도 못 찾을 때)
+                    id = selectedFreePost!!,
+                    title = "",
+                    author = "",
+                    likeCount = 0,
+                    commentCount = 0,
+                    viewCount = 0,
+                    createdAt = "",
+                    contentItems = emptyList(),
+                    profile = null,
+                    liked = false
+                )
+            FreeBoardDetail(
+                post = uiPost,
+                apiPost = apiPost,
+                onBack = {
+                    selectedFreePost = null
+                    vm.clearSelection()
+                },
+                currentUser = currentUser,
+                vm = vm
+            )
+        }
+
         tab == CommunityTab.Board && selectedPost != null -> {
             val apiPost = (postDetailState as? UiState.Success)?.data
             FreeBoardDetail(
@@ -165,21 +202,33 @@ fun CommunityScreen(
                 currentUser = currentUser,
                 vm = vm
             )
-            return
+        }
+
+        selectedProgram != null -> {
+            val programUi = selectedProgram!!
+            EduProgramDetail(
+                program = programUi,
+                onBack = {
+                    selectedProgram = null
+                    eduVm.clearSelection()
+                },
+                currentUser = currentUser,
+                onStartProgram = { /* 필요 시 구현 */ },
+                vm = eduVm
+            )
         }
 
         tab == CommunityTab.Program && eduSelectedPost != null -> {
             val apiPost = eduSelectedPost
-            val apiDetail = (eduDetailState as? UiState.Success<EducationDetailResponse>)?.data
             val programUi = apiPost!!.toEduProgram()
 
             EduProgramDetail(
                 program = programUi,
                 onBack = { eduVm.clearSelection() },
                 currentUser = currentUser,
-                onStartProgram = { }
+                onStartProgram = { /* 필요 시 구현 */ },
+                vm = eduVm
             )
-            return
         }
 
         else -> {
@@ -216,6 +265,7 @@ fun CommunityScreen(
                 when (tab) {
                     CommunityTab.Review -> {
                         CommuReviewSection(
+                            vm = reviewVm,
                             reviewsAll = reviews,
                             onWriteClick = {
                                 reviewVm.resetCreateState()
@@ -223,21 +273,20 @@ fun CommunityScreen(
                             },
                             onReviewClick = { review ->
                                 selectedReview = review
-                                val idStr = review.id               // String
-                                reviewVm.selectPost(idStr)          // selectPost(String)용
+                                val idStr = review.id
+                                reviewVm.selectPost(idStr)
 
-                                idStr.toLongOrNull()?.let { idL ->  // 상세 API는 Long 필요
+                                idStr.toLongOrNull()?.let { idL ->
                                     reviewVm.loadReviewDetail(idL)
                                 }
                             },
-                            onSyncReviewLikeCount = { id, next ->
+                            onSyncReviewLike = { id, liked, next ->
                                 val i = reviews.indexOfFirst { it.id == id }
-                                if (i >= 0) reviews[i] = reviews[i].copy(likeCount = next)
+                                if (i >= 0) reviews[i] = reviews[i].copy(likeCount = next, liked = liked)
 
-                                //추가: 초기 소스도 함께 갱신
                                 val j = dummyReviews.indexOfFirst { it.id == id }
-                                if (j >= 0) dummyReviews[j] = dummyReviews[j].copy(likeCount = next)
-                            }
+                                if (j >= 0) dummyReviews[j] = dummyReviews[j].copy(likeCount = next, liked = liked)
+                            },
                         )
                     }
                     CommunityTab.Program -> {
@@ -267,10 +316,6 @@ fun CommunityScreen(
 
 
                     CommunityTab.Home -> {
-//                        val recentReviews by remember { derivedStateOf { reviews.sortedByDescending { it.createdAt }.take(8) } }
-//                        val recentPrograms = remember { dummyPrograms.sortedByDescending { it.createdAt }.take(8) }
-//                        val popularFreePost = remember { dummyFreePosts.sortedByDescending { it.likeCount }.take(8) }
-
                         val reviewList = when (val s = reviewVm.postsState.collectAsState().value) {
                             is UiState.Success -> s.data.map { it.toReview() }
                             else -> emptyList()
@@ -289,18 +334,20 @@ fun CommunityScreen(
                             recentEduPrograms = eduList.take(20),
                             popularFreePosts = freeList.sortedByDescending { it.likeCount }.take(20),
                             onReviewClick = { review ->
-                                reviewVm.selectPost(review.id)             // 상세 대상 선택
-                                onSelectTab(CommunityTab.Review)
-                                review.id.toLongOrNull()?.let { reviewVm.loadReviewDetail(it) } // (선택) 즉시 로드
+                                selectedReview = review
+                                reviewVm.selectPost(review.id)
+                                review.id.toLongOrNull()?.let { reviewVm.loadReviewDetail(it) }
                             },
                             onProgramClick = { program ->
-                                eduVm.selectPost(program.id)              // 상세 대상 선택
-                                onSelectTab(CommunityTab.Program)         //Program 탭으로 전환
+                                selectedProgram = program
+                                eduVm.selectPost(program.id)
                                 program.id.toLongOrNull()?.let { eduVm.loadEducationDetail(it) }
                             },
                             onFreePostClick = { free ->
+                                selectedFreePost = free.id
                                 vm.selectPost(free.id)
-                                onSelectTab(CommunityTab.Board)
+                                free.id.toLongOrNull()?.let { vm.loadPostDetail(it) }
+
                             },
                             onSyncReviewLikeCount = { id, next ->
                                 val i = reviews.indexOfFirst { it.id == id }

@@ -46,7 +46,8 @@ fun ReviewResponse.toReview(): Review = Review(
     startTime = "",
     endTime = "",
     rating = 0,
-    siteScore = 0
+    siteScore = 0,
+    liked = liked
 )
 
 
@@ -58,7 +59,7 @@ fun CommuReviewSection(
     onWriteClick: () -> Unit = {},
     onReviewClick: (Review) -> Unit,
     onChangeSort: (SortBy) -> Unit = {},
-    onSyncReviewLikeCount: (id: String, next: Int) -> Unit
+    onSyncReviewLike: (id: String, liked: Boolean, next: Int) -> Unit
 ) {
     var searchText by remember { mutableStateOf("") } //초기값이 빈 문자열인 변할 수 있는 상태 객체
     var sort by remember { mutableStateOf(ReviewSort.Latest) }
@@ -161,10 +162,17 @@ fun CommuReviewSection(
                     ReviewCard(
                         review = review,
                         modifier = Modifier.clickable { onReviewClick(review) },
-                        onSyncLikeCount = { next ->            // ★ NEW: 카드에서 좋아요 바꾸면
+                        onSyncLikeCount = { next ->
                         // onSyncReviewLikeCount(review.id, next)  // 상위 reviews 동기화
                         //vm.updateLocalLikeCount(review.id, next)
                         //vm.toggleLike(review.id.toLong())
+                        },
+                        onToggleLike = {
+                            review.id.toLongOrNull()?.let { pid ->
+                                vm?.toggleLike(pid) { result ->
+                                    onSyncReviewLike(review.id, result.liked, result.likes.toInt()) // ★
+                                }
+                            }
                         }
                     )
                 }
@@ -219,9 +227,11 @@ private fun Preview_ScreenWithWriteButton() {
                 println("리뷰 클릭됨: ${review.title}")
             },
             onChangeSort = { },
-            onSyncReviewLikeCount = { id, next ->
+            onSyncReviewLike = { id, liked, next ->
                 val idx = dummyReviews.indexOfFirst { it.id == id }
-                if (idx >= 0) dummyReviews[idx] = dummyReviews[idx].copy(likeCount = next)
+                if (idx >= 0) {
+                    dummyReviews[idx] = dummyReviews[idx].copy(likeCount = next, liked = liked)
+                }
             }
         )
     }

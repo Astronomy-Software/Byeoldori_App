@@ -39,7 +39,7 @@ fun ReviewDetail(
     onShare: () -> Unit = {},
     onMore: () -> Unit = {},
     currentUser: String,
-    onSyncReviewLikeCount: (id: String, next: Int) -> Unit,
+    onSyncReviewLikeCount: (id: String, liked: Boolean, next: Int) -> Unit,
     apiDetail: ReviewDetailResponse? = null, // 서버에서 가져온 상세(요약/카운트)
     apiPost: ReviewResponse? = null,
     vm: ReviewViewModel? = null
@@ -53,7 +53,9 @@ fun ReviewDetail(
     var input by rememberSaveable { mutableStateOf("") }
     var editingTarget by remember { mutableStateOf<ReviewComment?>(null) }
     var parent by remember { mutableStateOf<ReviewComment?>(null) }
+
     var reviewLikeCount by rememberSaveable { mutableStateOf(review.likeCount) }
+    var liked by rememberSaveable { mutableStateOf(apiPost?.liked ?: review.liked) }
 
     LaunchedEffect(imeVisible) {
         if (imeVisible) {
@@ -252,12 +254,18 @@ fun ReviewDetail(
                 LikeCommentBar(
                     key = likedKeyReview(review.id),
                     likeCount = reviewLikeCount,
-                    liked = LikeState.ids.contains(likedKeyReview(review.id)),
-                    onToggle = {},
-                   // onLikeCountChange = { reviewLikeCount = it },
-                    onSyncLikeCount = { next ->
-                        onSyncReviewLikeCount(review.id, next)
+                    liked = liked,
+                    onToggle = {               // ★ 토글 처리
+                        review.id.toLongOrNull()?.let { pid ->
+                            vm?.toggleLike(pid) { res ->
+                                liked = res.liked
+                                reviewLikeCount = res.likes.toInt()
+                                onSyncReviewLikeCount(review.id, res.liked, res.likes.toInt()) // ★ 상위 동기화
+                            }
+                        }
                     },
+                   // onLikeCountChange = { reviewLikeCount = it },
+                    onSyncLikeCount = {},
                     commentCount = dummyReviewComments.count { it.reviewId == review.id } //리뷰에 달린 댓글이 몇 개인지 계산
                 )
 
@@ -297,6 +305,6 @@ fun ReviewDetail(
 @Composable
 private fun Preview_ReviewDetail() {
     MaterialTheme {
-        ReviewDetail(review = dummyReviews.first(), currentUser = "astro_user",onSyncReviewLikeCount = { _, _ -> })
+        ReviewDetail(review = dummyReviews.first(), currentUser = "astro_user",onSyncReviewLikeCount = { _, _ ,_-> })
     }
 }

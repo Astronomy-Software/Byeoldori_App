@@ -120,10 +120,11 @@ fun ReviewCard(
     review: Review,
     modifier: Modifier = Modifier,
     commentCount: Int = review.commentCount,
-    onSyncLikeCount: (Int) -> Unit = {}
+    onSyncLikeCount: (Int) -> Unit = {},
+    onToggleLike: (() -> Unit)? = null,
 ) {
     val likeKey = if (':' in review.id) review.id else likedKeyReview(review.id)
-    val isLiked = likeKey in LikeState.ids
+    val isLiked = review.liked || (likeKey in LikeState.ids)
     var likeCount by remember { mutableStateOf(review.likeCount) }
 
     LaunchedEffect(review.likeCount) { likeCount = review.likeCount }
@@ -209,7 +210,7 @@ fun ReviewCard(
                             painter = painterResource(R.drawable.ic_thumbs_up),
                             contentDescription = null,
                             tint = if (isLiked) Purple500 else TextHighlight,
-                            modifier = Modifier.size(18.dp)
+                            modifier = Modifier.size(18.dp).clickable { onToggleLike?.invoke() }
                         )
                         Spacer(Modifier.width(4.dp))
                         Text("$likeCount", color = TextHighlight, fontSize = 14.sp)

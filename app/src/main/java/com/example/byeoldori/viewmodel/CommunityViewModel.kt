@@ -111,33 +111,44 @@ class CommunityViewModel @Inject constructor(
     }
     fun clearCreateState() { _createState.value = UiState.Idle }
 
-    fun toggleLike(postId: Long) = viewModelScope.launch {
+    fun toggleLike(
+        postId: Long,
+        onResult: ((LikeToggleResponse) -> Unit)? = null
+    ) = viewModelScope.launch {
         val key = likedKeyFree(postId.toString())
         _likeState.value = UiState.Loading
 
-        //서버 반영
         runCatching { repo.toggleLike(postId) }
             .onSuccess { res ->
                 _likeState.value = UiState.Success(res)
-                // 서버 결과로 최종 보정
                 _likeCounts.update { it + (postId.toString() to res.likes.toInt()) }
                 _likedIds.update { ids -> if (res.liked) ids + key else ids - key }
-
                 saveLikedToLocal()
 
-                // 목록/상세 보정
+                //목록/상세 동기화
                 (_postsState.value as? UiState.Success)?.let { cur ->
                     _postsState.value = UiState.Success(
-                        cur.data.map { p -> if (p.id == postId) p.copy(likeCount = res.likes.toInt()) else p }
+                        cur.data.map { p ->
+                            if (p.id == postId) p.copy(
+                                liked = res.liked,
+                                likeCount = res.likes.toInt()
+                            ) else p
+                        }
                     )
                 }
                 (_postDetail.value as? UiState.Success)?.let { cur ->
                     if (cur.data.id == postId) {
-                        _postDetail.value =
-                            UiState.Success(cur.data.copy(likeCount = res.likes.toInt()))
+                        _postDetail.value = UiState.Success(
+                            cur.data.copy(
+                                liked = res.liked,
+                                likeCount = res.likes.toInt()
+                            )
+                        )
                     }
                 }
-                _likeState.value = UiState.Success(res)
+
+                ///섹션에서 로컬 상태 즉시 반영
+                onResult?.invoke(res)
                 Log.d("CommunityVM", "좋아요 성공: liked=${res.liked}, likes=${res.likes}")
             }
             .onFailure { e ->

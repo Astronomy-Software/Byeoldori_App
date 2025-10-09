@@ -49,7 +49,8 @@ fun EduProgram.asReview(): Review =
         startTime = "",
         endTime = "",
         siteScore = 0,
-        contentItems =  contentItems
+        contentItems =  contentItems,
+        liked = liked
     )
 
 
@@ -64,7 +65,8 @@ fun EducationResponse.toEduProgram(): EduProgram {
         viewCount = viewCount,
         profile = R.drawable.profile1,
         createdAt = formatCreatedAt(createdAt),
-        contentItems = listOf(Content.Text(contentSummary.orEmpty()))
+        contentItems = listOf(Content.Text(contentSummary.orEmpty())),
+        liked = liked
     )
 }
 
@@ -81,7 +83,6 @@ fun EduProgramSection(
     vm: EducationViewModel = hiltViewModel()
 ) {
     var searchText by remember { mutableStateOf("") } //초기값이 빈 문자열인 변할 수 있는 상태 객체
-    var sort by remember { mutableStateOf(EduProgramSort.Latest) }
     val gridState = rememberLazyGridState()
 
     val state by vm.postsState.collectAsState()
@@ -183,7 +184,13 @@ fun EduProgramSection(
                                 Modifier
                                     .clickable { onClickProgram(program.id) }
                             ) {
-                                ReviewCard(review = program.asReview())
+                                ReviewCard(
+                                    review = program.asReview(),
+                                    onToggleLike = {
+                                        // 서버 토글 + VM 상태 갱신 → 재조합되며 liked/likeCount 반영
+                                        vm.toggleLike(program.id.toLong())
+                                    }
+                                )
                             }
                         }
                         item { Spacer(Modifier.height(60.dp)) }
@@ -237,7 +244,8 @@ private fun Preview_EduProgramSection_Default() {
                     createdAt = "25.10${29-1}", //String으로 변환
                     contentItems = listOf(
                        Content.Text("이 강의는 망원경 기초와 관측 매너를 다룹니다.")
-                    )
+                    ),
+                    liked = i % 3 == 0
                 )
             }
         }

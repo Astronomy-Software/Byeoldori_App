@@ -259,7 +259,8 @@ val dummyFreePosts = mutableStateListOf(
             Content.Text("혹시 다들 어디서 관측하시나요??"),
             Content.Image.Resource(R.drawable.img_dummy),
             Content.Text("이런 곳은 어떤가요?? 잘 보이나요?")
-        )
+        ),
+        liked = true
     ),
     FreePost(
         id = "f2",
@@ -274,7 +275,8 @@ val dummyFreePosts = mutableStateListOf(
             Content.Text("오늘 처음 가입했습니다."),
             Content.Image.Resource(R.drawable.img_dummy),
             Content.Text("좋은 관측 장소 공유 부탁드려요!")
-        )
+        ),
+        liked = true
     ),
     FreePost(
         id = "f3",
@@ -288,7 +290,8 @@ val dummyFreePosts = mutableStateListOf(
         contentItems = listOf(
             Content.Text("안녕하세요 astro3입니다."),
             Content.Text("저는 주로 교외에서 관측해요 🌌")
-        )
+        ),
+        liked = false
     ),
     FreePost(
         id = "f4",
@@ -302,7 +305,8 @@ val dummyFreePosts = mutableStateListOf(
         contentItems = listOf(
             Content.Text("astro4 입니다. 잘 부탁드려요!"),
             Content.Image.Resource(R.drawable.img_dummy)
-        )
+        ),
+        liked = false
     )
 )
 
@@ -322,7 +326,8 @@ val dummyPrograms = mutableStateListOf(
             Content.Text("망원경 종류와 기본 조작을 배웁니다."),
             Content.Image.Resource(R.drawable.img_dummy),
             Content.Text("실습 포함: 파인더 정렬, 배율 계산")
-        )
+        ),
+        liked = true
     ),
     EduProgram(
         id = "p2",
@@ -338,7 +343,8 @@ val dummyPrograms = mutableStateListOf(
             Content.Text("유성우 예보 읽는 법과 관측 팁을 다룹니다."),
             Content.Image.Resource(R.drawable.img_dummy),
             Content.Text("필수 장비 체크리스트 제공")
-        )
+        ),
+        liked = false
     ),
     EduProgram(
         id = "p3",
@@ -353,7 +359,8 @@ val dummyPrograms = mutableStateListOf(
         contentItems = listOf(
             Content.Text("광해가 심한 환경에서의 관측 전략."),
             Content.Text("필터 사용과 관측 대상 추천")
-        )
+        ),
+        liked = false
     )
 )
 

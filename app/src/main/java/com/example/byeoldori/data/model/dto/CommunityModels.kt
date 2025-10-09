@@ -24,6 +24,7 @@ data class FreePostResponse(
     val likeCount: Int,
     val commentCount: Int,
     val createdAt: String,
+    val liked: Boolean
 )
 
 

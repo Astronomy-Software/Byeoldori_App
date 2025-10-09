@@ -31,7 +31,8 @@ fun FreeBoardDetail (
     onMore: () -> Unit = {},
     currentUser: String,
     apiPost: FreePostResponse? = null, //api에서 받은 Post,
-    vm: CommunityViewModel? = null
+    vm: CommunityViewModel? = null,
+    onSyncFreeLikeCount: (id: String, liked: Boolean, next: Int) -> Unit = { _, _, _ -> }
 ) {
     var input by rememberSaveable { mutableStateOf("") }
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -42,13 +43,11 @@ fun FreeBoardDetail (
 
     val likeCounts by (vm?.likeCounts?.collectAsState()
         ?: remember { mutableStateOf<Map<String, Int>>(emptyMap()) })
+    val initialCount = likeCounts[post.id] ?: apiPost?.likeCount ?: post.likeCount
+    val initialLiked = apiPost?.liked ?: post.liked
 
-    val likedIds by (vm?.likedIds?.collectAsState()
-        ?: remember { mutableStateOf<Set<String>>(emptySet()) })
-
-    val likeKey = likedKeyFree(post.id)
-    val liked = likeKey in likedIds
-    val likeCount = likeCounts[post.id] ?: apiPost?.likeCount ?: post.likeCount
+    var likeCount by rememberSaveable(post.id) { mutableStateOf(initialCount) } //로컬 카운트
+    var liked by rememberSaveable(post.id) { mutableStateOf(initialLiked) }
 
 
 
@@ -223,7 +222,20 @@ fun FreeBoardDetail (
                     key = likedKeyFree(post.id),
                     likeCount = likeCount,
                     liked = liked,
-                    onToggle = { vm?.toggleLike(post.id.toLong()) },
+                    onToggle = {
+                        post.id.toLongOrNull()?.let { idLong ->
+                            //클릭 즉시 변경 (즉각 반응)
+                            liked = !liked
+                            likeCount = if (liked) likeCount + 1 else likeCount - 1
+
+                            vm?.toggleLike(idLong) { res ->
+                                //서버 응답으로 최종값 보정
+                                liked = res.liked
+                                likeCount = res.likes.toInt()
+                                onSyncFreeLikeCount(post.id, res.liked, res.likes.toInt())
+                            }
+                        }
+                    },
                     onSyncLikeCount = {},
                     commentCount = dummyFreeComments.count { it.reviewId == post.id }
                 )
