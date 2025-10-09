@@ -19,6 +19,7 @@ import com.example.byeoldori.ui.theme.*
 import com.example.byeoldori.domain.Community.ReviewComment
 import androidx.compose.ui.focus.*
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.byeoldori.data.model.dto.*
 import com.example.byeoldori.domain.Observatory.Review
 import com.example.byeoldori.ui.mapper.toUi
@@ -57,6 +58,22 @@ fun ReviewDetail(
     var reviewLikeCount by rememberSaveable { mutableStateOf(review.likeCount) }
     var liked by rememberSaveable { mutableStateOf(apiPost?.liked ?: review.liked) }
 
+    val commentsVm: CommentsViewModel = hiltViewModel()
+    val commentsState by commentsVm.comments.collectAsState()
+    val commentCounts by commentsVm.commentCounts.collectAsState()
+
+    val reviewComments = remember { mutableStateListOf<ReviewComment>() }
+
+    val commentCountUi = commentCounts[review.id] ?: when (val s = commentsState) {
+        is UiState.Success -> s.data.size
+        else -> 0
+    }
+
+    val commentList: List<ReviewComment> = when (val s = commentsState) {
+        is UiState.Success -> s.data
+        else -> emptyList()
+    }
+
     LaunchedEffect(imeVisible) {
         if (imeVisible) {
             // 키보드가 올라오면 리스트를 바닥까지 끌어내려 빈 여백 느낌 제거
@@ -68,6 +85,19 @@ fun ReviewDetail(
             focusRequester.requestFocus() //커서 깜빡임
             keyboardController?.show() //키보드 올라오게
             requestKeyboard = false  // 한 번만 실행
+        }
+    }
+
+    //댓글 로드
+    LaunchedEffect(review.id) {
+        commentsVm.start(review.id)  // 서버에서 page=0부터 불러옴
+    }
+
+    //댓글 목록을 화면 버퍼에 반영
+    LaunchedEffect(commentsState) {
+        (commentsState as? UiState.Success)?.let { s ->
+            reviewComments.clear()
+            reviewComments.addAll(s.data)
         }
     }
 
@@ -114,7 +144,6 @@ fun ReviewDetail(
                         }
                     }
                 )
-                //Divider(color = Color.LightGray.copy(alpha = 0.4f), thickness = 1.dp)
                 Divider(
                     color = Color.White.copy(alpha = 0.6f),
                     thickness = 2.dp,
@@ -148,7 +177,7 @@ fun ReviewDetail(
                             content = t,
                             likeCount = 0,
                             commentCount = 0,
-                            createdAt = System.currentTimeMillis(),
+                            createdAt =  review.createdAt.toShortDate(),
                             parentId = parent?.id
                         )
                     )
@@ -266,14 +295,14 @@ fun ReviewDetail(
                     },
                    // onLikeCountChange = { reviewLikeCount = it },
                     onSyncLikeCount = {},
-                    commentCount = dummyReviewComments.count { it.reviewId == review.id } //리뷰에 달린 댓글이 몇 개인지 계산
+                    commentCount = commentCountUi //리뷰에 달린 댓글이 몇 개인지 계산
                 )
 
                 // 댓글 리스트
                 CommentList(
                     postId = review.id,
                     currentUser = currentUser,
-                    comments = dummyReviewComments,
+                    comments = reviewComments,
                     //현재 사용자가 좋아요를 누른 댓글들의 id 집합
                     liked = LikeState.ids.filter { it.startsWith("reviewComment:") }
                         .map { it.removePrefix("reviewComment:") }.toSet(),

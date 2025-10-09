@@ -13,6 +13,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.byeoldori.R
 import com.example.byeoldori.data.model.dto.FreePostResponse
 import com.example.byeoldori.domain.Community.*
@@ -49,7 +50,16 @@ fun FreeBoardDetail (
     var likeCount by rememberSaveable(post.id) { mutableStateOf(initialCount) } //로컬 카운트
     var liked by rememberSaveable(post.id) { mutableStateOf(initialLiked) }
 
+    val commentsVm: CommentsViewModel = hiltViewModel()
+    val commentsState by commentsVm.comments.collectAsState()
+    val commentCounts by commentsVm.commentCounts.collectAsState()
 
+    val freeComments = remember { mutableStateListOf<ReviewComment>() }
+
+    val commentCountUi = commentCounts[post.id] ?: when (val s = commentsState) {
+        is UiState.Success -> s.data.size
+        else -> 0
+    }
 
     LaunchedEffect(requestKeyboard) {
         if (requestKeyboard) {
@@ -59,12 +69,17 @@ fun FreeBoardDetail (
         }
     }
 
-//    LaunchedEffect(likeState) {
-//        val s = likeState
-//        if (s is UiState.Success) {
-//            postLikeCount = s.data.likes.toInt()   // 서버 최종값으로 맞추기
-//        }
-//    }
+    LaunchedEffect(post.id) {
+        commentsVm.start(post.id)
+    }
+
+    LaunchedEffect(commentsState) {
+        val s = commentsState
+        if (s is UiState.Success) {
+            freeComments.clear()
+            freeComments.addAll(s.data)
+        }
+    }
 
     Scaffold(
         contentWindowInsets = WindowInsets(0),
@@ -118,43 +133,14 @@ fun FreeBoardDetail (
                 onTextChange = { input = it },
                 onSend = { raw ->
                     val t = raw.trim()
-                    val target = editingTarget
-                    if (target != null) {
-                        val idx = dummyFreeComments.indexOfFirst { it.id == target.id }
-                        if (idx >= 0) {
-                            dummyFreeComments[idx] = target.copy(content = t)
-                        }
-                        // 모드 종료 + 입력 비우기
-                        editingTarget = null
-                        input = ""
-                        return@CommentInput
-                    }
+                    if (t.isEmpty()) return@CommentInput
 
-                    // 자유게시판 댓글도 ReviewComment 더미를 재사용 (키는 post.id)
-                    dummyFreeComments.add(
-                        ReviewComment(
-                            id = "c${System.currentTimeMillis()}",
-                            reviewId = post.id,
-                            author = currentUser,
-                            profile = R.drawable.profile1,
-                            content = t,
-                            likeCount = 0,
-                            commentCount = 0,
-                            createdAt = System.currentTimeMillis(),
-                            parentId = parent?.id
-                        )
-                    )
-                    //대댓글
-                    if(parent != null) {
-                        val idx = dummyFreeComments.indexOfFirst { it.id == parent?.id }
-                        if (idx >= 0) { //부모 댓글 찾으면
-                            val cur = dummyFreeComments[idx]
-                            val next = cur.copy(commentCount = cur.commentCount + 1)
-                            dummyFreeComments[idx] = next
-                        }
-                        parent = null //대댓글 모드 해제
+                    val parentIdStr = parent?.id  // 대댓글이면 부모 id
+                    commentsVm.submit(content = t, parentId = parentIdStr) {
+                        // 성공 콜백: 입력/대댓글모드 해제
+                        input = ""
+                        parent = null
                     }
-                    input = ""
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -237,14 +223,14 @@ fun FreeBoardDetail (
                         }
                     },
                     onSyncLikeCount = {},
-                    commentCount = dummyFreeComments.count { it.reviewId == post.id }
+                    commentCount = commentCountUi
                 )
 
                 //댓글 + 대댓글
                 CommentList(
                     postId = post.id,
                     currentUser = currentUser,
-                    comments = dummyFreeComments,
+                    comments = freeComments,
                     liked = LikeState.ids.filter { it.startsWith("freeComment:") }
                         .map { it.removePrefix("freeComment:") }.toSet(),
                     onLikedChange = { newLocal ->
@@ -263,8 +249,8 @@ fun FreeBoardDetail (
                         requestKeyboard = true
                     },
                     onDelete = { del ->
-                        val idx = dummyFreeComments.indexOfFirst { it.id == del.id }
-                        if (idx >= 0) dummyFreeComments.removeAt(idx)
+                        val idx = freeComments.indexOfFirst { it.id == del.id }
+                        if (idx >= 0) freeComments.removeAt(idx)
                     }
                 )
             }

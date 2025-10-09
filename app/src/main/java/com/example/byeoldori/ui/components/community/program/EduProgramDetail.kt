@@ -14,6 +14,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.byeoldori.R
 import com.example.byeoldori.data.model.dto.*
 import com.example.byeoldori.domain.Community.*
@@ -69,6 +70,17 @@ fun EduProgramDetail(
         ?.takeIf { it.isNotBlank() }
         ?: program.createdAt.toShortDate()
 
+    val commentsVm: CommentsViewModel = hiltViewModel()
+    val commentsState by commentsVm.comments.collectAsState()
+    val commentCounts by commentsVm.commentCounts.collectAsState()
+
+    val programComments = remember { mutableStateListOf<ReviewComment>() }
+
+    val commentCountUi = commentCounts[program.id] ?: when (val s = commentsState) {
+        is UiState.Success -> s.data.size
+        else -> 0
+    }
+
     LaunchedEffect(requestKeyboard) {
         if (requestKeyboard) {
             focusRequester.requestFocus()
@@ -79,6 +91,17 @@ fun EduProgramDetail(
 
     LaunchedEffect(program.id) {
         vm?.loadEducationDetail(program.id.toLong())
+    }
+
+    LaunchedEffect(program.id) {
+        commentsVm.start(program.id)
+    }
+    LaunchedEffect(commentsState) {
+        val s = commentsState
+        if (s is UiState.Success) {
+            programComments.clear()
+            programComments.addAll(s.data)
+        }
     }
 
     Scaffold(
@@ -153,7 +176,7 @@ fun EduProgramDetail(
                             content = t,
                             likeCount = 0,
                             commentCount = 0,
-                            createdAt = System.currentTimeMillis(),
+                            createdAt = program.createdAt.toShortDate(),
                             parentId = parent?.id
                         )
                     )
@@ -291,13 +314,13 @@ fun EduProgramDetail(
                         val idx = dummyPrograms.indexOfFirst { it.id == program.id }
                         if (idx >= 0) dummyPrograms[idx] = dummyPrograms[idx].copy(likeCount = next)
                     },
-                    commentCount = dummyProgramComments.count { it.reviewId == program.id }
+                    commentCount = commentCountUi
                 )
                 //댓글 + 대댓글
                 CommentList(
                     postId = program.id,
                     currentUser = currentUser,
-                    comments = dummyProgramComments,
+                    comments = programComments,
                     liked = likedCommentIds,
                     onLikedChange = { newLikedIds ->
                         likedCommentIds = newLikedIds
@@ -316,8 +339,8 @@ fun EduProgramDetail(
                         requestKeyboard = true
                     },
                     onDelete = { del ->
-                        val idx = dummyProgramComments.indexOfFirst { it.id == del.id }
-                        if (idx >= 0) dummyProgramComments.removeAt(idx)
+                        val idx = programComments.indexOfFirst { it.id == del.id }
+                        if (idx >= 0) programComments.removeAt(idx)
                     }
                 )
             }

@@ -9,5 +9,5 @@ data class ReviewComment(
     val content: String,
     val likeCount: Int,
     val commentCount: Int,
-    val createdAt: Long
+    val createdAt: String
 )

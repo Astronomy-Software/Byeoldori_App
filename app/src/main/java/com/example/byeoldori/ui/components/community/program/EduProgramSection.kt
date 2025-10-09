@@ -38,7 +38,7 @@ fun EduProgram.asReview(): Review =
         author = author,
         rating = rating.toInt(),
         likeCount = likeCount,
-        commentCount = dummyProgramComments.count { it.reviewId == id },
+        commentCount = commentCount,
         profile = R.drawable.profile1,
         viewCount = viewCount,
         createdAt = formatCreatedAt(createdAt),

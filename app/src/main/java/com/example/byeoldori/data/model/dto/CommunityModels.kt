@@ -45,3 +45,31 @@ data class PostResponse(
     val totalElements: Int,
     val totalPages: Int
 )
+
+@JsonClass(generateAdapter = true)
+data class CreateCommentRequest(
+    val content: String,
+    val parentId: Long? = null   // 대댓글이면 부모 ID, 일반 댓글이면 null
+)
+
+@JsonClass(generateAdapter = true)
+data class CommentResponse(
+    val id: Long,
+    val authorId: Long,
+    val content: String,
+    val createdAt: String,
+    val parentId: Long?,
+    val depth: Int,
+    val deleted: Boolean,
+    val likeCount: Int,
+    val liked: Boolean
+)
+
+@JsonClass(generateAdapter = true)
+data class CommentsPageResponse(
+    val content: List<CommentResponse>,
+    val page: Int,
+    val size: Int,
+    val totalElements: Int,
+    val totalPages: Int
+)

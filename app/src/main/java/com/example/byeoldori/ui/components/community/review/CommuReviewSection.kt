@@ -64,7 +64,6 @@ fun CommuReviewSection(
     val gridState = rememberLazyGridState()
 
     val state by (vm?.postsState?.collectAsState() ?: remember { mutableStateOf<UiState<List<ReviewResponse>>>(UiState.Idle) })
-    val likeCounts by (vm?.likeCounts?.collectAsState() ?: remember { mutableStateOf<Map<String, Int>>(emptyMap()) })
     val scores by (vm?.scores?.collectAsState() ?: remember { mutableStateOf<Map<String, Int>>(emptyMap()) })
     val currentSort by (vm?.sort?.collectAsState() ?: remember { mutableStateOf(SortBy.LATEST) })
 
@@ -79,11 +78,18 @@ fun CommuReviewSection(
         baseList.map { r -> r.copy(rating = scores[r.id] ?: r.rating) }
     }
 
-    val filtered = remember(searchText, merged) {
-        if (searchText.isBlank()) merged
+    val commentsVm: CommentsViewModel = hiltViewModel()
+    val commentCounts by commentsVm.commentCounts.collectAsState()
+
+    val mergedWithCounts = remember(merged, commentCounts) {
+        merged.map { r -> r.copy(commentCount = commentCounts[r.id] ?: r.commentCount) }
+    }
+
+    val filtered = remember(searchText, mergedWithCounts) {
+        if (searchText.isBlank())  mergedWithCounts
         else {
             val k = searchText.trim().lowercase()
-            merged.filter { r ->
+            mergedWithCounts.filter { r ->
                 r.title.lowercase().contains(k) ||
                         r.author.lowercase().contains(k) ||
                         r.contentItems.filterIsInstance<Content.Text>()
@@ -96,6 +102,7 @@ fun CommuReviewSection(
         SortBy.LIKES  -> ReviewSort.Like
         SortBy.VIEWS  -> ReviewSort.View
     }
+
 
     //정렬 기준이 바뀔 때 스크롤 맨 위로 이동
     LaunchedEffect(sort) { gridState.scrollToItem(0) }

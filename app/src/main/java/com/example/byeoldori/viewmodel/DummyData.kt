@@ -141,42 +141,42 @@ val dummyReviewComments = mutableStateListOf(
         id = "c1", reviewId = "r1",
         author = "아이마카", profile = R.drawable.profile1,
         content = "색다른 곳 있으면 알려주세요~",
-        likeCount = 3, commentCount = 1, createdAt = 202510291750,
+        likeCount = 3, commentCount = 1, createdAt = "202510291750",
         parentId = null
     ),
     ReviewComment(
         id = "c2", reviewId = "r1",
         author = "별헤는 곰돌이", profile = R.drawable.profile1,
         content = "충북대 대운동장 좋아요!",
-        likeCount = 1, commentCount = 0, createdAt = 202510291755,
+        likeCount = 1, commentCount = 0, createdAt = "202510291755",
         parentId = null
     ),
     ReviewComment(
         id = "c3", reviewId = "r2",
         author = "astro_21", profile = R.drawable.profile1,
         content = "오늘 투명도 좋았습니다 🙌",
-        likeCount = 2, commentCount = 0, createdAt = 202510291820,
+        likeCount = 2, commentCount = 0, createdAt = "202510291820",
         parentId = null
     ),
     ReviewComment(
         id = "c4", reviewId = "r2",
         author = "skylover", profile = R.drawable.profile1,
         content = "광해만 조금만 덜하면 최고!",
-        likeCount = 0, commentCount = 0, createdAt = 202510291825,
+        likeCount = 0, commentCount = 0, createdAt = "202510291825",
         parentId = null
     ),
     ReviewComment(
         id = "c5", reviewId = "r3",
         author = "아이마카", profile = R.drawable.profile1,
         content = "내일도 관측 예정이에요",
-        likeCount = 5, commentCount = 2, createdAt = 202510281930,
+        likeCount = 5, commentCount = 2, createdAt = "202510281930",
         parentId = null
     ),
     ReviewComment(
         id = "c6", reviewId = "r4",
         author = "meteor", profile = R.drawable.profile1,
         content = "유성 두 개 봤습니다!",
-        likeCount = 4, commentCount = 1, createdAt = 202510271145,
+        likeCount = 4, commentCount = 1, createdAt = "202510271145",
         parentId = null
     )
 )
@@ -189,7 +189,7 @@ val dummyFreeComments = mutableStateListOf(
         profile = R.drawable.profile1,
         content = "환영합니다! 저는 주로 교외에서 관측해요 🌌",
         likeCount = 2, commentCount = 0,
-        createdAt = 202510251600,
+        createdAt = "202510251600",
         parentId = null
     ),
     ReviewComment(
@@ -198,7 +198,7 @@ val dummyFreeComments = mutableStateListOf(
         profile = R.drawable.profile1,
         content = "오산천도 괜찮아요. 접근성이 좋아요!",
         likeCount = 1, commentCount = 0,
-        createdAt = 202510251630,
+        createdAt = "202510251630",
         parentId = null
     ),
     ReviewComment(
@@ -207,7 +207,7 @@ val dummyFreeComments = mutableStateListOf(
         profile = R.drawable.profile1,
         content = "저는 충북대 대운동장에서 자주 봅니다.",
         likeCount = 0, commentCount = 0,
-        createdAt = 202510291510,
+        createdAt = "202510291510",
         parentId = null
     ),
     ReviewComment(
@@ -216,7 +216,7 @@ val dummyFreeComments = mutableStateListOf(
         profile = R.drawable.profile1,
         content = "요즘 투명도가 좋아서 별이 잘 보여요!",
         likeCount = 3, commentCount = 1,
-        createdAt = 202510301600,
+        createdAt = "202510301600",
         parentId = null
     ),
     ReviewComment(
@@ -225,7 +225,7 @@ val dummyFreeComments = mutableStateListOf(
         profile = R.drawable.profile1,
         content = "저도 같은 생각이에요. 좋은 장소 공유해요~",
         likeCount = 1, commentCount = 0,
-        createdAt = 202510281530,
+        createdAt = "202510281530",
         parentId = null
     )
 )
@@ -364,21 +364,21 @@ val dummyProgramComments = mutableStateListOf(
         id = "pc1", reviewId = "p1",
         author = "star_gazer", profile = R.drawable.profile1,
         content = "실습 파트가 특히 유용했어요!",
-        likeCount = 3, commentCount = 1, createdAt = 202510291230,
+        likeCount = 3, commentCount = 1, createdAt = "202510291230",
         parentId = null
     ),
     ReviewComment(
         id = "pc2", reviewId = "p1",
         author = "meteor_chaser", profile = R.drawable.profile1,
         content = "다음 기수는 언제 열리나요?",
-        likeCount = 1, commentCount = 0, createdAt = 202510291245,
+        likeCount = 1, commentCount = 0, createdAt = "202510291245",
         parentId = null
     ),
     ReviewComment(
         id = "pc3", reviewId = "p2",
         author = "astro_newbie", profile = R.drawable.profile1,
         content = "체크리스트 덕분에 첫 관측 잘했습니다 🙌",
-        likeCount = 5, commentCount = 0, createdAt = 202510291500,
+        likeCount = 5, commentCount = 0, createdAt = "202510291500",
         parentId = null
     )
 )

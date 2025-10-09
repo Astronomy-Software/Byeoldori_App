@@ -10,6 +10,7 @@ import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.*
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.byeoldori.R
 import com.example.byeoldori.domain.Community.EduProgram
 import com.example.byeoldori.domain.Community.FreePost
@@ -31,6 +32,8 @@ fun HomeSection(
     onFreePostClick: (FreePost) -> Unit = {},
     onSyncReviewLikeCount: (id: String, next: Int) -> Unit
 ) {
+    val commentsVm: CommentsViewModel = hiltViewModel()
+    val commentCounts by commentsVm.commentCounts.collectAsState()
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -45,7 +48,7 @@ fun HomeSection(
                     ReviewCard(
                         review = review,
                         //commentCount = dummyReviewComments.count { it.reviewId == review.id },
-                        commentCount = 0,
+                        commentCount = commentCounts[review.id] ?: review.commentCount,
                         onSyncLikeCount = { next ->
                             onSyncReviewLikeCount(review.id, next)
                         }

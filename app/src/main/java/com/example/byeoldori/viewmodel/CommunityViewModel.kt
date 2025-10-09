@@ -48,6 +48,9 @@ class CommunityViewModel @Inject constructor(
     private val _likeCounts = MutableStateFlow<Map<String, Int>>(emptyMap())
     val likeCounts: StateFlow<Map<String, Int>> = _likeCounts
 
+    private val _commentCounts = MutableStateFlow<Map<String, Int>>(emptyMap())
+    val commentCounts: StateFlow<Map<String, Int>> = _commentCounts
+
     init {
         restoreLikedFromLocal()
         loadPosts()
@@ -177,6 +180,14 @@ class CommunityViewModel @Inject constructor(
                 Log.e("CommunityVM", "restoreLikedFromLocal 실패", e)
             }
         }
+    }
+
+    fun setInitialCommentCount(id: String, count: Int) {
+        _commentCounts.value = _commentCounts.value + (id to count)
+    }
+    fun bumpCommentCount(id: String, delta: Int) {
+        val cur = _commentCounts.value[id] ?: 0
+        _commentCounts.value = _commentCounts.value + (id to (cur + delta).coerceAtLeast(0))
     }
 
 }

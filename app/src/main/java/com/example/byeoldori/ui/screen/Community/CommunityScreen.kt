@@ -62,40 +62,28 @@ fun CommunityScreen(
     val eduSelectedPost by eduVm.selectedPost.collectAsState()
     val eduDetailState by eduVm.detail.collectAsState()
 
-    LaunchedEffect(tab) {
-        if (tab == CommunityTab.Board) {
-            vm.loadPosts()
-        }
-    }
     LaunchedEffect(selectedId) {
         val idLong = selectedId?.toLongOrNull()
         if (idLong != null) vm.loadPostDetail(idLong)
     }
 
-    LaunchedEffect(tab) {
-        if (tab == CommunityTab.Program) {
-            eduVm.loadPosts()
-        }
-    }
-
-    LaunchedEffect(tab) {
-        if (tab == CommunityTab.Home) {
-            reviewVm.loadPosts()
-            eduVm.loadPosts()
-            vm.loadPosts()
-        }
-    }
-
-    LaunchedEffect(tab) {
-        if (tab == CommunityTab.Review) {
-            reviewVm.loadPosts()
-        }
-    }
-
-
     LaunchedEffect(eduSelectedId) {
         eduSelectedId?.toLongOrNull()?.let { eduVm.loadEducationDetail(it) }
     }
+
+    LaunchedEffect(tab) {
+        when (tab) {
+            CommunityTab.Home -> {
+                reviewVm.loadPosts()
+                eduVm.loadPosts()
+                vm.loadPosts()
+            }
+            CommunityTab.Review -> reviewVm.loadPosts()
+            CommunityTab.Program -> eduVm.loadPosts()
+            CommunityTab.Board -> vm.loadPosts()
+        }
+    }
+
 
     when {
         showWriteForm -> {
@@ -111,6 +99,7 @@ fun CommunityScreen(
                     showWriteForm = false
                     successMessage = "리뷰가 등록되었습니다"
                     showSuccessDialog = true
+                    reviewVm.loadPosts()
                     reviewVm.resetCreateState()
                 },
                 onTempSave = {},
