@@ -14,7 +14,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.byeoldori.R
 import com.example.byeoldori.data.model.dto.*
 import com.example.byeoldori.domain.Community.*
@@ -65,6 +64,11 @@ fun EduProgramDetail(
         mutableStateOf<Set<String>>(emptySet())
     }
 
+    val createdText = apiPost?.createdAt
+        ?.let { formatCreatedAt(it) }
+        ?.takeIf { it.isNotBlank() }
+        ?: program.createdAt.toShortDate()
+
     LaunchedEffect(requestKeyboard) {
         if (requestKeyboard) {
             focusRequester.requestFocus()
@@ -76,7 +80,6 @@ fun EduProgramDetail(
     LaunchedEffect(program.id) {
         vm?.loadEducationDetail(program.id.toLong())
     }
-
 
     Scaffold(
         contentWindowInsets = WindowInsets(0),
@@ -184,8 +187,7 @@ fun EduProgramDetail(
                 Text(text = apiPost?.title ?: program.title, fontSize = 24.sp, color = TextHighlight) //제목
                 Spacer(Modifier.height(10.dp))
 
-                Row(verticalAlignment = Alignment.CenterVertically
-                ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     val profilePainter = program.profile
                         ?.let { painterResource(id = it) }
                         ?: painterResource(id = R.drawable.profile1)
@@ -201,13 +203,34 @@ fun EduProgramDetail(
                         Text(text = apiPost?.authorNickname ?: program.author, fontSize = 17.sp, color = TextHighlight)
                         Spacer(Modifier.height(4.dp))
                         Text( //작성일
-                            text =  formatCreatedAt(apiPost?.createdAt) ?: program.createdAt.toShortDate(),
+                            text =  createdText,
                             style = MaterialTheme.typography.bodySmall.copy(color = TextDisabled),
                             fontSize = 17.sp
                         )
                     }
                 }
                 Spacer(Modifier.height(16.dp))
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text(text = "관측 대상", style = MaterialTheme.typography.labelLarge.copy(color = TextDisabled))
+                        Spacer(Modifier.height(6.dp))
+                        Text(
+                        text = apiDetail?.education?.target ?: program.target ?: "—",
+                            style = MaterialTheme.typography.bodyLarge.copy(color = Color.White)
+                        )
+                    }
+
+                    Column(Modifier.weight(1f)) {
+                        Text(text = "평점", style = MaterialTheme.typography.labelLarge.copy(color = TextDisabled))
+                        Spacer(Modifier.height(6.dp))
+                        Text(
+                            text = (apiDetail?.education?.averageScore ?: program.averageScore ?: 0.0).toString(),
+                            style = MaterialTheme.typography.bodyLarge.copy(color = Color.White)
+                        )
+                    }
+                }
+                Spacer(Modifier.height(10.dp))
 
                 apiDetail?.education?.summary?.let { summary ->
                     Text(
@@ -302,7 +325,7 @@ fun EduProgramDetail(
     }
 }
 
-@Preview(showBackground = true, backgroundColor = 0xFF241860, widthDp = 420, heightDp = 1000)
+@Preview(showBackground = true, backgroundColor = 0xFF241860, widthDp = 500, heightDp = 1000)
 @Composable
 private fun Preview_EduProgramDetail() {
     val sample = remember { dummyPrograms.first() }

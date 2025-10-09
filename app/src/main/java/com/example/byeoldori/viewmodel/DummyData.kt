@@ -27,9 +27,6 @@ val dummyReviews = mutableStateListOf(
         date = "2025-10-29",
         siteScore = 5,
         equipment = "망원경",
-        startTime = "22:00",
-        endTime = "23:30",
-        // ✅ 본문 + 이미지
         contentItems = listOf(
             Content.Text("오늘은 태양 흑점을 관측했습니다."),
             Content.Image.Resource(R.drawable.img_dummy),
@@ -51,8 +48,6 @@ val dummyReviews = mutableStateListOf(
         date = "2025-10-29",
         siteScore = 5,
         equipment = "망원경",
-        startTime = "12:00",
-        endTime = "16:30",
         contentItems = listOf(
             Content.Text("오늘은 태양 흑점을 관측했습니다."),
             Content.Image.Resource(R.drawable.img_dummy)
@@ -73,8 +68,6 @@ val dummyReviews = mutableStateListOf(
         date = "2025-10-30",
         siteScore = 5,
         equipment = "망원경",
-        startTime = "22:00",
-        endTime = "23:30",
         contentItems = listOf(
             Content.Text("오늘은 태양 흑점을 관측했습니다."),
             Content.Image.Resource(R.drawable.img_dummy)
@@ -95,8 +88,6 @@ val dummyReviews = mutableStateListOf(
         date = "2025-10-14",
         siteScore = 5,
         equipment = "망원경",
-        startTime = "22:00",
-        endTime = "23:30",
         contentItems = listOf(
             Content.Text("오늘은 태양 흑점을 관측했습니다."),
             Content.Image.Resource(R.drawable.img_dummy)
@@ -117,8 +108,6 @@ val dummyReviews = mutableStateListOf(
         date = "2025-10-10",
         siteScore = 5,
         equipment = "망원경",
-        startTime = "22:00",
-        endTime = "23:30",
         contentItems = listOf(
             Content.Text("오늘은 태양 흑점을 관측했습니다."),
             Content.Image.Resource(R.drawable.img_dummy)
@@ -139,8 +128,6 @@ val dummyReviews = mutableStateListOf(
         date = "2025-10-25",
         siteScore = 5,
         equipment = "망원경",
-        startTime = "22:00",
-        endTime = "23:30",
         contentItems = listOf(
             Content.Text("오늘은 태양 흑점을 관측했습니다."),
             Content.Image.Resource(R.drawable.img_dummy)
@@ -327,7 +314,9 @@ val dummyPrograms = mutableStateListOf(
             Content.Image.Resource(R.drawable.img_dummy),
             Content.Text("실습 포함: 파인더 정렬, 배율 계산")
         ),
-        liked = true
+        liked = true,
+        target = "망원경",
+        averageScore = 4.5
     ),
     EduProgram(
         id = "p2",
@@ -344,7 +333,9 @@ val dummyPrograms = mutableStateListOf(
             Content.Image.Resource(R.drawable.img_dummy),
             Content.Text("필수 장비 체크리스트 제공")
         ),
-        liked = false
+        liked = false,
+        target = "유성우",
+        averageScore = 4.8
     ),
     EduProgram(
         id = "p3",
@@ -360,7 +351,9 @@ val dummyPrograms = mutableStateListOf(
             Content.Text("광해가 심한 환경에서의 관측 전략."),
             Content.Text("필터 사용과 관측 대상 추천")
         ),
-        liked = false
+        liked = false,
+        target = "별",
+        averageScore = 3.5
     )
 )
 

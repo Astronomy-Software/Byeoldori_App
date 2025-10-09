@@ -255,7 +255,7 @@ fun ReviewDetail(
                     key = likedKeyReview(review.id),
                     likeCount = reviewLikeCount,
                     liked = liked,
-                    onToggle = {               // ★ 토글 처리
+                    onToggle = {
                         review.id.toLongOrNull()?.let { pid ->
                             vm?.toggleLike(pid) { res ->
                                 liked = res.liked

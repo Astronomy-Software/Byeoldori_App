@@ -13,5 +13,7 @@ data class EduProgram (
     val viewCount: Int, //조회수 순
     val createdAt: String, //작성 시점
     val contentItems: List<Content>,
-    val liked: Boolean
+    val liked: Boolean,
+    val target: String? = null,
+    val averageScore: Double? = 0.0
 )

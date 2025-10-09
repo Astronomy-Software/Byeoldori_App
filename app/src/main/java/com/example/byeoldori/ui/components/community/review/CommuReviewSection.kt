@@ -43,8 +43,6 @@ fun ReviewResponse.toReview(): Review = Review(
     site = "",
     equipment = "",
     date = "",
-    startTime = "",
-    endTime = "",
     rating = 0,
     siteScore = 0,
     liked = liked
@@ -69,18 +67,6 @@ fun CommuReviewSection(
     val likeCounts by (vm?.likeCounts?.collectAsState() ?: remember { mutableStateOf<Map<String, Int>>(emptyMap()) })
     val scores by (vm?.scores?.collectAsState() ?: remember { mutableStateOf<Map<String, Int>>(emptyMap()) })
     val currentSort by (vm?.sort?.collectAsState() ?: remember { mutableStateOf(SortBy.LATEST) })
-
-    val apiList by remember(state) {
-        mutableStateOf(
-            when (state) {
-                is UiState.Success ->
-                    (state as UiState.Success<List<ReviewResponse>>)
-                        .data
-                        .map { it.toReview() }  // rating=0 기본
-                else -> emptyList()
-            }
-        )
-    }
 
     val networkList: List<Review> = when (state) {
         is UiState.Success -> (state as UiState.Success<List<ReviewResponse>>)

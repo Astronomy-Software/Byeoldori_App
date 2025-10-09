@@ -19,8 +19,6 @@ data class Review (
     val date: String,    //관측 일자
     val siteScore: Int,
     val equipment: String,
-    val startTime: String,
-    val endTime: String,
     val contentItems: List<Content>, //본문 + 이미지
     val liked: Boolean = false
 )
