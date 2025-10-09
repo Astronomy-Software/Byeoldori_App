@@ -110,6 +110,9 @@ dependencies {
     implementation(libs.lifecycle.runtime.compose)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.datastore.preferences)
+    implementation(libs.androidx.webkit)
+    implementation("org.nanohttpd:nanohttpd:2.3.1")
+
 
     // ✅ Moshi는 계속 KSP 사용
     ksp(libs.moshi.kotlin.codegen)
