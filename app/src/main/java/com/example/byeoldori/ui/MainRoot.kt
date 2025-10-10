@@ -7,7 +7,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
-import com.example.byeoldori.feature.skymap.StellariumScreen
+import com.example.byeoldori.skymap.StellariumScreen
 import com.example.byeoldori.ui.components.NavBar
 import com.example.byeoldori.ui.screen.Community.CommunityScreen
 import com.example.byeoldori.ui.screen.Community.CommunityTab
