@@ -104,7 +104,7 @@ fun WeatherInfoCard(
                     title = "관측 적합도",
                     value = currentWeather.suitability.toPercent(),
                     iconResId = R.drawable.ic_thumbs_up,
-                    valueColor = SuccessGreen,
+                    valueColor = suitabilityColor(currentWeather.suitability),
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -176,7 +176,7 @@ private fun Preview_WeatherInfoCard_Summary() {
         temperature = "14°",
         humidity = "35%",
         windSpeed = "3 m/s",
-        suitability = 75,
+        suitability = 55,
         windDirection = 245
     )
 

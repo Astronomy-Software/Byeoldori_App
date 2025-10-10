@@ -1,4 +1,3 @@
-// ObservatoryInfoCard.kt
 package com.example.byeoldori.ui.components.observatory
 
 import android.util.Log
@@ -11,21 +10,26 @@ import androidx.compose.ui.graphics.*
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
 import com.example.byeoldori.R
-import com.example.byeoldori.domain.Observatory.CurrentWeather
-import com.example.byeoldori.domain.Observatory.MarkerInfo
-import com.example.byeoldori.domain.Observatory.ObservatoryType
+import com.example.byeoldori.domain.Observatory.*
 import com.example.byeoldori.ui.theme.*
 import com.example.byeoldori.viewmodel.dummyReviews
 
 private const val TAG_CARD = "ObservatoryCard"
 
+//관측적합도 색상 구분용
+fun suitabilityColor(score: Int): Color = when (score) {
+    in 0..33 -> ErrorRed
+    in 34..66 -> WarningYellow
+    else -> SuccessGreen
+}
+
 @Composable
 fun ObservatoryInfoCard(
+    modifier: Modifier = Modifier,
     info: MarkerInfo,
     listState: LazyListState,
     currentLat: Double? = null,
-    currentLon: Double? = null,
-    modifier: Modifier = Modifier
+    currentLon: Double? = null
 ) {
     Card(
         modifier = modifier

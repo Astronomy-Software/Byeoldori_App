@@ -73,7 +73,7 @@ fun BasicInfoCard(
                             )
                             Text(
                                 "${info.suitability}",
-                                color = SuccessGreen,
+                                color = suitabilityColor(info.suitability),
                                 modifier = Modifier.weight(0.5f).padding(start = 10.dp)
                             )
                         }
@@ -121,7 +121,7 @@ private val previewMarkerInfo = MarkerInfo(
     reviewCount = 103,
     likeCount = 57,
     rating = 4.3f,
-    suitability = 87,
+    suitability = 55,
     address = "경기도 오산시 오산천로 254-5",
     drawableRes = R.drawable.img_dummy,
     latitude = 36.23,
