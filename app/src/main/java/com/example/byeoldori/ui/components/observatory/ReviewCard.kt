@@ -21,30 +21,24 @@ import com.example.byeoldori.R
 import com.example.byeoldori.domain.Content
 import com.example.byeoldori.ui.theme.*
 import com.example.byeoldori.domain.Observatory.Review
-import com.example.byeoldori.viewmodel.dummyReviews
+import com.example.byeoldori.viewmodel.*
 import com.google.accompanist.pager.*
 import kotlinx.coroutines.launch
-import com.example.byeoldori.ui.components.community.EditorItem
-import com.example.byeoldori.ui.components.community.LikeState
-import com.example.byeoldori.ui.components.community.likedKeyReview
-import com.example.byeoldori.viewmodel.dummyReviewComments
+import com.example.byeoldori.ui.components.community.*
 
-
-// TODO : 리뷰섹션 좌우 드래그able하게 변경
 @Composable
 fun ReviewSection(
     title: String,
     reviews: List<Review>,
     modifier: Modifier = Modifier,
-    onSyncReviewLikeCount: (id: String, next: Int) -> Unit
+    onSyncReviewLikeCount: (id: String, next: Int) -> Unit,
+    onReviewClick: (Review) -> Unit //리뷰 객체 넘기기
 ) {
     // ----- 페이징 상태 -----
     val pageSize = 4
     val pageCount = if (reviews.isEmpty()) 1 else ((reviews.size - 1) / pageSize + 1)
     val pagerState = rememberPagerState(initialPage = 0) // 페이지 상태를 저장
     val scope = rememberCoroutineScope()
-
-
 
     Column(modifier = modifier.fillMaxWidth()) {
         // 타이틀 + 페이지 컨트롤
@@ -104,10 +98,11 @@ fun ReviewSection(
                 itemsIndexed(pageItems, key = { idx, item -> "${item.id}#$start+$idx" }) { _, review ->
                     ReviewCard(
                         review = review,
-                        commentCount = dummyReviewComments.count { it.reviewId == review.id },
-                        onSyncLikeCount = { next ->                //추가
-                            onSyncReviewLikeCount(review.id, next)  // 상위로 전파
-                        }
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onReviewClick(review) },
+                        onSyncLikeCount = { next -> onSyncReviewLikeCount(review.id, next) }, // 상위로 전파
+                        //onToggleLike = { review.id.toLongOrNull()?.let { vm.toggleLike(it) } }
                     )
                 }
             }
@@ -262,7 +257,8 @@ private fun Preview_ReviewSection_Grid() {
                 onSyncReviewLikeCount = { id, next ->
                     val idx = dummyReviews.indexOfFirst { it.id == id }
                     if (idx >= 0) dummyReviews[idx] = dummyReviews[idx].copy(likeCount = next)
-                }
+                },
+                onReviewClick = {}
             )
         }
     }

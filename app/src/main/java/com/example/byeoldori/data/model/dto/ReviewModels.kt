@@ -34,7 +34,8 @@ data class ReviewResponse(
     val commentCount: Int,
     val createdAt: String,
     val liked: Boolean,
-    val score: Int? = null
+    val score: Int? = null,
+    val observationSiteId: Long? = null,
 )
 
 @JsonClass(generateAdapter = true)

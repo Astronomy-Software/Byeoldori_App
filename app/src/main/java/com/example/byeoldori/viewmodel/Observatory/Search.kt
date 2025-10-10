@@ -95,7 +95,8 @@ fun searchAndMoveToLocation(
                     rating = 0f,
                     suitability = 0,
                     latitude = latLng.latitude,
-                    longitude = latLng.longitude
+                    longitude = latLng.longitude,
+                    observationSiteId = null
                 )
 
                 //순서: Popup 갱신 → 상태 업데이트 → Info 전달

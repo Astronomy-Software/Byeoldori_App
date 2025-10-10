@@ -76,7 +76,6 @@ class ReviewViewModel @Inject constructor(
         loadPosts()
     }
     fun selectPost(id: String) { _selectedPostId.value = id }
-    fun clearSelection() { _selectedPostId.value = null }
 
     val selectedPost: StateFlow<ReviewResponse?> =
         combine(postsState, selectedPostId) { state, id ->

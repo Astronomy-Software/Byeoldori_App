@@ -2,6 +2,7 @@
 
 package com.example.byeoldori.ui.screen.Observatory
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -10,7 +11,11 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.*
 import androidx.compose.ui.unit.*
+import com.example.byeoldori.data.model.dto.ReviewDetailResponse
+import com.example.byeoldori.data.model.dto.ReviewResponse
 import com.example.byeoldori.domain.Observatory.MarkerInfo
+import com.example.byeoldori.domain.Observatory.Review
+import com.example.byeoldori.ui.components.community.review.ReviewDetail
 import com.example.byeoldori.ui.components.observatory.*
 import com.example.byeoldori.ui.theme.*
 import com.example.byeoldori.viewmodel.Observatory.*
@@ -21,7 +26,8 @@ private const val TAG_OBS = "ObservatoryScreen"
 
 
 @Composable
-fun ObservatoryScreen() {
+fun ObservatoryScreen(
+) {
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var searchTrigger by rememberSaveable { mutableStateOf(0) }
     var showOverlay by rememberSaveable { mutableStateOf(false) }
@@ -54,6 +60,9 @@ fun ObservatoryScreen() {
         showPopup = true
         scope.launch { sheetState.partialExpand() }
     }
+    var detailReview by rememberSaveable { mutableStateOf<Review?>(null) }
+    var detailApiPost by rememberSaveable { mutableStateOf<ReviewResponse?>(null) }
+    var detailApiDetail by rememberSaveable { mutableStateOf<ReviewDetailResponse?>(null) }
 
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
@@ -64,14 +73,41 @@ fun ObservatoryScreen() {
         sheetContainerColor = Blue800,
         // 하단 시트에 들어갈 콘텐츠
         sheetContent = {
-            // 마커 정보가 있으면 ObservatoryInfoCard를 표시
-            if (selectedInfo != null) {
+            if(detailReview != null) {
+                ReviewDetail(
+                    review = detailReview!!,
+                    apiPost = detailApiPost,
+                    apiDetail = detailApiDetail,
+                    currentUser = "하이",
+                    onSyncReviewLikeCount = { _,_,_ -> },
+                    onBack = {
+                        // 디테일 닫고 원래 카드로
+                        detailReview = null
+                        detailApiPost = null
+                        detailApiDetail = null
+                        scope.launch { sheetState.partialExpand() }
+                    }
+                )
+                BackHandler {
+                    detailReview = null
+                    detailApiPost = null
+                    detailApiDetail = null
+                    scope.launch { sheetState.partialExpand() }
+                }
+
+            } else if (selectedInfo != null) { // 마커 정보가 있으면 ObservatoryInfoCard를 표시
                 ObservatoryInfoCard(
                     info = selectedInfo!!,
                     listState = listState,
                     currentLat = siteLat,
                     currentLon = siteLon,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    onReviewClick = { (ui, apiPost, apiDetail) ->
+                        detailReview = ui
+                        detailApiPost = apiPost
+                        detailApiDetail = apiDetail
+                        scope.launch { sheetState.expand() } // 풀스크린 느낌
+                    }
                 )
             } else {
                 // 없으면 기본 텍스트를 표시

@@ -10,5 +10,6 @@ data class MarkerInfo(
     val address: String,
     val drawableRes: Int,
     val latitude: Double,
-    val longitude: Double
+    val longitude: Double,
+    val observationSiteId: Long? = null
 )

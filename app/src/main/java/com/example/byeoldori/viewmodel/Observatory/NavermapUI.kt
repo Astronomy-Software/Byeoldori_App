@@ -85,6 +85,7 @@ fun NaverMapWithSearchUI(
                 searchAndMoveToLocation(
                     context, searchQuery, naverMap, mapView, selectedMarker,
                     onMarkerUpdated = { marker ->
+                        selectedMarker?.map = null
                         selectedMarker?.setIconTintColor(Color.BLACK)
                         selectedMarker = marker
                     },
@@ -195,7 +196,8 @@ fun NaverMapWithSearchUI(
                                                         rating = 0f,
                                                         suitability = 0,  // 현재는 더미. 추후 날씨 API 연동 가능
                                                         latitude = clicked.latitude,
-                                                        longitude = clicked.longitude
+                                                        longitude = clicked.longitude,
+                                                        observationSiteId = null
                                                     )
                                                 )
 
@@ -345,7 +347,8 @@ fun NaverMapWithSearchUI(
                                 rating = 0f,
                                 suitability = 0,
                                 latitude = site.latitude,
-                                longitude = site.longitude
+                                longitude = site.longitude,
+                                observationSiteId = site.id
                             )
                         )
                     }

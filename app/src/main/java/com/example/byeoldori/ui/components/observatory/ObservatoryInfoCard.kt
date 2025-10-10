@@ -10,6 +10,8 @@ import androidx.compose.ui.graphics.*
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
 import com.example.byeoldori.R
+import com.example.byeoldori.data.model.dto.ReviewDetailResponse
+import com.example.byeoldori.data.model.dto.ReviewResponse
 import com.example.byeoldori.domain.Observatory.*
 import com.example.byeoldori.ui.theme.*
 import com.example.byeoldori.viewmodel.dummyReviews
@@ -29,7 +31,8 @@ fun ObservatoryInfoCard(
     info: MarkerInfo,
     listState: LazyListState,
     currentLat: Double? = null,
-    currentLon: Double? = null
+    currentLon: Double? = null,
+    onReviewClick: (Triple<Review, ReviewResponse?, ReviewDetailResponse?>) -> Unit
 ) {
     Card(
         modifier = modifier
@@ -88,15 +91,16 @@ fun ObservatoryInfoCard(
                 }
 
                 //3) 관측 리뷰 섹션
-                item { // TODO : 이런 데이터들은 컴포넌트 내부에서 작성하지말고 변수같은느낌으로 만들어서 하기
-                    ReviewSection(
-                        title = "해당 관측지에서 진행한 관측후기",
-                        reviews = dummyReviews,
-                        onSyncReviewLikeCount = { id, next ->
-                            val i = dummyReviews.indexOfFirst { it.id == id }
-                            if (i >= 0) dummyReviews[i] = dummyReviews[i].copy(likeCount = next)
-                        }
-                    )
+                item {
+                    val siteId = info.observationSiteId
+                    if(siteId != null) {
+                        ObservationReviewList(
+                            siteId = siteId,
+                            onReviewClick = onReviewClick
+                        )
+                    } else {
+                        Text("이 관측지는 아직 등록되지 않았습니다. ",color = TextHighlight)
+                    }
                     Spacer(Modifier.height(40.dp))
                 }
             }
@@ -104,9 +108,6 @@ fun ObservatoryInfoCard(
     }
 }
 
-
-
-// TODO : BasicInfoCard는 따로 컴포넌트로 나눠야합니다
 @Preview(
     name = "ObservatoryInfoCard",
     showBackground = true,
@@ -135,7 +136,8 @@ private fun Preview_ObservatoryInfoCard() {
                 ObservatoryInfoCard(
                     info = dummyMarkerInfo,
                     listState = rememberLazyListState(),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    onReviewClick = {}
                 )
             }
         }

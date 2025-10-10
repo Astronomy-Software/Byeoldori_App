@@ -96,16 +96,6 @@ class ReviewRepository @Inject constructor(
         }
     }
 
-    //타입별 조회에서의 좋아요
-    fun applyLikeToList(
-        list: List<ReviewResponse>,
-        postId: Long,
-        liked: Boolean,
-        likeCount: Int
-    ): List<ReviewResponse> =
-        list.map { it.takeIf { r -> r.id != postId } ?: it.copy(liked = liked, likeCount = likeCount)
-        }
-
     //상세조회에서의 좋아요
     fun applyLikeToDetail(
         detail: ReviewDetailResponse,
