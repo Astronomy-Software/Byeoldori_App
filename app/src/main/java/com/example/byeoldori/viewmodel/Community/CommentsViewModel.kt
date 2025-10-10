@@ -1,4 +1,4 @@
-package com.example.byeoldori.viewmodel
+package com.example.byeoldori.viewmodel.Community
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -7,6 +7,7 @@ import com.example.byeoldori.data.model.dto.LikeToggleResponse
 import com.example.byeoldori.data.repository.CommentsRepository
 import com.example.byeoldori.domain.Community.ReviewComment
 import com.example.byeoldori.ui.mapper.toUi
+import com.example.byeoldori.viewmodel.UiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

@@ -24,6 +24,8 @@ import com.example.byeoldori.data.model.dto.*
 import com.example.byeoldori.domain.Observatory.Review
 import com.example.byeoldori.ui.mapper.toUi
 import com.example.byeoldori.viewmodel.*
+import com.example.byeoldori.viewmodel.Community.CommentsViewModel
+import com.example.byeoldori.viewmodel.Community.ReviewViewModel
 
 @Composable
 fun rememberIsImeVisible(): Boolean {

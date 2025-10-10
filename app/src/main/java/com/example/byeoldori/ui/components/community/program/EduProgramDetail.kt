@@ -24,6 +24,8 @@ import com.example.byeoldori.ui.components.community.review.*
 import com.example.byeoldori.ui.mapper.toUi
 import com.example.byeoldori.ui.theme.*
 import com.example.byeoldori.viewmodel.*
+import com.example.byeoldori.viewmodel.Community.CommentsViewModel
+import com.example.byeoldori.viewmodel.Community.EducationViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

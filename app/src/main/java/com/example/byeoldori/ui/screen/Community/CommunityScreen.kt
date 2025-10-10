@@ -9,7 +9,6 @@ import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.*
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.byeoldori.data.UserViewModel
 import com.example.byeoldori.data.model.dto.*
 import com.example.byeoldori.ui.components.community.*
 import com.example.byeoldori.ui.components.community.program.*
@@ -20,6 +19,10 @@ import com.example.byeoldori.domain.Community.EduProgram
 import com.example.byeoldori.domain.Community.FreePost
 import com.example.byeoldori.domain.Observatory.Review
 import com.example.byeoldori.viewmodel.*
+import com.example.byeoldori.viewmodel.Community.CommentsViewModel
+import com.example.byeoldori.viewmodel.Community.CommunityViewModel
+import com.example.byeoldori.viewmodel.Community.EducationViewModel
+import com.example.byeoldori.viewmodel.Community.ReviewViewModel
 
 // --- 탭 정의 ---
 enum class CommunityTab(val label: String, val routeSeg: String) {

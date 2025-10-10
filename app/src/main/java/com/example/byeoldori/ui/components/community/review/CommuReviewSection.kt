@@ -21,6 +21,8 @@ import com.example.byeoldori.ui.theme.*
 import com.example.byeoldori.domain.Observatory.Review
 import com.example.byeoldori.ui.components.community.freeboard.formatCreatedAt
 import com.example.byeoldori.viewmodel.*
+import com.example.byeoldori.viewmodel.Community.CommentsViewModel
+import com.example.byeoldori.viewmodel.Community.ReviewViewModel
 
 // 정렬 타입
 enum class ReviewSort(val label: String) {

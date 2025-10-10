@@ -1,4 +1,4 @@
-package com.example.byeoldori.viewmodel
+package com.example.byeoldori.viewmodel.Observatory
 
 import androidx.lifecycle.ViewModel
 import com.example.byeoldori.data.repository.NavermapRepository
