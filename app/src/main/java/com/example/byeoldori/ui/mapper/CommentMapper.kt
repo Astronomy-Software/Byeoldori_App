@@ -100,12 +100,14 @@ fun CommentResponse.toUi(postId: String): ReviewComment {
     return ReviewComment(
         id = id.toString(),
         reviewId = postId,           // 게시물(프로그램/리뷰/자유) 공용 id 문자열
-        author = "",                 // 서버에서 닉네임을 추가로 내려주면 채워 넣기
+        authorId = authorId,                 // 서버에서 닉네임을 추가로 내려주면 채워 넣기
+        authorNickname = authorNickname,
         profile = R.drawable.profile1,
         content = content,
         likeCount = likeCount,
         commentCount = 0,            // 서버에서 대댓글 수를 주면 매핑
         createdAt = formatServerDateKst(createdAt),
-        parentId = parentId?.toString()
+        parentId = parentId?.toString(),
+        liked = liked
     )
 }

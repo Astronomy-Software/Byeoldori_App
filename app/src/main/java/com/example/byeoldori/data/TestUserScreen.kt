@@ -33,6 +33,7 @@ import com.example.byeoldori.data.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -53,11 +54,20 @@ class UserViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<UserUiState>(UserUiState.Idle)
     val uiState: StateFlow<UserUiState> = _uiState
 
+    private val _userProfile = MutableStateFlow<UserProfile?>(null)
+    val userProfile: StateFlow<UserProfile?> = _userProfile
+
+    init {
+        // 앱 어디에서든 이 VM이 만들어지면 즉시 내 프로필 가져오기
+        viewModelScope.launch { getMyProfile() }
+    }
+
     fun getMyProfile() = viewModelScope.launch {
         _uiState.value = UserUiState.Loading
         try {
             val res: ApiResponse<UserProfile> = repo.getMyProfile()
             if (res.success) {
+                _userProfile.value = res.data
                 _uiState.value = UserUiState.Success(res.data)
             } else {
                 _uiState.value = UserUiState.Error(res.message)
@@ -74,6 +84,7 @@ class UserViewModel @Inject constructor(
             if (res.success) {
                 _uiState.value = UserUiState.Success("프로필 수정 성공")
             } else {
+                 getMyProfile()
                 _uiState.value = UserUiState.Error(res.message)
             }
         } catch (e: Exception) {

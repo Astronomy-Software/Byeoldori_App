@@ -33,7 +33,6 @@ fun EduProgramDetail(
     onShare: () -> Unit = {},
     onMore: () -> Unit = {},
     currentUser: String,
-    //vm: EducationViewModel? = hiltViewModel(),
     vm: EducationViewModel? = null,
     onStartProgram: () -> Unit = {}
 ) {
@@ -61,10 +60,6 @@ fun EduProgramDetail(
         mutableStateOf(apiPost?.liked ?: program.liked)
     }
 
-    var likedCommentIds by rememberSaveable(program.id) {
-        mutableStateOf<Set<String>>(emptySet())
-    }
-
     val createdText = apiPost?.createdAt
         ?.let { formatCreatedAt(it) }
         ?.takeIf { it.isNotBlank() }
@@ -74,11 +69,19 @@ fun EduProgramDetail(
     val commentsState by commentsVm.comments.collectAsState()
     val commentCounts by commentsVm.commentCounts.collectAsState()
 
-    val programComments = remember { mutableStateListOf<ReviewComment>() }
-
     val commentCountUi = commentCounts[program.id] ?: when (val s = commentsState) {
         is UiState.Success -> s.data.size
         else -> 0
+    }
+
+    val commentList: List<ReviewComment> =
+        (commentsState as? UiState.Success)?.data ?: emptyList()
+
+    val myId: Long? = currentUser.toLongOrNull()         // 숫자로 변환되면 아이디
+    val myNick: String? = if (myId == null) currentUser else null
+
+    val likedCommentIds by remember(commentList) {
+        mutableStateOf(commentList.filter { it.liked }.map { it.id }.toSet())
     }
 
     LaunchedEffect(requestKeyboard) {
@@ -95,13 +98,6 @@ fun EduProgramDetail(
 
     LaunchedEffect(program.id) {
         commentsVm.start(program.id)
-    }
-    LaunchedEffect(commentsState) {
-        val s = commentsState
-        if (s is UiState.Success) {
-            programComments.clear()
-            programComments.addAll(s.data)
-        }
     }
 
     Scaffold(
@@ -156,41 +152,14 @@ fun EduProgramDetail(
                 onTextChange = { input = it },
                 onSend = { raw ->
                     val t = raw.trim()
-                    val target = editingTarget
-                    if (target != null) {
-                        val idx =  dummyProgramComments.indexOfFirst { it.id == target.id }
-                        if (idx >= 0) {
-                            dummyProgramComments[idx] = target.copy(content = t)
-                        }
-                        // 모드 종료 + 입력 비우기
-                        editingTarget = null
+                    if (t.isEmpty()) return@CommentInput
+
+                    val parentIdStr = parent?.id
+                    commentsVm.submit(content = t, parentId = parentIdStr) {
+                        // 성공 후 입력/대댓글모드 해제
                         input = ""
-                        return@CommentInput
+                        parent = null
                     }
-                    dummyProgramComments.add(
-                        ReviewComment(
-                            id = "pc${System.currentTimeMillis()}",
-                            reviewId = program.id,
-                            author = currentUser,
-                            profile = R.drawable.profile1,
-                            content = t,
-                            likeCount = 0,
-                            commentCount = 0,
-                            createdAt = program.createdAt.toShortDate(),
-                            parentId = parent?.id
-                        )
-                    )
-                    //대댓글
-                    parent?.let { p ->
-                        val idx = dummyProgramComments.indexOfFirst { it.id == p?.id }
-                        if (idx >= 0) { //부모 댓글 찾으면
-                            val cur = dummyProgramComments[idx]
-                            val next = cur.copy(commentCount = cur.commentCount + 1)
-                            dummyProgramComments[idx] = next
-                        }
-                        parent = null //대댓글 모드 해제
-                    }
-                    input = ""
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -319,16 +288,16 @@ fun EduProgramDetail(
                 //댓글 + 대댓글
                 CommentList(
                     postId = program.id,
-                    currentUser = currentUser,
-                    comments = programComments,
+                    currentUserId = myId,
+                    currentUserNickname = myNick,
+                    comments = commentList,
                     liked = likedCommentIds,
-                    onLikedChange = { newLikedIds ->
-                        likedCommentIds = newLikedIds
-                        val base = LikeState.ids.filterNot { it.startsWith("programComment:") }.toSet()
-                        val withComments = base + newLikedIds.map { likedKeyProgramComment(it) }
-                        LikeState.ids = withComments
+                    onLikedChange = {},
+                    onLike = { tapped ->
+                        tapped.id.toLongOrNull()?.let { cid ->
+                            commentsVm.toggleLike(cid)
+                        }
                     },
-                    onLike = {},
                     onReply = { target ->
                         parent = target
                         requestKeyboard = true
@@ -338,10 +307,7 @@ fun EduProgramDetail(
                         input = target.content
                         requestKeyboard = true
                     },
-                    onDelete = { del ->
-                        val idx = programComments.indexOfFirst { it.id == del.id }
-                        if (idx >= 0) programComments.removeAt(idx)
-                    }
+                    onDelete = { }
                 )
             }
         }

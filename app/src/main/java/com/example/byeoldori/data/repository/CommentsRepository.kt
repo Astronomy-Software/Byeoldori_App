@@ -4,6 +4,7 @@ import com.example.byeoldori.data.api.CommunityApi
 import com.example.byeoldori.data.model.dto.CommentResponse
 import com.example.byeoldori.data.model.dto.CommentsPageResponse
 import com.example.byeoldori.data.model.dto.CreateCommentRequest
+import com.example.byeoldori.data.model.dto.LikeToggleResponse
 import javax.inject.Inject
 
 class CommentsRepository @Inject constructor(
@@ -23,5 +24,9 @@ class CommentsRepository @Inject constructor(
         parentId: Long? = null
     ): Result<CommentResponse> = runCatching {
         api.createComment(postId, CreateCommentRequest(content = content, parentId = parentId))
+    }
+
+    suspend fun toggleCommentLike(postId: Long, commentId: Long): LikeToggleResponse {
+        return api.toggleCommentLike(postId, commentId)
     }
 }

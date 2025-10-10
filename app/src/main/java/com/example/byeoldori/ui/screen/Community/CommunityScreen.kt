@@ -9,6 +9,7 @@ import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.*
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.byeoldori.data.UserViewModel
 import com.example.byeoldori.data.model.dto.*
 import com.example.byeoldori.ui.components.community.*
 import com.example.byeoldori.ui.components.community.program.*
@@ -26,6 +27,20 @@ enum class CommunityTab(val label: String, val routeSeg: String) {
     Program("교육 프로그램", "program"),
     Review("관측 후기", "review"),
     Board("자유게시판", "board")
+}
+
+private fun isMine(
+    commentAuthorId: Long?,
+    commentAuthorNick: String?,
+    myId: Long?,
+    myNick: String?
+): Boolean {
+    // 1순위: id 일치
+    if (commentAuthorId != null && myId != null && commentAuthorId == myId) return true
+    // 2순위(보조): 닉네임 정확 일치 (nullable/공백 방어)
+    val a = commentAuthorNick?.trim()
+    val b = myNick?.trim()
+    return !a.isNullOrEmpty() && a == b
 }
 
 @Composable
@@ -61,6 +76,7 @@ fun CommunityScreen(
     val eduSelectedId by eduVm.selectedPostId.collectAsState()
     val eduSelectedPost by eduVm.selectedPost.collectAsState()
     val eduDetailState by eduVm.detail.collectAsState()
+    val commentsVm: CommentsViewModel = hiltViewModel()
 
     LaunchedEffect(selectedId) {
         val idLong = selectedId?.toLongOrNull()
@@ -83,7 +99,6 @@ fun CommunityScreen(
             CommunityTab.Board -> vm.loadPosts()
         }
     }
-
 
     when {
         showWriteForm -> {
@@ -177,7 +192,6 @@ fun CommunityScreen(
                     selectedFreePost = null
                     vm.clearSelection()
                 },
-                currentUser = currentUser,
                 vm = vm
             )
         }
@@ -188,7 +202,6 @@ fun CommunityScreen(
                 post = selectedPost!!.toFreePost(),
                 apiPost = apiPost,
                 onBack = { vm.clearSelection() },
-                currentUser = currentUser,
                 vm = vm
             )
         }
@@ -287,13 +300,20 @@ fun CommunityScreen(
                             }
                             is UiState.Success -> {
                                 val posts = (eduState as UiState.Success<List<EducationResponse>>).data
+                                val counts by commentsVm.commentCounts.collectAsState()
+
+                                val uiPrograms = posts
+                                    .map { it.toEduProgram() }
+                                    .map { p -> p.copy(commentCount = counts[p.id] ?: p.commentCount) }
+
                                 EduProgramSection(
                                     eduProgramsAll = posts.map { it.toEduProgram() },
                                     onWriteClick = { /* 교육 글쓰기 있으면 연결 */ },
                                     onClickProgram = { id ->
                                         eduVm.selectPost(id)           // 상세 선택
                                     },
-                                    vm = eduVm                        // (필요 시 내부에서 sort/search 사용)
+                                    vm = eduVm,                        // (필요 시 내부에서 sort/search 사용)
+                                    commentsVm = commentsVm
                                 )
                             }
                             is UiState.Error -> {
@@ -302,7 +322,6 @@ fun CommunityScreen(
                             }
                         }
                     }
-
 
                     CommunityTab.Home -> {
                         val reviewList = when (val s = reviewVm.postsState.collectAsState().value) {

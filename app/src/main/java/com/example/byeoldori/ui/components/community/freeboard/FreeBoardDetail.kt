@@ -1,5 +1,6 @@
 package com.example.byeoldori.ui.components.community.freeboard
 
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.*
@@ -15,6 +16,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.byeoldori.R
+import com.example.byeoldori.data.UserViewModel
 import com.example.byeoldori.data.model.dto.FreePostResponse
 import com.example.byeoldori.domain.Community.*
 import com.example.byeoldori.ui.components.community.*
@@ -30,7 +32,6 @@ fun FreeBoardDetail (
     onBack: () -> Unit,
     onShare: () -> Unit = {},
     onMore: () -> Unit = {},
-    currentUser: String,
     apiPost: FreePostResponse? = null, //api에서 받은 Post,
     vm: CommunityViewModel? = null,
     onSyncFreeLikeCount: (id: String, liked: Boolean, next: Int) -> Unit = { _, _, _ -> }
@@ -50,16 +51,26 @@ fun FreeBoardDetail (
     var likeCount by rememberSaveable(post.id) { mutableStateOf(initialCount) } //로컬 카운트
     var liked by rememberSaveable(post.id) { mutableStateOf(initialLiked) }
 
-    val commentsVm: CommentsViewModel = hiltViewModel()
+
+    val commentsVm: CommentsViewModel = hiltViewModel() //화면에 연결된 CommentsViewModel 인스턴스 주입
     val commentsState by commentsVm.comments.collectAsState()
     val commentCounts by commentsVm.commentCounts.collectAsState()
 
-    val freeComments = remember { mutableStateListOf<ReviewComment>() }
+    val userVm: UserViewModel = hiltViewModel()
+    LaunchedEffect(Unit) {
+        userVm.getMyProfile()
+    }
+    val me = userVm.userProfile.collectAsState().value
+    val currentUserId = me?.id
+    val currentUserNickname = me?.nickname
 
+    //댓글 개수 계산
     val commentCountUi = commentCounts[post.id] ?: when (val s = commentsState) {
         is UiState.Success -> s.data.size
         else -> 0
     }
+    //상태 변화 즉시 리스트 갱신
+    val commentList: List<ReviewComment> = (commentsState as? UiState.Success)?.data ?: emptyList()
 
     LaunchedEffect(requestKeyboard) {
         if (requestKeyboard) {
@@ -73,12 +84,8 @@ fun FreeBoardDetail (
         commentsVm.start(post.id)
     }
 
-    LaunchedEffect(commentsState) {
-        val s = commentsState
-        if (s is UiState.Success) {
-            freeComments.clear()
-            freeComments.addAll(s.data)
-        }
+    LaunchedEffect(currentUserId, currentUserNickname) {
+        Log.d("CommentCheck", "FreeBoardDetail 진입: meId=$currentUserId, meNick=$currentUserNickname")
     }
 
     Scaffold(
@@ -229,16 +236,19 @@ fun FreeBoardDetail (
                 //댓글 + 대댓글
                 CommentList(
                     postId = post.id,
-                    currentUser = currentUser,
-                    comments = freeComments,
-                    liked = LikeState.ids.filter { it.startsWith("freeComment:") }
-                        .map { it.removePrefix("freeComment:") }.toSet(),
+                    currentUserId = currentUserId,
+                    currentUserNickname = currentUserNickname,
+                    comments = commentList,
+                    onLike = { tapped ->
+                        tapped.id.toLongOrNull()?.let { cid ->
+                            commentsVm.toggleLike(cid)
+                        }
+                    },
                     onLikedChange = { newLocal ->
                         // 로컬 댓글ID set을 전역 키 set으로 반영
                         val base = LikeState.ids.filterNot { it.startsWith("freeComment:") }.toSet()
                         LikeState.ids = base + newLocal.map { likedKeyFreeComment(it) }
                     },
-                    onLike = {},
                     onReply = { target ->
                         parent = target
                         requestKeyboard = true
@@ -248,9 +258,12 @@ fun FreeBoardDetail (
                         input = target.content
                         requestKeyboard = true
                     },
-                    onDelete = { del ->
-                        val idx = freeComments.indexOfFirst { it.id == del.id }
-                        if (idx >= 0) freeComments.removeAt(idx)
+                    liked = LikeState.ids.filter { it.startsWith("freeComment:") }
+                        .map { it.removePrefix("freeComment:") }.toSet(),
+                    onDelete = {
+                        //del ->
+//                        val idx = commentList.indexOfFirst { it.id == del.id }
+//                        if (idx >= 0) commentList.removeAt(idx)
                     }
                 )
             }
@@ -267,7 +280,6 @@ private fun Preview_FreeBoardDetail() {
         onBack = {},
         onShare = {},
         onMore = {},
-        currentUser = "astro_user",
         apiPost = null,
         vm = null
     )

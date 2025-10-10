@@ -56,6 +56,7 @@ data class CreateCommentRequest(
 data class CommentResponse(
     val id: Long,
     val authorId: Long,
+    val authorNickname: String? = null,
     val content: String,
     val createdAt: String,
     val parentId: Long?,

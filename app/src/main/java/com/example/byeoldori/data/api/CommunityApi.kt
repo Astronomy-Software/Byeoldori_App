@@ -92,4 +92,10 @@ interface CommunityApi {
         @Body body: CreateCommentRequest
     ): CommentResponse
 
+    @POST("community/posts/{postId}/comments/{commentId}/likes-toggle")
+    suspend fun toggleCommentLike(
+        @Path("postId") postId: Long,
+        @Path("commentId") commentId: Long
+    ): LikeToggleResponse
+
 }

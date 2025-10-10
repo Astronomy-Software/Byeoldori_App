@@ -57,7 +57,7 @@ fun CommentItem(
             Column(modifier = Modifier.weight(1f)) {
                 Row(modifier = Modifier.fillMaxWidth()) {
                     Text( //작성자
-                        text = comment.author.takeIf { it.isNotBlank() } ?: "익명",
+                        text = comment.authorNickname?.takeIf { it.isNotBlank() } ?: "익명",
                         style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                         fontSize = 17.sp,
                         color = TextHighlight
@@ -174,7 +174,7 @@ fun CommentReplyItem(
             onDelete = onDelete,
             canEditDelete = canEditDelete,
             isLiked = isLiked,
-            showCommentCount = false
+            showCommentCount = true
         )
     }
 }
@@ -186,13 +186,15 @@ private fun Preview_CommentItem() {
         val sample = ReviewComment(
             id = "c1",
             reviewId = "r1",
-            author = "아이마카",
+            authorId = 123,
             profile = R.drawable.profile1,
             content = "색다른 곳 있으면 알려주세요~",
             likeCount = 3,
             commentCount = 1,
             createdAt = "202510271145",
-            parentId = null
+            parentId = null,
+            authorNickname = "아이마카",
+            liked = true
         )
         CommentItem(comment = sample)
     }
@@ -205,13 +207,15 @@ private fun Preview_ReplyItem() {
         val reply = ReviewComment(
             id = "c2",
             reviewId = "r1",
-            author = "astro_user",
+            authorId = 123,
             profile = R.drawable.profile1,
             content = "저도 궁금합니다!",
             likeCount = 1,
             commentCount = 0,
             createdAt = "202510251145",
-            parentId = "c1" // 부모 댓글 id
+            parentId = "c1", // 부모 댓글 id
+            authorNickname = "astro_user",
+            liked = false
         )
         CommentReplyItem(comment = reply)
     }

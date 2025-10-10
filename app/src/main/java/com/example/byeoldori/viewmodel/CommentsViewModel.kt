@@ -3,6 +3,7 @@ package com.example.byeoldori.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.byeoldori.data.model.dto.CommentsPageResponse
+import com.example.byeoldori.data.model.dto.LikeToggleResponse
 import com.example.byeoldori.data.repository.CommentsRepository
 import com.example.byeoldori.domain.Community.ReviewComment
 import com.example.byeoldori.ui.mapper.toUi
@@ -37,10 +38,11 @@ class CommentsViewModel @Inject constructor(
         postIdLong = postId.toLongOrNull()
         page = 1
         lastPage = Int.MAX_VALUE
-        buffer.clear()
-        load(refresh = true)
+        buffer.clear() //이전 게시글의 댓글 초기화
+        load(refresh = true) //댓글 첫 페이지를 새로 불러옴
     }
 
+    /** 현재 게시글의 댓글 페이지를 불러옴 **/
     fun load(refresh: Boolean = false) {
         val pid = postIdLong ?: return
         if (refresh) {
@@ -49,7 +51,7 @@ class CommentsViewModel @Inject constructor(
             lastPage = Int.MAX_VALUE
             buffer.clear()
         }
-        if (page > lastPage) return
+        if (page > lastPage) return //끝까지 다 불러왔으니까 중단
 
         viewModelScope.launch {
             val res = repo.getComments(pid, page = page, size = 15)
@@ -62,12 +64,13 @@ class CommentsViewModel @Inject constructor(
         }
     }
 
+    /** 댓글을 버퍼에 누적하고 즉시 업데이트*/
     private fun applyPage(pageRes: CommentsPageResponse) {
         val newItems = pageRes.content.map { it.toUi(postIdStr) }
         buffer += newItems
-        page = pageRes.page + 1
+        page = pageRes.page + 1 //다음 로드때 가져올 페이지 번호
         lastPage = pageRes.totalPages.coerceAtLeast(1)
-        _comments.value = UiState.Success(buffer.toList())
+        _comments.value = UiState.Success(buffer.toList()) //업데이트
     }
 
     fun submit(content: String, parentId: String? = null, onComplete: (() -> Unit)? = null) {
@@ -75,10 +78,11 @@ class CommentsViewModel @Inject constructor(
         viewModelScope.launch {
             val res = repo.createComment(pid, content, parentId = parentId?.toLongOrNull())
             res.onSuccess { created ->
-                // 가장 최근에 추가
-                buffer.add(0, created.toUi(postIdStr))
+                // 가장 마지막에 추가
+                buffer.add(created.toUi(postIdStr))
                 _comments.value = UiState.Success(buffer.toList())
 
+                //기존 댓글 수 가져와서 +1
                 val cur = _commentCounts.value[postIdStr] ?: 0
                 _commentCounts.value = _commentCounts.value + (postIdStr to (cur + 1))
                 onComplete?.invoke()
@@ -86,5 +90,32 @@ class CommentsViewModel @Inject constructor(
                 _comments.value = UiState.Error(e.message ?: "댓글 작성 실패")
             }
         }
+    }
+
+    fun toggleLike(
+        commentId: Long,
+        onResult: (LikeToggleResponse) -> Unit = {}
+    ) = viewModelScope.launch {
+        val postId = postIdLong ?: return@launch
+        try {
+            val res = repo.toggleCommentLike(postId, commentId)
+
+            val next = when (val s = _comments.value) {
+                is UiState.Success -> {
+                    val updated = s.data.map { c ->
+                        if (c.id.toLongOrNull() == commentId) {
+                            c.copy(
+                                liked = res.liked,
+                                likeCount = res.likes.toInt()
+                            )
+                        } else c
+                    }
+                    UiState.Success(updated)
+                }
+                else -> s
+            }
+            _comments.value = next
+            onResult(res)
+        } catch (_: Exception) { /* 에러 처리 필요시 추가 */ }
     }
 }

@@ -62,8 +62,6 @@ fun ReviewDetail(
     val commentsState by commentsVm.comments.collectAsState()
     val commentCounts by commentsVm.commentCounts.collectAsState()
 
-    val reviewComments = remember { mutableStateListOf<ReviewComment>() }
-
     val commentCountUi = commentCounts[review.id] ?: when (val s = commentsState) {
         is UiState.Success -> s.data.size
         else -> 0
@@ -73,6 +71,8 @@ fun ReviewDetail(
         is UiState.Success -> s.data
         else -> emptyList()
     }
+    val myId: Long? = currentUser.toLongOrNull()
+    val myNick: String? = if (myId == null) currentUser else null
 
     LaunchedEffect(imeVisible) {
         if (imeVisible) {
@@ -91,14 +91,6 @@ fun ReviewDetail(
     //댓글 로드
     LaunchedEffect(review.id) {
         commentsVm.start(review.id)  // 서버에서 page=0부터 불러옴
-    }
-
-    //댓글 목록을 화면 버퍼에 반영
-    LaunchedEffect(commentsState) {
-        (commentsState as? UiState.Success)?.let { s ->
-            reviewComments.clear()
-            reviewComments.addAll(s.data)
-        }
     }
 
     Scaffold(
@@ -157,42 +149,17 @@ fun ReviewDetail(
                 onTextChange = { input = it },
                 onSend = { raw ->
                     val t = raw.trim()
-                    val target = editingTarget
-                    if (target != null) { //기존 댓글 수정
-                        val idx = dummyReviewComments.indexOfFirst { it.id == target.id }
-                        if (idx >= 0) {
-                            dummyReviewComments[idx] = target.copy(content = t)
-                        }
-                        editingTarget = null
+                    if (t.isEmpty()) return@CommentInput
+
+                    val parentIdStr = parent?.id
+
+                    commentsVm.submit(content = t, parentId = parentIdStr) {
+                        // 성공 콜백: 입력/대댓글 모드 해제
                         input = ""
-                        return@CommentInput
+                        parent = null
                     }
-                    // 새 댓글 추가
-                    dummyReviewComments.add(
-                        ReviewComment(
-                            id = "c${System.currentTimeMillis()}",
-                            reviewId = review.id,
-                            author = currentUser,
-                            profile = R.drawable.profile1,
-                            content = t,
-                            likeCount = 0,
-                            commentCount = 0,
-                            createdAt =  review.createdAt.toShortDate(),
-                            parentId = parent?.id
-                        )
-                    )
-                    //대댓글
-                    if(parent != null) {
-                        val idx = dummyReviewComments.indexOfFirst { it.id == parent?.id }
-                        if (idx >= 0) { //부모 댓글 찾으면
-                            val cur = dummyReviewComments[idx]
-                            val next = cur.copy(commentCount = cur.commentCount + 1) //copy를 이용해 새로운 객체 생성
-                            dummyReviewComments[idx] = next //기존 댓글을 새로운 객체로 교체
-                        }
-                        parent = null //대댓글 모드 해제
-                    }
-                    input = ""
                 },
+
                 modifier = Modifier
                     .fillMaxWidth()
                     .focusRequester(focusRequester)
@@ -301,16 +268,17 @@ fun ReviewDetail(
                 // 댓글 리스트
                 CommentList(
                     postId = review.id,
-                    currentUser = currentUser,
-                    comments = reviewComments,
+                    currentUserId = myId,
+                    currentUserNickname = myNick,
+                    comments = commentList,
                     //현재 사용자가 좋아요를 누른 댓글들의 id 집합
-                    liked = LikeState.ids.filter { it.startsWith("reviewComment:") }
-                        .map { it.removePrefix("reviewComment:") }.toSet(),
-                    onLikedChange = { newLocal ->
-                        val base = LikeState.ids.filterNot { it.startsWith("reviewComment:") }.toSet()
-                        LikeState.ids = base + newLocal.map { likedKeyReviewComment(it) }
+                    liked = commentList.filter { it.liked }.map { it.id }.toSet(),
+                    onLike = { tapped ->
+                        tapped.id.toLongOrNull()?.let { cid ->
+                            commentsVm.toggleLike(cid)
+                        }
                     },
-                    onLike = {},
+                    onLikedChange = {},
                     onReply = { target ->
                         parent = target
                         requestKeyboard = true
@@ -320,10 +288,7 @@ fun ReviewDetail(
                         input = ""
                         requestKeyboard = true
                     },
-                    onDelete = { del ->
-                        val idx = dummyReviewComments.indexOfFirst { it.id == del.id }
-                        if (idx >= 0) dummyReviewComments.removeAt(idx)
-                    }
+                    onDelete = {}
                 )
             }
         }

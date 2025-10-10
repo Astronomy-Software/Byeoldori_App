@@ -33,5 +33,6 @@ data class UserProfile(
     val createdAt: String,
     val updatedAt: String,
     val passwordHash: String,
+    val onboardingRequired: Boolean? = null,
     // passwordHash 는 보안상 굳이 앱에서 쓸 필요 없으면 뺄 수 있음
 )

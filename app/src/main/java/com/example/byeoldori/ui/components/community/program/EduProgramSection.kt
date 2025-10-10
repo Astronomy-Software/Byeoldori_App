@@ -26,6 +26,7 @@ import com.example.byeoldori.domain.Community.EduProgram
 import com.example.byeoldori.domain.Content
 import com.example.byeoldori.domain.Observatory.Review
 import com.example.byeoldori.ui.components.community.freeboard.formatCreatedAt
+import com.example.byeoldori.viewmodel.CommentsViewModel
 import com.example.byeoldori.viewmodel.EducationViewModel
 import com.example.byeoldori.viewmodel.UiState
 import com.example.byeoldori.viewmodel.dummyProgramComments
@@ -78,13 +79,15 @@ fun EduProgramSection(
     eduProgramsAll: List<EduProgram>,
     onWriteClick: () -> Unit = {},
     onClickProgram: (String) -> Unit = {},
-    vm: EducationViewModel = hiltViewModel()
+    vm: EducationViewModel = hiltViewModel(),
+    commentsVm: CommentsViewModel
 ) {
     var searchText by remember { mutableStateOf("") } //초기값이 빈 문자열인 변할 수 있는 상태 객체
     val gridState = rememberLazyGridState()
 
     val state by vm.postsState.collectAsState()
     val currentSort by vm.sort.collectAsState()
+    val counts by commentsVm.commentCounts.collectAsState()
 
     val uiSort = when (currentSort) {
         SortBy.LATEST -> EduProgramSort.Latest
@@ -93,12 +96,17 @@ fun EduProgramSection(
     }
 
     // API 응답을 EduProgram으로 매핑
-    val apiList by remember(state) {
+    val apiList by remember(state, counts) {
         mutableStateOf(
             when (state) {
                 is UiState.Success ->
                     (state as UiState.Success<List<EducationResponse>>)
-                        .data.map { it.toEduProgram() }
+                        .data
+                        .map { it.toEduProgram() }
+                        .map { p ->
+                            // 동일 id면 즉시 카운트 override
+                            p.copy(commentCount = counts[p.id] ?: p.commentCount)
+                        }
                 else -> emptyList()
             }
         )
@@ -250,7 +258,9 @@ private fun Preview_EduProgramSection_Default() {
         EduProgramSection(
             eduProgramsAll = dummy,
             onWriteClick = {},
-            onClickProgram = {}
+            onClickProgram = {},
+            vm = hiltViewModel(),
+            commentsVm = hiltViewModel()
         )
     }
 }
