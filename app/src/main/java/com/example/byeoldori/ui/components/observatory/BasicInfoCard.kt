@@ -106,7 +106,7 @@ fun BasicInfoCard(
                         text = info.address,
                         color = TextHighlight,
                         modifier = Modifier.weight(5f),
-                        maxLines = 2,
+                        maxLines = 5,
                         overflow = TextOverflow.Ellipsis
                     )
                 }

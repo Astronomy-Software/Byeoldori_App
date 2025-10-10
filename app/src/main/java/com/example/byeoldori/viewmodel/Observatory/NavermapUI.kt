@@ -86,15 +86,18 @@ fun NaverMapWithSearchUI(
                     context, searchQuery, naverMap, mapView, selectedMarker,
                     onMarkerUpdated = { marker ->
                         selectedMarker?.setIconTintColor(Color.BLACK)
-                        marker.setIconTintColor(Color.RED)
                         selectedMarker = marker
                     },
-                    onAddressUpdated = { viewModel.updateSelectedAddress(it) },
-                    onLatLngUpdated = { viewModel.updateSelectedLatLng(it) }
+                    onLatLngUpdated = onLatLngUpdated,
+                    onAddressUpdated = onAddressUpdated,
+                    onMarkerClick = { info ->
+                        onMarkerClick(info)
+                    }
                 )
             }
         }
     }
+
     DisposableEffect(Unit) {
         mapView.onCreate(null)
         mapView.onStart()
@@ -145,7 +148,9 @@ fun NaverMapWithSearchUI(
                                         userMarker.position = LatLng(lat, lon)
                                         userMarker.map = naverMap
                                         userMarkerPlaced = true
+                                        userMarker.setIconTintColor(android.graphics.Color.RED)
 
+                                        //이건 사용자의 현재위치 부분
                                         userMarker.setOnClickListener {
                                             val clicked = userMarker.position
                                             scope.launch {
@@ -159,6 +164,41 @@ fun NaverMapWithSearchUI(
                                                         "주소를 불러오지 못했습니다."
                                                     }
                                                 }
+
+                                                //괄호 안 주소먼저 출력
+                                                val firstName = Regex("\\(([^)]+)\\)")
+                                                    .find(addr)
+                                                    ?.groupValues?.get(1)
+                                                    ?.trim()
+
+                                                // 괄호가 없으면, 뒤쪽 3~4단어 추출
+                                                val secondName = if (firstName == null) {
+                                                    val parts = addr.split(" ")
+                                                    // ‘도, 시, 구, 군’으로 끝나는 행정단위 이후만 표시
+                                                    val idx = parts.indexOfLast { it.endsWith("구") || it.endsWith("군") || it.endsWith("시") }
+                                                    parts.drop(idx + 1) // 뒤쪽 단어들만 남김
+                                                        .takeLast(4) // 너무 길면 마지막 4단어까지만
+                                                        .joinToString(" ")
+                                                        .ifBlank { "선택한 위치" }
+                                                } else null
+
+                                                val selectedName = firstName ?: secondName ?: "선택한 위치"
+
+                                                onMarkerClick(
+                                                    MarkerInfo(
+                                                        name = selectedName,                 // ex) "충북대학교병원" 또는 "오동동 토성로 424번길 23"
+                                                        type = ObservatoryType.GENERAL,
+                                                        address = addr,
+                                                        drawableRes = R.drawable.img_dummy,
+                                                        reviewCount = 0,
+                                                        likeCount = 0,
+                                                        rating = 0f,
+                                                        suitability = 0,  // 현재는 더미. 추후 날씨 API 연동 가능
+                                                        latitude = clicked.latitude,
+                                                        longitude = clicked.longitude
+                                                    )
+                                                )
+
                                                 onLatLngUpdated(clicked)
                                                 onAddressUpdated(addr)
                                             }
@@ -170,6 +210,8 @@ fun NaverMapWithSearchUI(
                                 }
                             }
                         }
+
+                        //마커 추가(이 부분은 아무곳 클릭할 때 생기는 마커)
                         naverMap.setOnMapClickListener { _, clickLatLng ->
                             val marker = selectedMarker ?: Marker().also { selectedMarker = it }
                             marker.apply {
@@ -189,6 +231,40 @@ fun NaverMapWithSearchUI(
                                                 "주소를 불러오지 못했습니다."
                                             }
                                         }
+
+                                        //괄호 안 주소먼저 출력
+                                        val firstName = Regex("\\(([^)]+)\\)")
+                                            .find(addr)
+                                            ?.groupValues?.get(1)
+                                            ?.trim()
+
+                                        // 괄호가 없으면, 뒤쪽 3~4단어 추출
+                                        val secondName = if (firstName == null) {
+                                            val parts = addr.split(" ")
+                                            // ‘도, 시, 구, 군’으로 끝나는 행정단위 이후만 표시
+                                            val idx = parts.indexOfLast { it.endsWith("구") || it.endsWith("군") || it.endsWith("시") }
+                                            parts.drop(idx + 1) // 뒤쪽 단어들만 남김
+                                                .takeLast(4) // 너무 길면 마지막 4단어까지만
+                                                .joinToString(" ")
+                                                .ifBlank { "선택한 위치" }
+                                        } else null
+
+                                        val selectedName = firstName ?: secondName ?: "선택한 위치"
+
+                                        onMarkerClick(
+                                            MarkerInfo(
+                                                name = selectedName,
+                                                type = ObservatoryType.GENERAL,
+                                                address = addr,
+                                                drawableRes = R.drawable.img_dummy,
+                                                reviewCount = 0,
+                                                likeCount = 0,
+                                                rating = 0f,
+                                                suitability = 0,
+                                                latitude = p.latitude,
+                                                longitude = p.longitude
+                                            )
+                                        )
                                         onLatLngUpdated(p)
                                         onAddressUpdated(addr)
                                     }
@@ -225,7 +301,7 @@ fun NaverMapWithSearchUI(
         markers.forEach { it.map = null }
         markers.clear()
 
-        // 새 마커 추가
+        // 새 마커 추가(이 부분은 일반 / 인기 관측지 로드)
         sites.forEach { site ->
             Marker().apply {
                 position = LatLng(site.latitude, site.longitude)

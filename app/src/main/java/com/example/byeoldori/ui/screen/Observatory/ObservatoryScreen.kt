@@ -45,11 +45,13 @@ fun ObservatoryScreen() {
     // 선택한 관측지 위치
     var siteLat by rememberSaveable { mutableStateOf<Double?>(null) }
     var siteLon by rememberSaveable { mutableStateOf<Double?>(null) }
+    var showPopup by rememberSaveable { mutableStateOf(false) }
 
     val onMarkerClick: (MarkerInfo) -> Unit = { info ->
         selectedInfo = info
         siteLat = info.latitude
         siteLon = info.longitude
+        showPopup = true
         scope.launch { sheetState.partialExpand() }
     }
 
@@ -104,6 +106,7 @@ fun ObservatoryScreen() {
                     },
                     onMapReady = { map -> naverMap = map }
                 )
+                //마커 한번 더 눌렀을 때, Popup추가
                 if (selectedLatLng != null && !selectedAddress.isNullOrBlank()) {
                     MarkerPopup(
                         selectedLatLng = selectedLatLng,
@@ -111,6 +114,7 @@ fun ObservatoryScreen() {
                         onDismiss = {
                             selectedLatLng = null
                             selectedAddress = null
+                            showPopup = false
                         },
                         modifier = Modifier
                             .align(Alignment.TopStart)
@@ -142,7 +146,6 @@ fun ObservatoryScreen() {
                         MarkerCardWithGradient()
                     }
                 }
-                // TODO : 버튼 컴포넌트로 수정하기
                 LightPollutionButton(
                     checked = showOverlay,
                     onCheckedChange = { showOverlay = it },
