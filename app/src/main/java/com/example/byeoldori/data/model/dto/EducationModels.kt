@@ -15,11 +15,14 @@ enum class EduStatus { DRAFT, PUBLISHED }
 
 @JsonClass(generateAdapter = true)
 data class EducationDto(
-    val summary: String,
-    val difficulty: Difficulty,
-    val tags: String,
-    val status: EduStatus
+    val summary: String? = null,
+    val difficulty: Difficulty? = null,
+    val tags: String? = null,
+    val status: EduStatus? = null,
+    val target: String? = null,
+    val averageScore: Double? = 0.0
 )
+
 
 @JsonClass(generateAdapter = true)
 data class EducationResponse(
@@ -32,7 +35,8 @@ data class EducationResponse(
     val viewCount: Int,
     val likeCount: Int,
     val commentCount: Int,
-    val createdAt: String
+    val createdAt: String,
+    val liked: Boolean
 )
 
 @JsonClass(generateAdapter = true)
@@ -57,5 +61,6 @@ data class EducationDetailResponse(
     val likeCount: Int,
     val commentCount: Int,
     val createdAt: String,
-    val updatedAt: String
+    val updatedAt: String,
+    val liked: Boolean
 )

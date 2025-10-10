@@ -21,24 +21,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
-
-private val Context.reviewLikedDataStore by preferencesDataStore(name = "review_liked_store")
-object ReviewLikedPrefs {
-    private val LIKED_REVIEW_KEYS = stringSetPreferencesKey("liked_review_keys")
-
-    suspend fun saveLikedKeys(context: Context, keys: Set<String>) {
-        context.reviewLikedDataStore.edit { prefs ->
-            prefs[LIKED_REVIEW_KEYS] = keys
-        }
-    }
-
-    suspend fun loadLikedKeys(context: Context): Set<String> {
-        return context.reviewLikedDataStore.data
-            .map { it[LIKED_REVIEW_KEYS] ?: emptySet() }
-            .first()
-    }
-}
-
 class ReviewRepository @Inject constructor(
     private val api: CommunityApi,
     @ApplicationContext private val context: Context
@@ -114,11 +96,20 @@ class ReviewRepository @Inject constructor(
         }
     }
 
-    suspend fun saveLikedKeys(keys: Set<String>) {
-        ReviewLikedPrefs.saveLikedKeys(context, keys)
-    }
+    //타입별 조회에서의 좋아요
+    fun applyLikeToList(
+        list: List<ReviewResponse>,
+        postId: Long,
+        liked: Boolean,
+        likeCount: Int
+    ): List<ReviewResponse> =
+        list.map { it.takeIf { r -> r.id != postId } ?: it.copy(liked = liked, likeCount = likeCount)
+        }
 
-    suspend fun loadLikedKeys(): Set<String> {
-        return ReviewLikedPrefs.loadLikedKeys(context)
-    }
+    //상세조회에서의 좋아요
+    fun applyLikeToDetail(
+        detail: ReviewDetailResponse,
+        liked: Boolean,
+        likeCount: Int
+    ): ReviewDetailResponse = detail.copy(liked = liked, likeCount = likeCount)
 }

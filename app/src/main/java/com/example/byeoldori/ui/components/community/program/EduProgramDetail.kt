@@ -33,7 +33,6 @@ fun EduProgramDetail(
     onShare: () -> Unit = {},
     onMore: () -> Unit = {},
     currentUser: String,
-    //vm: EducationViewModel? = hiltViewModel(),
     vm: EducationViewModel? = null,
     onStartProgram: () -> Unit = {}
 ) {
@@ -42,17 +41,48 @@ fun EduProgramDetail(
     val focusRequester = remember { FocusRequester() }
     var editingTarget by remember { mutableStateOf<ReviewComment?>(null) }
     var requestKeyboard by remember { mutableStateOf(false) }
-    var liked by rememberSaveable { mutableStateOf(setOf<String>()) }
-    var postLikeCount by rememberSaveable { mutableStateOf(program.likeCount) }
     var parent by remember { mutableStateOf<ReviewComment?>(null) }
-    //val detailState by vm.detail.collectAsState()
-    //val postsState by vm.postsState.collectAsState()
 
     val detailState by (vm?.detail?.collectAsState()
         ?: remember { mutableStateOf<UiState<EducationDetailResponse>>(UiState.Idle) })
 
     val postsState by (vm?.postsState?.collectAsState()
         ?: remember { mutableStateOf<UiState<List<EducationResponse>>>(UiState.Idle) })
+
+    val apiDetail = (detailState as? UiState.Success<EducationDetailResponse>)?.data
+    val apiPost = (postsState as? UiState.Success<List<EducationResponse>>)
+        ?.data?.firstOrNull { it.id.toString() == program.id }
+
+    var likeCount by rememberSaveable(program.id) {
+        mutableStateOf(apiPost?.likeCount ?: program.likeCount)
+    }
+    var liked by rememberSaveable(program.id) {
+        mutableStateOf(apiPost?.liked ?: program.liked)
+    }
+
+    val createdText = apiPost?.createdAt
+        ?.let { formatCreatedAt(it) }
+        ?.takeIf { it.isNotBlank() }
+        ?: program.createdAt.toShortDate()
+
+    val commentsVm: CommentsViewModel = hiltViewModel()
+    val commentsState by commentsVm.comments.collectAsState()
+    val commentCounts by commentsVm.commentCounts.collectAsState()
+
+    val commentCountUi = commentCounts[program.id] ?: when (val s = commentsState) {
+        is UiState.Success -> s.data.size
+        else -> 0
+    }
+
+    val commentList: List<ReviewComment> =
+        (commentsState as? UiState.Success)?.data ?: emptyList()
+
+    val myId: Long? = currentUser.toLongOrNull()         // 숫자로 변환되면 아이디
+    val myNick: String? = if (myId == null) currentUser else null
+
+    val likedCommentIds by remember(commentList) {
+        mutableStateOf(commentList.filter { it.liked }.map { it.id }.toSet())
+    }
 
     LaunchedEffect(requestKeyboard) {
         if (requestKeyboard) {
@@ -66,16 +96,9 @@ fun EduProgramDetail(
         vm?.loadEducationDetail(program.id.toLong())
     }
 
-    // 화면 들어올 때 LikeState → 로컬 liked 로 반영
     LaunchedEffect(program.id) {
-        liked = LikeState.ids
-            .filter { it.startsWith("programComment:") }
-            .map { it.removePrefix("programComment:") } //접두사를 제거해서 댓글 고유의 ID만 남김
-            .toSet()
+        commentsVm.start(program.id)
     }
-    val apiDetail = (detailState as? UiState.Success<EducationDetailResponse>)?.data
-    val apiPost = (postsState as? UiState.Success<List<EducationResponse>>)
-        ?.data?.firstOrNull { it.id.toString() == program.id }
 
     Scaffold(
         contentWindowInsets = WindowInsets(0),
@@ -129,41 +152,14 @@ fun EduProgramDetail(
                 onTextChange = { input = it },
                 onSend = { raw ->
                     val t = raw.trim()
-                    val target = editingTarget
-                    if (target != null) {
-                        val idx =  dummyProgramComments.indexOfFirst { it.id == target.id }
-                        if (idx >= 0) {
-                            dummyProgramComments[idx] = target.copy(content = t)
-                        }
-                        // 모드 종료 + 입력 비우기
-                        editingTarget = null
+                    if (t.isEmpty()) return@CommentInput
+
+                    val parentIdStr = parent?.id
+                    commentsVm.submit(content = t, parentId = parentIdStr) {
+                        // 성공 후 입력/대댓글모드 해제
                         input = ""
-                        return@CommentInput
+                        parent = null
                     }
-                    dummyProgramComments.add(
-                        ReviewComment(
-                            id = "pc${System.currentTimeMillis()}",
-                            reviewId = program.id,
-                            author = currentUser,
-                            profile = R.drawable.profile1,
-                            content = t,
-                            likeCount = 0,
-                            commentCount = 0,
-                            createdAt = System.currentTimeMillis(),
-                            parentId = parent?.id
-                        )
-                    )
-                    //대댓글
-                    parent?.let { p ->
-                        val idx = dummyProgramComments.indexOfFirst { it.id == p?.id }
-                        if (idx >= 0) { //부모 댓글 찾으면
-                            val cur = dummyProgramComments[idx]
-                            val next = cur.copy(commentCount = cur.commentCount + 1)
-                            dummyProgramComments[idx] = next
-                        }
-                        parent = null //대댓글 모드 해제
-                    }
-                    input = ""
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -183,8 +179,7 @@ fun EduProgramDetail(
                 Text(text = apiPost?.title ?: program.title, fontSize = 24.sp, color = TextHighlight) //제목
                 Spacer(Modifier.height(10.dp))
 
-                Row(verticalAlignment = Alignment.CenterVertically
-                ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     val profilePainter = program.profile
                         ?.let { painterResource(id = it) }
                         ?: painterResource(id = R.drawable.profile1)
@@ -200,13 +195,42 @@ fun EduProgramDetail(
                         Text(text = apiPost?.authorNickname ?: program.author, fontSize = 17.sp, color = TextHighlight)
                         Spacer(Modifier.height(4.dp))
                         Text( //작성일
-                            text =  formatCreatedAt(apiPost?.createdAt) ?: program.createdAt.toShortDate(),
+                            text =  createdText,
                             style = MaterialTheme.typography.bodySmall.copy(color = TextDisabled),
                             fontSize = 17.sp
                         )
                     }
                 }
                 Spacer(Modifier.height(16.dp))
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text(text = "관측 대상", style = MaterialTheme.typography.labelLarge.copy(color = TextDisabled))
+                        Spacer(Modifier.height(6.dp))
+                        Text(
+                        text = apiDetail?.education?.target ?: program.target ?: "—",
+                            style = MaterialTheme.typography.bodyLarge.copy(color = Color.White)
+                        )
+                    }
+
+                    Column(Modifier.weight(1f)) {
+                        Text(text = "평점", style = MaterialTheme.typography.labelLarge.copy(color = TextDisabled))
+                        Spacer(Modifier.height(6.dp))
+                        Text(
+                            text = (apiDetail?.education?.averageScore ?: program.averageScore ?: 0.0).toString(),
+                            style = MaterialTheme.typography.bodyLarge.copy(color = Color.White)
+                        )
+                    }
+                }
+                Spacer(Modifier.height(10.dp))
+
+                apiDetail?.education?.summary?.let { summary ->
+                    Text(
+                        text = summary,
+                        style = MaterialTheme.typography.bodyLarge.copy(color = Color.White),
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
+                }
                 ContentInput( //내용 입력(텍스트 + 이미지)
                     items = when {
                         apiDetail?.content != null -> listOf(
@@ -244,29 +268,36 @@ fun EduProgramDetail(
                 //좋아요 + 댓글바
                 LikeCommentBar(
                     key = likedKeyProgram(program.id),
-                    likeCount = postLikeCount,
-                    liked = liked.contains(likedKeyProgram(program.id)),
-                    onToggle = {},
+                    likeCount = likeCount,
+                    liked = liked,
+                    onToggle = {
+                        program.id.toLongOrNull()?.let { pid ->
+                            vm?.toggleLike(pid) { res ->
+                                liked = res.liked// 상세 즉시 반영
+                                likeCount = res.likes.toInt()
+                            }
+                        }
+                    },
                     onSyncLikeCount = { next ->
                         // 목록 원본 동기화(정렬/표시 일치)
                         val idx = dummyPrograms.indexOfFirst { it.id == program.id }
                         if (idx >= 0) dummyPrograms[idx] = dummyPrograms[idx].copy(likeCount = next)
                     },
-                    commentCount = dummyProgramComments.count { it.reviewId == program.id }
+                    commentCount = commentCountUi
                 )
                 //댓글 + 대댓글
                 CommentList(
                     postId = program.id,
-                    currentUser = currentUser,
-                    comments = dummyProgramComments,
-                    liked = liked,
-                    onLikedChange = { newLikedIds ->
-                        liked = newLikedIds
-                        val base = LikeState.ids.filterNot { it.startsWith("programComment:") }.toSet()
-                        val withComments = base + newLikedIds.map { likedKeyProgramComment(it) }
-                        LikeState.ids = withComments
+                    currentUserId = myId,
+                    currentUserNickname = myNick,
+                    comments = commentList,
+                    liked = likedCommentIds,
+                    onLikedChange = {},
+                    onLike = { tapped ->
+                        tapped.id.toLongOrNull()?.let { cid ->
+                            commentsVm.toggleLike(cid)
+                        }
                     },
-                    onLike = {},
                     onReply = { target ->
                         parent = target
                         requestKeyboard = true
@@ -276,17 +307,14 @@ fun EduProgramDetail(
                         input = target.content
                         requestKeyboard = true
                     },
-                    onDelete = { del ->
-                        val idx = dummyProgramComments.indexOfFirst { it.id == del.id }
-                        if (idx >= 0) dummyProgramComments.removeAt(idx)
-                    }
+                    onDelete = { }
                 )
             }
         }
     }
 }
 
-@Preview(showBackground = true, backgroundColor = 0xFF241860, widthDp = 420, heightDp = 1000)
+@Preview(showBackground = true, backgroundColor = 0xFF241860, widthDp = 500, heightDp = 1000)
 @Composable
 private fun Preview_EduProgramDetail() {
     val sample = remember { dummyPrograms.first() }

@@ -19,6 +19,7 @@ import com.example.byeoldori.ui.theme.*
 import com.example.byeoldori.domain.Community.ReviewComment
 import androidx.compose.ui.focus.*
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.byeoldori.data.model.dto.*
 import com.example.byeoldori.domain.Observatory.Review
 import com.example.byeoldori.ui.mapper.toUi
@@ -39,7 +40,7 @@ fun ReviewDetail(
     onShare: () -> Unit = {},
     onMore: () -> Unit = {},
     currentUser: String,
-    onSyncReviewLikeCount: (id: String, next: Int) -> Unit,
+    onSyncReviewLikeCount: (id: String, liked: Boolean, next: Int) -> Unit,
     apiDetail: ReviewDetailResponse? = null, // 서버에서 가져온 상세(요약/카운트)
     apiPost: ReviewResponse? = null,
     vm: ReviewViewModel? = null
@@ -53,7 +54,25 @@ fun ReviewDetail(
     var input by rememberSaveable { mutableStateOf("") }
     var editingTarget by remember { mutableStateOf<ReviewComment?>(null) }
     var parent by remember { mutableStateOf<ReviewComment?>(null) }
+
     var reviewLikeCount by rememberSaveable { mutableStateOf(review.likeCount) }
+    var liked by rememberSaveable { mutableStateOf(apiPost?.liked ?: review.liked) }
+
+    val commentsVm: CommentsViewModel = hiltViewModel()
+    val commentsState by commentsVm.comments.collectAsState()
+    val commentCounts by commentsVm.commentCounts.collectAsState()
+
+    val commentCountUi = commentCounts[review.id] ?: when (val s = commentsState) {
+        is UiState.Success -> s.data.size
+        else -> 0
+    }
+
+    val commentList: List<ReviewComment> = when (val s = commentsState) {
+        is UiState.Success -> s.data
+        else -> emptyList()
+    }
+    val myId: Long? = currentUser.toLongOrNull()
+    val myNick: String? = if (myId == null) currentUser else null
 
     LaunchedEffect(imeVisible) {
         if (imeVisible) {
@@ -67,6 +86,11 @@ fun ReviewDetail(
             keyboardController?.show() //키보드 올라오게
             requestKeyboard = false  // 한 번만 실행
         }
+    }
+
+    //댓글 로드
+    LaunchedEffect(review.id) {
+        commentsVm.start(review.id)  // 서버에서 page=0부터 불러옴
     }
 
     Scaffold(
@@ -112,7 +136,6 @@ fun ReviewDetail(
                         }
                     }
                 )
-                //Divider(color = Color.LightGray.copy(alpha = 0.4f), thickness = 1.dp)
                 Divider(
                     color = Color.White.copy(alpha = 0.6f),
                     thickness = 2.dp,
@@ -126,42 +149,17 @@ fun ReviewDetail(
                 onTextChange = { input = it },
                 onSend = { raw ->
                     val t = raw.trim()
-                    val target = editingTarget
-                    if (target != null) { //기존 댓글 수정
-                        val idx = dummyReviewComments.indexOfFirst { it.id == target.id }
-                        if (idx >= 0) {
-                            dummyReviewComments[idx] = target.copy(content = t)
-                        }
-                        editingTarget = null
+                    if (t.isEmpty()) return@CommentInput
+
+                    val parentIdStr = parent?.id
+
+                    commentsVm.submit(content = t, parentId = parentIdStr) {
+                        // 성공 콜백: 입력/대댓글 모드 해제
                         input = ""
-                        return@CommentInput
+                        parent = null
                     }
-                    // 새 댓글 추가
-                    dummyReviewComments.add(
-                        ReviewComment(
-                            id = "c${System.currentTimeMillis()}",
-                            reviewId = review.id,
-                            author = currentUser,
-                            profile = R.drawable.profile1,
-                            content = t,
-                            likeCount = 0,
-                            commentCount = 0,
-                            createdAt = System.currentTimeMillis(),
-                            parentId = parent?.id
-                        )
-                    )
-                    //대댓글
-                    if(parent != null) {
-                        val idx = dummyReviewComments.indexOfFirst { it.id == parent?.id }
-                        if (idx >= 0) { //부모 댓글 찾으면
-                            val cur = dummyReviewComments[idx]
-                            val next = cur.copy(commentCount = cur.commentCount + 1) //copy를 이용해 새로운 객체 생성
-                            dummyReviewComments[idx] = next //기존 댓글을 새로운 객체로 교체
-                        }
-                        parent = null //대댓글 모드 해제
-                    }
-                    input = ""
                 },
+
                 modifier = Modifier
                     .fillMaxWidth()
                     .focusRequester(focusRequester)
@@ -252,28 +250,35 @@ fun ReviewDetail(
                 LikeCommentBar(
                     key = likedKeyReview(review.id),
                     likeCount = reviewLikeCount,
-                    liked = LikeState.ids.contains(likedKeyReview(review.id)),
-                    onToggle = {},
-                   // onLikeCountChange = { reviewLikeCount = it },
-                    onSyncLikeCount = { next ->
-                        onSyncReviewLikeCount(review.id, next)
+                    liked = liked,
+                    onToggle = {
+                        review.id.toLongOrNull()?.let { pid ->
+                            vm?.toggleLike(pid) { res ->
+                                liked = res.liked
+                                reviewLikeCount = res.likes.toInt()
+                                onSyncReviewLikeCount(review.id, res.liked, res.likes.toInt()) // ★ 상위 동기화
+                            }
+                        }
                     },
-                    commentCount = dummyReviewComments.count { it.reviewId == review.id } //리뷰에 달린 댓글이 몇 개인지 계산
+                   // onLikeCountChange = { reviewLikeCount = it },
+                    onSyncLikeCount = {},
+                    commentCount = commentCountUi //리뷰에 달린 댓글이 몇 개인지 계산
                 )
 
                 // 댓글 리스트
                 CommentList(
                     postId = review.id,
-                    currentUser = currentUser,
-                    comments = dummyReviewComments,
+                    currentUserId = myId,
+                    currentUserNickname = myNick,
+                    comments = commentList,
                     //현재 사용자가 좋아요를 누른 댓글들의 id 집합
-                    liked = LikeState.ids.filter { it.startsWith("reviewComment:") }
-                        .map { it.removePrefix("reviewComment:") }.toSet(),
-                    onLikedChange = { newLocal ->
-                        val base = LikeState.ids.filterNot { it.startsWith("reviewComment:") }.toSet()
-                        LikeState.ids = base + newLocal.map { likedKeyReviewComment(it) }
+                    liked = commentList.filter { it.liked }.map { it.id }.toSet(),
+                    onLike = { tapped ->
+                        tapped.id.toLongOrNull()?.let { cid ->
+                            commentsVm.toggleLike(cid)
+                        }
                     },
-                    onLike = {},
+                    onLikedChange = {},
                     onReply = { target ->
                         parent = target
                         requestKeyboard = true
@@ -283,10 +288,7 @@ fun ReviewDetail(
                         input = ""
                         requestKeyboard = true
                     },
-                    onDelete = { del ->
-                        val idx = dummyReviewComments.indexOfFirst { it.id == del.id }
-                        if (idx >= 0) dummyReviewComments.removeAt(idx)
-                    }
+                    onDelete = {}
                 )
             }
         }
@@ -297,6 +299,6 @@ fun ReviewDetail(
 @Composable
 private fun Preview_ReviewDetail() {
     MaterialTheme {
-        ReviewDetail(review = dummyReviews.first(), currentUser = "astro_user",onSyncReviewLikeCount = { _, _ -> })
+        ReviewDetail(review = dummyReviews.first(), currentUser = "astro_user",onSyncReviewLikeCount = { _, _ ,_-> })
     }
 }

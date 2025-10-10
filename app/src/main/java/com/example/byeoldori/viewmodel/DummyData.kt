@@ -27,9 +27,6 @@ val dummyReviews = mutableStateListOf(
         date = "2025-10-29",
         siteScore = 5,
         equipment = "망원경",
-        startTime = "22:00",
-        endTime = "23:30",
-        // ✅ 본문 + 이미지
         contentItems = listOf(
             Content.Text("오늘은 태양 흑점을 관측했습니다."),
             Content.Image.Resource(R.drawable.img_dummy),
@@ -51,8 +48,6 @@ val dummyReviews = mutableStateListOf(
         date = "2025-10-29",
         siteScore = 5,
         equipment = "망원경",
-        startTime = "12:00",
-        endTime = "16:30",
         contentItems = listOf(
             Content.Text("오늘은 태양 흑점을 관측했습니다."),
             Content.Image.Resource(R.drawable.img_dummy)
@@ -73,8 +68,6 @@ val dummyReviews = mutableStateListOf(
         date = "2025-10-30",
         siteScore = 5,
         equipment = "망원경",
-        startTime = "22:00",
-        endTime = "23:30",
         contentItems = listOf(
             Content.Text("오늘은 태양 흑점을 관측했습니다."),
             Content.Image.Resource(R.drawable.img_dummy)
@@ -95,8 +88,6 @@ val dummyReviews = mutableStateListOf(
         date = "2025-10-14",
         siteScore = 5,
         equipment = "망원경",
-        startTime = "22:00",
-        endTime = "23:30",
         contentItems = listOf(
             Content.Text("오늘은 태양 흑점을 관측했습니다."),
             Content.Image.Resource(R.drawable.img_dummy)
@@ -117,8 +108,6 @@ val dummyReviews = mutableStateListOf(
         date = "2025-10-10",
         siteScore = 5,
         equipment = "망원경",
-        startTime = "22:00",
-        endTime = "23:30",
         contentItems = listOf(
             Content.Text("오늘은 태양 흑점을 관측했습니다."),
             Content.Image.Resource(R.drawable.img_dummy)
@@ -139,8 +128,6 @@ val dummyReviews = mutableStateListOf(
         date = "2025-10-25",
         siteScore = 5,
         equipment = "망원경",
-        startTime = "22:00",
-        endTime = "23:30",
         contentItems = listOf(
             Content.Text("오늘은 태양 흑점을 관측했습니다."),
             Content.Image.Resource(R.drawable.img_dummy)
@@ -152,45 +139,57 @@ val dummyReviews = mutableStateListOf(
 val dummyReviewComments = mutableStateListOf(
     ReviewComment(
         id = "c1", reviewId = "r1",
-        author = "아이마카", profile = R.drawable.profile1,
+        authorId = 123, profile = R.drawable.profile1,
         content = "색다른 곳 있으면 알려주세요~",
-        likeCount = 3, commentCount = 1, createdAt = 202510291750,
-        parentId = null
+        likeCount = 3, commentCount = 1, createdAt = "202510291750",
+        parentId = null,
+        authorNickname = "아이마카",
+        liked = false
     ),
     ReviewComment(
         id = "c2", reviewId = "r1",
-        author = "별헤는 곰돌이", profile = R.drawable.profile1,
+        authorId = 123, profile = R.drawable.profile1,
         content = "충북대 대운동장 좋아요!",
-        likeCount = 1, commentCount = 0, createdAt = 202510291755,
-        parentId = null
+        likeCount = 1, commentCount = 0, createdAt = "202510291755",
+        parentId = null,
+        authorNickname = "아이마카",
+        liked = false
     ),
     ReviewComment(
         id = "c3", reviewId = "r2",
-        author = "astro_21", profile = R.drawable.profile1,
+        authorId = 123, profile = R.drawable.profile1,
         content = "오늘 투명도 좋았습니다 🙌",
-        likeCount = 2, commentCount = 0, createdAt = 202510291820,
-        parentId = null
+        likeCount = 2, commentCount = 0, createdAt = "202510291820",
+        parentId = null,
+        authorNickname = "아이마카",
+        liked = false
     ),
     ReviewComment(
         id = "c4", reviewId = "r2",
-        author = "skylover", profile = R.drawable.profile1,
+        authorId = 123, profile = R.drawable.profile1,
         content = "광해만 조금만 덜하면 최고!",
-        likeCount = 0, commentCount = 0, createdAt = 202510291825,
-        parentId = null
+        likeCount = 0, commentCount = 0, createdAt = "202510291825",
+        parentId = null,
+        authorNickname = "아이마카",
+        liked = false
     ),
     ReviewComment(
         id = "c5", reviewId = "r3",
-        author = "아이마카", profile = R.drawable.profile1,
+        authorId = 123, profile = R.drawable.profile1,
         content = "내일도 관측 예정이에요",
-        likeCount = 5, commentCount = 2, createdAt = 202510281930,
-        parentId = null
+        likeCount = 5, commentCount = 2, createdAt = "202510281930",
+        parentId = null,
+        authorNickname = "아이마카",
+        liked = true
     ),
     ReviewComment(
         id = "c6", reviewId = "r4",
-        author = "meteor", profile = R.drawable.profile1,
+        authorId = 123, profile = R.drawable.profile1,
         content = "유성 두 개 봤습니다!",
-        likeCount = 4, commentCount = 1, createdAt = 202510271145,
-        parentId = null
+        likeCount = 4, commentCount = 1, createdAt = "202510271145",
+        parentId = null,
+        authorNickname = "아이마카",
+        liked = true
     )
 )
 
@@ -198,48 +197,58 @@ val dummyReviewComments = mutableStateListOf(
 val dummyFreeComments = mutableStateListOf(
     ReviewComment(
         id = "fc1", reviewId = "f1",
-        author = "star_gazer",
+        authorId = 123,
         profile = R.drawable.profile1,
         content = "환영합니다! 저는 주로 교외에서 관측해요 🌌",
         likeCount = 2, commentCount = 0,
-        createdAt = 202510251600,
-        parentId = null
+        createdAt = "202510251600",
+        parentId = null,
+        authorNickname = "아이마카",
+        liked = true
     ),
     ReviewComment(
         id = "fc2", reviewId = "f1",
-        author = "astro_friend",
+        authorId = 123,
         profile = R.drawable.profile1,
         content = "오산천도 괜찮아요. 접근성이 좋아요!",
         likeCount = 1, commentCount = 0,
-        createdAt = 202510251630,
-        parentId = null
+        createdAt = "202510251630",
+        parentId = null,
+        authorNickname = "아이마카",
+        liked = true
     ),
     ReviewComment(
         id = "fc3", reviewId = "f2",
-        author = "별헤는 밤",
+        authorId = 123,
         profile = R.drawable.profile1,
         content = "저는 충북대 대운동장에서 자주 봅니다.",
         likeCount = 0, commentCount = 0,
-        createdAt = 202510291510,
-        parentId = null
+        createdAt = "202510291510",
+        parentId = null,
+        authorNickname = "아이마카",
+        liked = true
     ),
     ReviewComment(
         id = "fc4", reviewId = "f3",
-        author = "meteor_chaser",
+        authorId = 123,
         profile = R.drawable.profile1,
         content = "요즘 투명도가 좋아서 별이 잘 보여요!",
         likeCount = 3, commentCount = 1,
-        createdAt = 202510301600,
-        parentId = null
+        createdAt = "202510301600",
+        parentId = null,
+        authorNickname = "아이마카",
+        liked = true
     ),
     ReviewComment(
         id = "fc5", reviewId = "f4",
-        author = "astro4",
+        authorId = 123,
         profile = R.drawable.profile1,
         content = "저도 같은 생각이에요. 좋은 장소 공유해요~",
         likeCount = 1, commentCount = 0,
-        createdAt = 202510281530,
-        parentId = null
+        createdAt = "202510281530",
+        parentId = null,
+        authorNickname = "아이마카",
+        liked = true
     )
 )
 
@@ -259,7 +268,8 @@ val dummyFreePosts = mutableStateListOf(
             Content.Text("혹시 다들 어디서 관측하시나요??"),
             Content.Image.Resource(R.drawable.img_dummy),
             Content.Text("이런 곳은 어떤가요?? 잘 보이나요?")
-        )
+        ),
+        liked = true
     ),
     FreePost(
         id = "f2",
@@ -274,7 +284,8 @@ val dummyFreePosts = mutableStateListOf(
             Content.Text("오늘 처음 가입했습니다."),
             Content.Image.Resource(R.drawable.img_dummy),
             Content.Text("좋은 관측 장소 공유 부탁드려요!")
-        )
+        ),
+        liked = true
     ),
     FreePost(
         id = "f3",
@@ -288,7 +299,8 @@ val dummyFreePosts = mutableStateListOf(
         contentItems = listOf(
             Content.Text("안녕하세요 astro3입니다."),
             Content.Text("저는 주로 교외에서 관측해요 🌌")
-        )
+        ),
+        liked = false
     ),
     FreePost(
         id = "f4",
@@ -302,7 +314,8 @@ val dummyFreePosts = mutableStateListOf(
         contentItems = listOf(
             Content.Text("astro4 입니다. 잘 부탁드려요!"),
             Content.Image.Resource(R.drawable.img_dummy)
-        )
+        ),
+        liked = false
     )
 )
 
@@ -322,7 +335,10 @@ val dummyPrograms = mutableStateListOf(
             Content.Text("망원경 종류와 기본 조작을 배웁니다."),
             Content.Image.Resource(R.drawable.img_dummy),
             Content.Text("실습 포함: 파인더 정렬, 배율 계산")
-        )
+        ),
+        liked = true,
+        target = "망원경",
+        averageScore = 4.5
     ),
     EduProgram(
         id = "p2",
@@ -338,7 +354,10 @@ val dummyPrograms = mutableStateListOf(
             Content.Text("유성우 예보 읽는 법과 관측 팁을 다룹니다."),
             Content.Image.Resource(R.drawable.img_dummy),
             Content.Text("필수 장비 체크리스트 제공")
-        )
+        ),
+        liked = false,
+        target = "유성우",
+        averageScore = 4.8
     ),
     EduProgram(
         id = "p3",
@@ -353,7 +372,10 @@ val dummyPrograms = mutableStateListOf(
         contentItems = listOf(
             Content.Text("광해가 심한 환경에서의 관측 전략."),
             Content.Text("필터 사용과 관측 대상 추천")
-        )
+        ),
+        liked = false,
+        target = "별",
+        averageScore = 3.5
     )
 )
 
@@ -362,23 +384,29 @@ val dummyPrograms = mutableStateListOf(
 val dummyProgramComments = mutableStateListOf(
     ReviewComment(
         id = "pc1", reviewId = "p1",
-        author = "star_gazer", profile = R.drawable.profile1,
+        authorId = 123, profile = R.drawable.profile1,
         content = "실습 파트가 특히 유용했어요!",
-        likeCount = 3, commentCount = 1, createdAt = 202510291230,
-        parentId = null
+        likeCount = 3, commentCount = 1, createdAt = "202510291230",
+        parentId = null,
+        authorNickname = "아이마카",
+        liked = true
     ),
     ReviewComment(
         id = "pc2", reviewId = "p1",
-        author = "meteor_chaser", profile = R.drawable.profile1,
+        authorId = 123, profile = R.drawable.profile1,
         content = "다음 기수는 언제 열리나요?",
-        likeCount = 1, commentCount = 0, createdAt = 202510291245,
-        parentId = null
+        likeCount = 1, commentCount = 0, createdAt = "202510291245",
+        parentId = null,
+        authorNickname = "아이마카",
+        liked = true
     ),
     ReviewComment(
         id = "pc3", reviewId = "p2",
-        author = "astro_newbie", profile = R.drawable.profile1,
+        authorId = 123, profile = R.drawable.profile1,
         content = "체크리스트 덕분에 첫 관측 잘했습니다 🙌",
-        likeCount = 5, commentCount = 0, createdAt = 202510291500,
-        parentId = null
+        likeCount = 5, commentCount = 0, createdAt = "202510291500",
+        parentId = null,
+        authorNickname = "아이마카",
+        liked = true
     )
 )

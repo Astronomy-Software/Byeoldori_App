@@ -22,7 +22,7 @@ fun FreeBoardItem( //게시글 UI
     post: FreePost,
     likeCount: Int = post.likeCount,
     commentCount: Int,
-    isLiked: Boolean,
+    isLiked: Boolean = post.liked,
     onClick: () -> Unit = {},
     onLikeClick: () -> Unit
 ) {
@@ -74,13 +74,13 @@ fun FreeBoardItem( //게시글 UI
                 Row(
                     modifier = Modifier
                         .clickable {
-                            // ✅ 1) 로컬(전역) 좋아요 상태를 먼저 토글 (아이콘 색 즉시 반응)
+                            //로컬(전역) 좋아요 상태를 먼저 토글 (아이콘 색 즉시 반응)
                             LikeState.ids = if (isLiked) {
                                 LikeState.ids - likeKey
                             } else {
                                 LikeState.ids + likeKey
                             }
-                            // ✅ 2) 서버 갱신 호출
+                            //서버 갱신 호출
                             onLikeClick()
                         }
                         .padding(horizontal = 4.dp, vertical = 2.dp),
@@ -131,7 +131,8 @@ private fun Preview_FreeBoardItem() {
             Content.Image.Resource(R.drawable.img_dummy),
             Content.Text("좋은 관측 장소 공유 부탁드려요!")
         ),
-        profile = R.drawable.profile1
+        profile = R.drawable.profile1,
+        liked = false
     )
     MaterialTheme {
         Surface(color = Blue800) {

@@ -43,10 +43,9 @@ fun ReviewResponse.toReview(): Review = Review(
     site = "",
     equipment = "",
     date = "",
-    startTime = "",
-    endTime = "",
     rating = 0,
-    siteScore = 0
+    siteScore = 0,
+    liked = liked
 )
 
 
@@ -58,28 +57,15 @@ fun CommuReviewSection(
     onWriteClick: () -> Unit = {},
     onReviewClick: (Review) -> Unit,
     onChangeSort: (SortBy) -> Unit = {},
-    onSyncReviewLikeCount: (id: String, next: Int) -> Unit
+    onSyncReviewLike: (id: String, liked: Boolean, next: Int) -> Unit
 ) {
     var searchText by remember { mutableStateOf("") } //초기값이 빈 문자열인 변할 수 있는 상태 객체
     var sort by remember { mutableStateOf(ReviewSort.Latest) }
     val gridState = rememberLazyGridState()
 
     val state by (vm?.postsState?.collectAsState() ?: remember { mutableStateOf<UiState<List<ReviewResponse>>>(UiState.Idle) })
-    val likeCounts by (vm?.likeCounts?.collectAsState() ?: remember { mutableStateOf<Map<String, Int>>(emptyMap()) })
     val scores by (vm?.scores?.collectAsState() ?: remember { mutableStateOf<Map<String, Int>>(emptyMap()) })
     val currentSort by (vm?.sort?.collectAsState() ?: remember { mutableStateOf(SortBy.LATEST) })
-
-    val apiList by remember(state) {
-        mutableStateOf(
-            when (state) {
-                is UiState.Success ->
-                    (state as UiState.Success<List<ReviewResponse>>)
-                        .data
-                        .map { it.toReview() }  // rating=0 기본
-                else -> emptyList()
-            }
-        )
-    }
 
     val networkList: List<Review> = when (state) {
         is UiState.Success -> (state as UiState.Success<List<ReviewResponse>>)
@@ -92,11 +78,18 @@ fun CommuReviewSection(
         baseList.map { r -> r.copy(rating = scores[r.id] ?: r.rating) }
     }
 
-    val filtered = remember(searchText, merged) {
-        if (searchText.isBlank()) merged
+    val commentsVm: CommentsViewModel = hiltViewModel()
+    val commentCounts by commentsVm.commentCounts.collectAsState()
+
+    val mergedWithCounts = remember(merged, commentCounts) {
+        merged.map { r -> r.copy(commentCount = commentCounts[r.id] ?: r.commentCount) }
+    }
+
+    val filtered = remember(searchText, mergedWithCounts) {
+        if (searchText.isBlank())  mergedWithCounts
         else {
             val k = searchText.trim().lowercase()
-            merged.filter { r ->
+            mergedWithCounts.filter { r ->
                 r.title.lowercase().contains(k) ||
                         r.author.lowercase().contains(k) ||
                         r.contentItems.filterIsInstance<Content.Text>()
@@ -109,6 +102,7 @@ fun CommuReviewSection(
         SortBy.LIKES  -> ReviewSort.Like
         SortBy.VIEWS  -> ReviewSort.View
     }
+
 
     //정렬 기준이 바뀔 때 스크롤 맨 위로 이동
     LaunchedEffect(sort) { gridState.scrollToItem(0) }
@@ -161,10 +155,17 @@ fun CommuReviewSection(
                     ReviewCard(
                         review = review,
                         modifier = Modifier.clickable { onReviewClick(review) },
-                        onSyncLikeCount = { next ->            // ★ NEW: 카드에서 좋아요 바꾸면
+                        onSyncLikeCount = { next ->
                         // onSyncReviewLikeCount(review.id, next)  // 상위 reviews 동기화
                         //vm.updateLocalLikeCount(review.id, next)
                         //vm.toggleLike(review.id.toLong())
+                        },
+                        onToggleLike = {
+                            review.id.toLongOrNull()?.let { pid ->
+                                vm?.toggleLike(pid) { result ->
+                                    onSyncReviewLike(review.id, result.liked, result.likes.toInt()) // ★
+                                }
+                            }
                         }
                     )
                 }
@@ -219,9 +220,11 @@ private fun Preview_ScreenWithWriteButton() {
                 println("리뷰 클릭됨: ${review.title}")
             },
             onChangeSort = { },
-            onSyncReviewLikeCount = { id, next ->
+            onSyncReviewLike = { id, liked, next ->
                 val idx = dummyReviews.indexOfFirst { it.id == id }
-                if (idx >= 0) dummyReviews[idx] = dummyReviews[idx].copy(likeCount = next)
+                if (idx >= 0) {
+                    dummyReviews[idx] = dummyReviews[idx].copy(likeCount = next, liked = liked)
+                }
             }
         )
     }

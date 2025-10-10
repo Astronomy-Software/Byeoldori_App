@@ -31,7 +31,8 @@ data class ReviewResponse(
     val viewCount: Int,
     val likeCount: Int,
     val commentCount: Int,
-    val createdAt: String
+    val createdAt: String,
+    val liked: Boolean
 )
 
 @JsonClass(generateAdapter = true)
@@ -56,6 +57,7 @@ data class ReviewDetailResponse(
     val likeCount: Int,
     val commentCount: Int,
     val createdAt: String,
-    val updatedAt: String
+    val updatedAt: String,
+    val liked: Boolean
 )
 
