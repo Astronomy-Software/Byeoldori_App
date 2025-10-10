@@ -12,11 +12,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.app.ActivityCompat
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.byeoldori.R
 import com.example.byeoldori.data.model.dto.ObservationSite
-import com.example.byeoldori.domain.Observatory.MarkerInfo
-import com.example.byeoldori.domain.Observatory.ObservatoryType
+import com.example.byeoldori.domain.Observatory.*
 import com.example.byeoldori.ui.components.observatory.CurrentLocationButton
 import com.example.byeoldori.viewmodel.NaverMapViewModel
 import com.google.android.gms.location.LocationServices
@@ -33,7 +32,7 @@ private const val TAG_UI = "NavermapUI"
 @Composable
 fun NaverMapWithSearchUI(
     modifier: Modifier = Modifier,
-    viewModel: NaverMapViewModel = viewModel(),
+    viewModel: NaverMapViewModel = hiltViewModel(),
     searchQuery: String,
     onSearchRequested: (String)->Unit,
     onLatLngUpdated: (LatLng)->Unit,
@@ -153,7 +152,7 @@ fun NaverMapWithSearchUI(
                                             scope.launch {
                                                 val addr = withContext(Dispatchers.IO) {
                                                     try {
-                                                        val road = reverseAddressRoadNaver(clicked.latitude, clicked.longitude)
+                                                        val road = viewModel.reverseAddressRoad(clicked.latitude, clicked.longitude)
                                                         if (road.isNotBlank()) road
                                                         else getAddressFromLatLng(geocoder, clicked.latitude, clicked.longitude)
                                                     } catch (e: Exception) {
@@ -183,7 +182,7 @@ fun NaverMapWithSearchUI(
                                     scope.launch {
                                         val addr = withContext(Dispatchers.IO) {
                                             try {
-                                                val road = reverseAddressRoadNaver(p.latitude, p.longitude)
+                                                val road = viewModel.reverseAddressRoad(p.latitude, p.longitude)
                                                 if (road.isNotBlank()) road
                                                 else getAddressFromLatLng(geocoder, p.latitude, p.longitude)
                                             } catch (e: Exception) {
@@ -243,7 +242,7 @@ fun NaverMapWithSearchUI(
                             try {
                                 Log.d(TAG_UI, "Reverse geocoding start (Naver): ${site.name}")
 
-                                val road = reverseAddressRoadNaver(site.latitude, site.longitude)
+                                val road = viewModel.reverseAddressRoad(site.latitude, site.longitude)
                                 val result = if (road.isNotBlank()) {
                                     Log.d(TAG_UI, "Reverse geocoding success (Naver): $road")
                                     road
