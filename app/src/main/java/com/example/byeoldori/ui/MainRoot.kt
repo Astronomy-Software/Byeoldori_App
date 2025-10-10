@@ -7,12 +7,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
+import com.example.byeoldori.skymap.StellariumScreen
 import com.example.byeoldori.ui.components.NavBar
 import com.example.byeoldori.ui.screen.Community.CommunityScreen
 import com.example.byeoldori.ui.screen.Community.CommunityTab
 import com.example.byeoldori.ui.screen.MyPage.MyPageScreen
 import com.example.byeoldori.ui.screen.Observatory.ObservatoryScreen
-import com.example.byeoldori.ui.screen.SkyMap.SkyMapScreen
 import com.example.byeoldori.ui.screen.home.HomeScreen
 import com.example.byeoldori.ui.theme.BackgroundScaffold
 
@@ -38,7 +38,7 @@ fun MainRoot() {
             modifier = Modifier.padding(inner)
         ) {
             composable(Root.Home.route)        { HomeScreen() }
-            composable(Root.StarMap.route)     { SkyMapScreen() }
+            composable(Root.StarMap.route)     { StellariumScreen() }
             composable(Root.Observatory.route) { ObservatoryScreen() }
             navigation(startDestination = "community/home", route = Root.Community.route) {
                 composable("community/home") { CommunityScreen(tab = CommunityTab.Home, onSelectTab = { t -> nav.navigate("community/$t") }) }
