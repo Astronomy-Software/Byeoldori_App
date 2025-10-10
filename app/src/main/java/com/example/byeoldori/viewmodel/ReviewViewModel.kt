@@ -55,7 +55,6 @@ class ReviewViewModel @Inject constructor(
 
 
     init {
-        //restoreLikedFromLocal()
         loadPosts()
     }
 
@@ -103,7 +102,7 @@ class ReviewViewModel @Inject constructor(
         val key = id.toString()
         if (_scores.value.containsKey(key)) return  // 이미 있으면 스킵
         viewModelScope.launch {
-            runCatching { repo.getReviewDetail(id) }
+            runCatching { repo.getReviewDetail(id.toLong()) }
                 .onSuccess { detail ->
                     val score = detail.review?.score ?: 0
                     _scores.update { it + (key to score) }
@@ -149,6 +148,38 @@ class ReviewViewModel @Inject constructor(
             }.onFailure { e ->
                 _createState.value = UiState.Error(e.message ?: "리뷰 작성 오류")
             }
+        }
+    }
+
+    fun toggleLike(postId: Long, onResult: (LikeToggleResponse) -> Unit) {
+        viewModelScope.launch {
+            runCatching { repo.toggleLike(postId) }
+                .onSuccess { res ->
+                    onResult(res)
+
+                    // 목록 갱신: p.id가 Int면 toLong()해서 비교
+
+                    val cur = _postsState.value
+                    if (cur is UiState.Success) {
+                        val updated = cur.data.map { p ->
+                            if (p.id == postId) { // p.id가 Long, postId도 Long → 비교 OK
+                                p.copy(liked = res.liked, likeCount = res.likes.toInt())
+                            } else p
+                        }
+                        _postsState.value = UiState.Success(updated)
+                    }
+
+                    // 상세 갱신 (repo 헬퍼 사용)
+                    val d = _detail.value
+                    if (d is UiState.Success) {
+                        _detail.value = UiState.Success(
+                            repo.applyLikeToDetail(d.data, res.liked, res.likes.toInt())
+                        )
+                    }
+                }
+                .onFailure { t ->
+                    _likeState.value = UiState.Error(t.message ?: "알 수 없는 오류")
+                }
         }
     }
 

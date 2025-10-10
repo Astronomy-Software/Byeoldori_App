@@ -10,6 +10,7 @@ import com.example.byeoldori.data.model.dto.EducationDetailResponse
 import com.example.byeoldori.data.model.dto.EducationDto
 import com.example.byeoldori.data.model.dto.EducationPostResponse
 import com.example.byeoldori.data.model.dto.EducationResponse
+import com.example.byeoldori.data.model.dto.LikeToggleResponse
 import com.example.byeoldori.data.model.dto.SearchBy
 import com.example.byeoldori.data.model.dto.SortBy
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -40,7 +41,7 @@ class EducationRepository @Inject constructor(
 
     // 상세 불러오기
     suspend fun getEducationDetail(postId: Long): EducationDetailResponse {
-        return api.getEducationDetail(postId) // ← 서버 구조상 공통 엔드포인트 사용
+        return api.getEducationDetail(postId)
     }
 
     // 게시글 생성
@@ -62,7 +63,9 @@ class EducationRepository @Inject constructor(
                 summary = summary,
                 difficulty = difficulty,
                 tags = tags,
-                status = status
+                status = status,
+                target = "",
+                averageScore = 0.0
             ),
             imageUrls = sanitized.ifEmpty { null }
         )
@@ -71,4 +74,21 @@ class EducationRepository @Inject constructor(
         Log.d(TAG, "교육 게시글 생성 완료(dto) id=${res.id}")
         return res.id
     }
+
+    suspend fun toggleLike(postId: Long): LikeToggleResponse {
+        return try {
+            val res = api.toggleLike(postId)
+            Log.d(TAG, "좋아요 토글 성공: liked=${res.liked}, likes=${res.likes}")
+            res
+        } catch (e: retrofit2.HttpException) {
+            val code = e.code()
+            val body = e.response()?.errorBody()?.string()
+            Log.e(TAG, "좋아요 토글 실패 (HTTP): code=$code, body=$body", e)
+            throw e
+        } catch (e: Exception) {
+            Log.e(TAG, "좋아요 토글 실패 (예외): ${e.message}", e)
+            throw e
+        }
+    }
+
 }

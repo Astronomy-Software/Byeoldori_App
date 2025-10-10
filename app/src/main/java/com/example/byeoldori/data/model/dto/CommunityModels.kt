@@ -24,6 +24,7 @@ data class FreePostResponse(
     val likeCount: Int,
     val commentCount: Int,
     val createdAt: String,
+    val liked: Boolean
 )
 
 
@@ -39,6 +40,35 @@ data class LikeToggleResponse(
 @JsonClass(generateAdapter = true)
 data class PostResponse(
     val content: List<FreePostResponse>,
+    val page: Int,
+    val size: Int,
+    val totalElements: Int,
+    val totalPages: Int
+)
+
+@JsonClass(generateAdapter = true)
+data class CreateCommentRequest(
+    val content: String,
+    val parentId: Long? = null   // 대댓글이면 부모 ID, 일반 댓글이면 null
+)
+
+@JsonClass(generateAdapter = true)
+data class CommentResponse(
+    val id: Long,
+    val authorId: Long,
+    val authorNickname: String? = null,
+    val content: String,
+    val createdAt: String,
+    val parentId: Long?,
+    val depth: Int,
+    val deleted: Boolean,
+    val likeCount: Int,
+    val liked: Boolean
+)
+
+@JsonClass(generateAdapter = true)
+data class CommentsPageResponse(
+    val content: List<CommentResponse>,
     val page: Int,
     val size: Int,
     val totalElements: Int,

@@ -1,5 +1,8 @@
 package com.example.byeoldori.data.api
 
+import com.example.byeoldori.data.model.dto.CommentResponse
+import com.example.byeoldori.data.model.dto.CommentsPageResponse
+import com.example.byeoldori.data.model.dto.CreateCommentRequest
 import com.example.byeoldori.data.model.dto.CreateEducationRequest
 import com.example.byeoldori.data.model.dto.CreateFreeRequest
 import com.example.byeoldori.data.model.dto.CreateReviewRequest
@@ -73,4 +76,26 @@ interface CommunityApi {
 
     @POST("community/posts/{id}/likes/toggle")
     suspend fun toggleLike(@Path("id") id: Long): LikeToggleResponse
+
+    // 댓글 목록 조회 (페이징)
+    @GET("community/posts/{postId}/comments")
+    suspend fun getComments(
+        @Path("postId") postId: Long,
+        @Query("page") page: Int = 1,
+        @Query("size") size: Int = 15
+    ): CommentsPageResponse
+
+    // 댓글/대댓글 작성
+    @POST("community/posts/{postId}/comments")
+    suspend fun createComment(
+        @Path("postId") postId: Long,
+        @Body body: CreateCommentRequest
+    ): CommentResponse
+
+    @POST("community/posts/{postId}/comments/{commentId}/likes-toggle")
+    suspend fun toggleCommentLike(
+        @Path("postId") postId: Long,
+        @Path("commentId") commentId: Long
+    ): LikeToggleResponse
+
 }

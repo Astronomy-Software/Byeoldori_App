@@ -11,6 +11,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.byeoldori.R
 import com.example.byeoldori.data.model.dto.*
 import com.example.byeoldori.ui.components.community.*
@@ -64,10 +65,9 @@ fun FreePost.asReview(): Review =
         site = "",
         date = "",
         equipment = "",
-        startTime = "",
-        endTime = "",
         siteScore = 0,
-        contentItems = contentItems
+        contentItems = contentItems,
+        liked = this.liked,
     )
 
 fun FreePostResponse.toFreePost(): FreePost {
@@ -82,7 +82,8 @@ fun FreePostResponse.toFreePost(): FreePost {
         viewCount = viewCount,
         createdAt = formattedDate,
         contentItems = listOf(Content.Text(contentSummary)),
-        profile = null
+        profile = null,
+        liked = liked
     )
 }
 
@@ -104,6 +105,9 @@ fun FreeBoardSection(
 
     val likeCounts by (vm?.likeCounts?.collectAsState()
         ?: remember { mutableStateOf<Map<String, Int>>(emptyMap()) })
+
+    val commentsVm: CommentsViewModel = hiltViewModel()
+    val commentCounts by commentsVm.commentCounts.collectAsState()
 
     // 검색만
     val filtered = run {
@@ -168,17 +172,15 @@ fun FreeBoardSection(
                 modifier = Modifier.fillMaxSize()
             ) {
                 items(filtered, key = { it.id }) { post ->
-                    val likeKey = likedKeyFree(post.id)
-                    val isLiked = likeKey in likedIds
-                    val count = likeCounts[post.id] ?: post.likeCount
-                    val liveCommentCount = dummyFreeComments.count { it.reviewId == post.id }
+                    val uiCommentCount = commentCounts[post.id] ?: post.commentCount
+                    val uiLikeCount = likeCounts[post.id] ?: post.likeCount
 
                     Column {
                         FreeBoardItem(
                             post = post,
-                            commentCount = liveCommentCount,
-                            likeCount = count,
-                            isLiked = isLiked,
+                            commentCount = uiCommentCount,
+                            likeCount = uiLikeCount,
+                            isLiked = post.liked,
                             onClick = { onClickPost(post.id) },
                             onLikeClick = { vm?.toggleLike(post.id.toLong()) }
                         )

@@ -26,6 +26,7 @@ import com.example.byeoldori.domain.Community.EduProgram
 import com.example.byeoldori.domain.Content
 import com.example.byeoldori.domain.Observatory.Review
 import com.example.byeoldori.ui.components.community.freeboard.formatCreatedAt
+import com.example.byeoldori.viewmodel.CommentsViewModel
 import com.example.byeoldori.viewmodel.EducationViewModel
 import com.example.byeoldori.viewmodel.UiState
 import com.example.byeoldori.viewmodel.dummyProgramComments
@@ -38,7 +39,7 @@ fun EduProgram.asReview(): Review =
         author = author,
         rating = rating.toInt(),
         likeCount = likeCount,
-        commentCount = dummyProgramComments.count { it.reviewId == id },
+        commentCount = commentCount,
         profile = R.drawable.profile1,
         viewCount = viewCount,
         createdAt = formatCreatedAt(createdAt),
@@ -46,10 +47,9 @@ fun EduProgram.asReview(): Review =
         site = "",
         date = "",
         equipment = "",
-        startTime = "",
-        endTime = "",
         siteScore = 0,
-        contentItems =  contentItems
+        contentItems =  contentItems,
+        liked = liked
     )
 
 
@@ -64,7 +64,8 @@ fun EducationResponse.toEduProgram(): EduProgram {
         viewCount = viewCount,
         profile = R.drawable.profile1,
         createdAt = formatCreatedAt(createdAt),
-        contentItems = listOf(Content.Text(contentSummary.orEmpty()))
+        contentItems = listOf(Content.Text(contentSummary.orEmpty())),
+        liked = liked
     )
 }
 
@@ -78,14 +79,15 @@ fun EduProgramSection(
     eduProgramsAll: List<EduProgram>,
     onWriteClick: () -> Unit = {},
     onClickProgram: (String) -> Unit = {},
-    vm: EducationViewModel = hiltViewModel()
+    vm: EducationViewModel = hiltViewModel(),
+    commentsVm: CommentsViewModel
 ) {
     var searchText by remember { mutableStateOf("") } //초기값이 빈 문자열인 변할 수 있는 상태 객체
-    var sort by remember { mutableStateOf(EduProgramSort.Latest) }
     val gridState = rememberLazyGridState()
 
     val state by vm.postsState.collectAsState()
     val currentSort by vm.sort.collectAsState()
+    val counts by commentsVm.commentCounts.collectAsState()
 
     val uiSort = when (currentSort) {
         SortBy.LATEST -> EduProgramSort.Latest
@@ -94,12 +96,17 @@ fun EduProgramSection(
     }
 
     // API 응답을 EduProgram으로 매핑
-    val apiList by remember(state) {
+    val apiList by remember(state, counts) {
         mutableStateOf(
             when (state) {
                 is UiState.Success ->
                     (state as UiState.Success<List<EducationResponse>>)
-                        .data.map { it.toEduProgram() }
+                        .data
+                        .map { it.toEduProgram() }
+                        .map { p ->
+                            // 동일 id면 즉시 카운트 override
+                            p.copy(commentCount = counts[p.id] ?: p.commentCount)
+                        }
                 else -> emptyList()
             }
         )
@@ -183,7 +190,13 @@ fun EduProgramSection(
                                 Modifier
                                     .clickable { onClickProgram(program.id) }
                             ) {
-                                ReviewCard(review = program.asReview())
+                                ReviewCard(
+                                    review = program.asReview(),
+                                    onToggleLike = {
+                                        // 서버 토글 + VM 상태 갱신 → 재조합되며 liked/likeCount 반영
+                                        vm.toggleLike(program.id.toLong())
+                                    }
+                                )
                             }
                         }
                         item { Spacer(Modifier.height(60.dp)) }
@@ -237,14 +250,17 @@ private fun Preview_EduProgramSection_Default() {
                     createdAt = "25.10${29-1}", //String으로 변환
                     contentItems = listOf(
                        Content.Text("이 강의는 망원경 기초와 관측 매너를 다룹니다.")
-                    )
+                    ),
+                    liked = i % 3 == 0
                 )
             }
         }
         EduProgramSection(
             eduProgramsAll = dummy,
             onWriteClick = {},
-            onClickProgram = {}
+            onClickProgram = {},
+            vm = hiltViewModel(),
+            commentsVm = hiltViewModel()
         )
     }
 }
