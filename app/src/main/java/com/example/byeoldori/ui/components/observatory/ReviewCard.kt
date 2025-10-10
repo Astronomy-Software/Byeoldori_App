@@ -32,7 +32,8 @@ fun ReviewSection(
     reviews: List<Review>,
     modifier: Modifier = Modifier,
     onSyncReviewLikeCount: (id: String, next: Int) -> Unit,
-    onReviewClick: (Review) -> Unit //리뷰 객체 넘기기
+    onReviewClick: (Review) -> Unit, //리뷰 객체 넘기기
+    onToggleLike: (Review) -> Unit
 ) {
     // ----- 페이징 상태 -----
     val pageSize = 4
@@ -102,7 +103,7 @@ fun ReviewSection(
                             .fillMaxWidth()
                             .clickable { onReviewClick(review) },
                         onSyncLikeCount = { next -> onSyncReviewLikeCount(review.id, next) }, // 상위로 전파
-                        //onToggleLike = { review.id.toLongOrNull()?.let { vm.toggleLike(it) } }
+                        onToggleLike = { onToggleLike(review) }
                     )
                 }
             }
@@ -258,7 +259,8 @@ private fun Preview_ReviewSection_Grid() {
                     val idx = dummyReviews.indexOfFirst { it.id == id }
                     if (idx >= 0) dummyReviews[idx] = dummyReviews[idx].copy(likeCount = next)
                 },
-                onReviewClick = {}
+                onReviewClick = {},
+                onToggleLike = {}
             )
         }
     }

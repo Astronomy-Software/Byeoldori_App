@@ -11,6 +11,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.*
 import androidx.compose.ui.unit.*
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.byeoldori.data.model.dto.ReviewDetailResponse
 import com.example.byeoldori.data.model.dto.ReviewResponse
 import com.example.byeoldori.domain.Observatory.MarkerInfo
@@ -18,6 +19,8 @@ import com.example.byeoldori.domain.Observatory.Review
 import com.example.byeoldori.ui.components.community.review.ReviewDetail
 import com.example.byeoldori.ui.components.observatory.*
 import com.example.byeoldori.ui.theme.*
+import com.example.byeoldori.viewmodel.Community.CommentsViewModel
+import com.example.byeoldori.viewmodel.Community.ReviewViewModel
 import com.example.byeoldori.viewmodel.Observatory.*
 import com.naver.maps.geometry.LatLng
 import kotlinx.coroutines.launch
@@ -63,6 +66,8 @@ fun ObservatoryScreen(
     var detailReview by rememberSaveable { mutableStateOf<Review?>(null) }
     var detailApiPost by rememberSaveable { mutableStateOf<ReviewResponse?>(null) }
     var detailApiDetail by rememberSaveable { mutableStateOf<ReviewDetailResponse?>(null) }
+    val vm: ReviewViewModel = hiltViewModel()
+    val commentsVm: CommentsViewModel = hiltViewModel()
 
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
@@ -79,6 +84,8 @@ fun ObservatoryScreen(
                     apiPost = detailApiPost,
                     apiDetail = detailApiDetail,
                     currentUser = "하이",
+                    vm = vm,
+                    commentsVm = commentsVm,
                     onSyncReviewLikeCount = { _,_,_ -> },
                     onBack = {
                         // 디테일 닫고 원래 카드로
@@ -107,7 +114,8 @@ fun ObservatoryScreen(
                         detailApiPost = apiPost
                         detailApiDetail = apiDetail
                         scope.launch { sheetState.expand() } // 풀스크린 느낌
-                    }
+                    },
+                    commentsVm = commentsVm
                 )
             } else {
                 // 없으면 기본 텍스트를 표시

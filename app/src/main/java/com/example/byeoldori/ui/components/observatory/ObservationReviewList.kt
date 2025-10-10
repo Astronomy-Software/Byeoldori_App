@@ -11,6 +11,7 @@ import com.example.byeoldori.data.model.dto.ReviewResponse
 import com.example.byeoldori.domain.Observatory.Review
 import com.example.byeoldori.ui.components.community.review.toReview
 import com.example.byeoldori.ui.theme.*
+import com.example.byeoldori.viewmodel.Community.CommentsViewModel
 import com.example.byeoldori.viewmodel.Community.ReviewViewModel
 import com.example.byeoldori.viewmodel.UiState
 
@@ -19,7 +20,8 @@ import com.example.byeoldori.viewmodel.UiState
 fun ObservationReviewList(
     siteId: Long,
     vm: ReviewViewModel = hiltViewModel(),
-    onReviewClick: (Triple<Review, ReviewResponse?, ReviewDetailResponse?>) -> Unit
+    onReviewClick: (Triple<Review, ReviewResponse?, ReviewDetailResponse?>) -> Unit,
+    commentsVm: CommentsViewModel = hiltViewModel()
 ) {
     val postState by vm.postsState.collectAsState()
     val allReviews = when(postState) {
@@ -29,6 +31,11 @@ fun ObservationReviewList(
 
     val siteReviews = remember(allReviews, siteId) {
         allReviews.filter { it.observationSiteId == siteId }.map { it.toReview() }
+    }
+
+    val commentCounts by commentsVm.commentCounts.collectAsState()
+    val siteUi = remember(siteReviews, commentCounts) {
+        siteReviews.map { r -> r.copy(commentCount = commentCounts[r.id] ?: r.commentCount) }
     }
 
     var pending by remember { mutableStateOf<Pair<Review, ReviewResponse?>?>(null) }
@@ -43,20 +50,24 @@ fun ObservationReviewList(
         }
     }
 
-    if(siteReviews.isEmpty()) {
+    if(siteUi.isEmpty()) {
         Text("해당 관측지에서 진행한 후기", color = TextHighlight)
         Spacer(Modifier.height(10.dp))
         Text("아직 관측 후기가 없습니다", color = TextDisabled)
     } else {
         ReviewSection(
             title = "해당 관측지에서 진행한 관측후기",
-            reviews = siteReviews,
-            onSyncReviewLikeCount = { id, next -> /* 필요시 상위 동기화 */ },
+            reviews = siteUi,
+            onSyncReviewLikeCount =  { _, _ -> },
             onReviewClick = { clickedUi ->
                 val id = clickedUi.id.toLongOrNull() ?: return@ReviewSection
-                val apiPost = allReviews.firstOrNull { it.id == id }
-                pending = clickedUi to apiPost
+                pending = clickedUi to allReviews.firstOrNull { it.id == id }
                 vm.loadReviewDetail(id)
+            },
+            onToggleLike = { clickedUi ->
+                clickedUi.id.toLongOrNull()?.let { pid ->
+                    vm.toggleLike(pid) { /* 서버 성공 시 VM이 posts/detail 상태 갱신 */ }
+                }
             }
         )
     }

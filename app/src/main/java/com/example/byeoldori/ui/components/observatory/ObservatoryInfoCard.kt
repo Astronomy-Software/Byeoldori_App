@@ -14,6 +14,7 @@ import com.example.byeoldori.data.model.dto.ReviewDetailResponse
 import com.example.byeoldori.data.model.dto.ReviewResponse
 import com.example.byeoldori.domain.Observatory.*
 import com.example.byeoldori.ui.theme.*
+import com.example.byeoldori.viewmodel.Community.CommentsViewModel
 import com.example.byeoldori.viewmodel.dummyReviews
 
 private const val TAG_CARD = "ObservatoryCard"
@@ -32,7 +33,8 @@ fun ObservatoryInfoCard(
     listState: LazyListState,
     currentLat: Double? = null,
     currentLon: Double? = null,
-    onReviewClick: (Triple<Review, ReviewResponse?, ReviewDetailResponse?>) -> Unit
+    onReviewClick: (Triple<Review, ReviewResponse?, ReviewDetailResponse?>) -> Unit,
+    commentsVm: CommentsViewModel? = null
 ) {
     Card(
         modifier = modifier
@@ -94,9 +96,11 @@ fun ObservatoryInfoCard(
                 item {
                     val siteId = info.observationSiteId
                     if(siteId != null) {
+                        val providedCommentsVm = commentsVm ?: androidx.hilt.navigation.compose.hiltViewModel<CommentsViewModel>()
                         ObservationReviewList(
                             siteId = siteId,
-                            onReviewClick = onReviewClick
+                            onReviewClick = onReviewClick,
+                            commentsVm = providedCommentsVm
                         )
                     } else {
                         Text("이 관측지는 아직 등록되지 않았습니다. ",color = TextHighlight)
