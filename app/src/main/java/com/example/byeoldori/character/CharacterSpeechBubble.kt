@@ -165,6 +165,7 @@ fun EditableSpeechBubbleDemo() {
     }
 }
 
+@Preview(showBackground = true, widthDp = 400, heightDp = 600)
 @Composable
 fun SpeechBubbleTestScreen() {
     var inputText by remember { mutableStateOf("여기에 텍스트 입력!") }
@@ -218,13 +219,5 @@ fun SpeechBubbleTestScreen() {
                 .align(Alignment.BottomEnd)
                 .padding(16.dp)
         )
-    }
-}
-
-@Preview(showBackground = true, widthDp = 400, heightDp = 600)
-@Composable
-fun SpeechBubbleTestPreview() {
-    MaterialTheme {
-        SpeechBubbleTestScreen()
     }
 }

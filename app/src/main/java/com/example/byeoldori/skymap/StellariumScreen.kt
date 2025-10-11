@@ -55,8 +55,8 @@ fun StellariumScreen() {
 }
 
 /**
- * ✅ NanoHTTPD 기반 로컬 서버
- * assets/StellariumServer 폴더를 http://localhost:9999/ 로 서빙
+ * NanoHTTPD 기반 로컬 서버
+ * assets/StellariumServer 폴더를 http://localhost:14204/ 로 서빙
  */
 class LocalWebServer(
     private val appContext: Context,
@@ -76,7 +76,6 @@ class LocalWebServer(
             val mimeType = getMimeType(assetPath)
             newChunkedResponse(Response.Status.OK, mimeType, inputStream)
         } catch (e: Exception) {
-            // 404 응답
             newFixedLengthResponse(
                 Response.Status.NOT_FOUND,
                 "text/plain",

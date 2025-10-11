@@ -2,21 +2,25 @@ package com.example.byeoldori.ui.screen
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.example.byeoldori.R
-import kotlinx.coroutines.delay
 
-// 이거 초기 임시화면임
 @Composable
 fun SplashScreen(onSplashFinished: () -> Unit) {
     LaunchedEffect(Unit) {
-        delay(2000) // 2초 후 splash 종료
+        // 실제 초기화 로직 추가 지점
+        // TODO : 앱 초기화 내용들 들어가야함
+        // TODO : Stellrarium 서버 띄우기
+        // TODO : Live2D 캐릭터 렌더링 추가
         onSplashFinished()
     }
 
