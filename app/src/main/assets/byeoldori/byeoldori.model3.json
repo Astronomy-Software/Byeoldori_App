@@ -9,25 +9,37 @@
 		"Motions": {
 			"Idle": [
 				{
+					"File": "motion/standing.motion3.json"
+				}
+			],
+			"Angry": [
+				{
 					"File": "motion/angry.motion3.json"
-				},
-				{
-					"File": "motion/bye~.motion3.json"
-				},
-				{
-					"File": "motion/crying.motion3.json"
-				},
+				}
+			],
+			"Happy": [
 				{
 					"File": "motion/happy.motion3.json"
-				},
+				}
+			],
+			"Crying": [
+				{
+					"File": "motion/crying.motion3.json"
+				}
+			],
+			"Her": [
 				{
 					"File": "motion/her.motion3.json"
-				},
+				}
+			],
+			"Appearance": [
 				{
 					"File": "motion/new dududunga.motion3.json"
-				},
+				}
+			],
+			"Exit": [
 				{
-					"File": "motion/standing.motion3.json"
+					"File": "motion/bye~.motion3.json"
 				}
 			]
 		}
