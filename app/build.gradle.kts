@@ -1,4 +1,3 @@
-
 import java.io.FileInputStream
 import java.util.Properties
 
@@ -20,9 +19,6 @@ fun prop(key: String, default: String? = null): String {
     val v = localProperties.getProperty(key) ?: default
     return requireNotNull(v) { "Missing '$key' in local.properties" }
 }
-
-fun withTrailingSlash(url: String) =
-    if (url.endsWith("/")) url else "$url/"
 
 android {
     namespace = "com.example.byeoldori"
@@ -52,19 +48,13 @@ android {
         kotlinCompilerExtensionVersion = libs.versions.composeCompiler.get()
     }
 
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_21
-        targetCompatibility = JavaVersion.VERSION_21
-    }
-    kotlinOptions { jvmTarget = "21" }
-
     buildTypes {
         debug {
-            val base = withTrailingSlash(prop("BASE_URL_DEBUG", "http://10.0.2.2:8080/"))
+            val base = prop("BASE_URL_DEBUG", "http://10.0.2.2:8080/")
             buildConfigField("String", "BASE_URL", "\"$base\"")
         }
         release {
-            val base = withTrailingSlash(prop("BASE_URL_RELEASE", "https://api.example.com/"))
+            val base = prop("BASE_URL_RELEASE", "https://api.example.com/")
             buildConfigField("String", "BASE_URL", "\"$base\"")
             isMinifyEnabled = true
         }
@@ -93,7 +83,7 @@ dependencies {
     implementation(libs.converter.moshi)
     implementation(libs.okhttp)
     implementation(libs.logging.interceptor)
-//    implementation(libs.moshi.kotlin)
+
     // 네이버 맵 - 공식, compose
     implementation(libs.map.sdk)
     implementation(libs.naver.map.compose)
@@ -111,14 +101,11 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.datastore.preferences)
     implementation(libs.androidx.webkit)
-    implementation("org.nanohttpd:nanohttpd:2.3.1")
-
+    implementation(libs.nanohttpd)
 
     // ✅ Moshi는 계속 KSP 사용
     ksp(libs.moshi.kotlin.codegen)
     ksp(libs.hilt.compiler)
-
-    debugImplementation(libs.ui.tooling)
 
     // 테스트
     testImplementation(platform(libs.compose.bom))

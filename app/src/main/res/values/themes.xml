@@ -4,11 +4,8 @@
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:windowLightStatusBar">false</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
-
         <item name="windowNoTitle">true</item>
         <item name="windowActionBar">false</item>
-
-        <!-- ✅ 앱 가장 첫 장면을 블랙으로 처리 -->
         <item name="android:windowBackground">@android:color/black</item>
     </style>
 </resources>

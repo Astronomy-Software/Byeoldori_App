@@ -122,6 +122,16 @@
 			"Name": "발"
 		},
 		{
+			"Id": "Param35",
+			"GroupId": "ParamGroup3",
+			"Name": "귀Y"
+		},
+		{
+			"Id": "Param36",
+			"GroupId": "ParamGroup3",
+			"Name": "귀X"
+		},
+		{
 			"Id": "Param17",
 			"GroupId": "ParamGroup4",
 			"Name": "별"
@@ -152,19 +162,24 @@
 			"Name": "대기"
 		},
 		{
-			"Id": "Param23",
-			"GroupId": "",
-			"Name": "등장"
-		},
-		{
 			"Id": "Param30",
 			"GroupId": "",
 			"Name": "짬푸"
 		},
 		{
+			"Id": "Param34",
+			"GroupId": "",
+			"Name": "물음표"
+		},
+		{
+			"Id": "Param23",
+			"GroupId": "",
+			"Name": "헬멧 움직임Y"
+		},
+		{
 			"Id": "Param25",
 			"GroupId": "",
-			"Name": "퇴장"
+			"Name": "헬멧 움직임x"
 		}
 	],
 	"ParameterGroups": [
@@ -190,6 +205,10 @@
 		}
 	],
 	"Parts": [
+		{
+			"Id": "Part9",
+			"Name": "일러스트3 2.psd"
+		},
 		{
 			"Id": "Part",
 			"Name": "화남부속품"
@@ -251,6 +270,14 @@
 		[
 			"Param2",
 			"Param3"
+		],
+		[
+			"Param35",
+			"Param36"
+		],
+		[
+			"Param23",
+			"Param25"
 		]
 	]
 }
