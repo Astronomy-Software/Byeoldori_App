@@ -1,6 +1,5 @@
-package com.example.byeoldori.viewmodel
+package com.example.byeoldori.viewmodel.Community
 
-import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.example.byeoldori.data.model.dto.LikeToggleResponse
@@ -8,6 +7,8 @@ import com.example.byeoldori.data.model.dto.ReviewDetailResponse
 import com.example.byeoldori.data.model.dto.ReviewResponse
 import com.example.byeoldori.data.model.dto.SortBy
 import com.example.byeoldori.data.repository.ReviewRepository
+import com.example.byeoldori.viewmodel.BaseViewModel
+import com.example.byeoldori.viewmodel.UiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -53,10 +54,10 @@ class ReviewViewModel @Inject constructor(
     private val _scores = MutableStateFlow<Map<String, Int>>(emptyMap())
     val scores: StateFlow<Map<String, Int>> = _scores
 
+    private val _siteStats = MutableStateFlow<ReviewRepository.SiteInfo?>(null)
+    val siteStats: StateFlow<ReviewRepository.SiteInfo?> = _siteStats
 
-    init {
-        loadPosts()
-    }
+    init { loadPosts() }
 
     fun loadPosts() = viewModelScope.launch {
         _postsState.value = UiState.Loading
@@ -75,7 +76,6 @@ class ReviewViewModel @Inject constructor(
         loadPosts()
     }
     fun selectPost(id: String) { _selectedPostId.value = id }
-    fun clearSelection() { _selectedPostId.value = null }
 
     val selectedPost: StateFlow<ReviewResponse?> =
         combine(postsState, selectedPostId) { state, id ->
@@ -158,7 +158,6 @@ class ReviewViewModel @Inject constructor(
                     onResult(res)
 
                     // 목록 갱신: p.id가 Int면 toLong()해서 비교
-
                     val cur = _postsState.value
                     if (cur is UiState.Success) {
                         val updated = cur.data.map { p ->
@@ -183,4 +182,16 @@ class ReviewViewModel @Inject constructor(
         }
     }
 
+    suspend fun getSiteInfo(siteId: Long) = repo.getSiteInfo(siteId)
+
+    suspend fun loadSiteInfo(siteId: Long) { _siteStats.value = getSiteInfo(siteId) }
+
+    suspend fun clearSiteInfo() { _siteStats.value = null } //관측지 변경 시 상태 초기화
+
+    fun applyLikeDelta(likedNow: Boolean) {
+        val delta = if (likedNow) 1 else -1
+        _siteStats.update { curr ->
+            curr?.copy(likeCount = (curr.likeCount + delta).coerceAtLeast(0))
+        }
+    }
 }

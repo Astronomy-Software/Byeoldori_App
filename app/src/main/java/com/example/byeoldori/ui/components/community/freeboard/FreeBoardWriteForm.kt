@@ -13,13 +13,12 @@ import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
-import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.byeoldori.R
 import com.example.byeoldori.domain.Community.FreePost
 import com.example.byeoldori.ui.components.community.*
 import com.example.byeoldori.ui.components.community.review.*
 import com.example.byeoldori.ui.mapper.toUi
 import com.example.byeoldori.viewmodel.*
+import com.example.byeoldori.viewmodel.Community.CommunityViewModel
 
 @Composable
 fun FreeBoardWriteForm (

@@ -20,6 +20,8 @@ import com.example.byeoldori.domain.Community.FreePost
 import com.example.byeoldori.domain.Content
 import com.example.byeoldori.domain.Observatory.Review
 import com.example.byeoldori.viewmodel.*
+import com.example.byeoldori.viewmodel.Community.CommentsViewModel
+import com.example.byeoldori.viewmodel.Community.CommunityViewModel
 import java.time.LocalDateTime
 import java.time.format.*
 

@@ -13,15 +13,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.byeoldori.R
 import com.example.byeoldori.ui.components.community.*
 import com.example.byeoldori.domain.Observatory.Review
-import com.example.byeoldori.ui.mapper.toDomain
-import com.example.byeoldori.viewmodel.ReviewViewModel
+import com.example.byeoldori.viewmodel.Community.ReviewViewModel
 import com.example.byeoldori.viewmodel.UiState
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import java.util.UUID
 
 @Composable
 fun ReviewWriteForm(

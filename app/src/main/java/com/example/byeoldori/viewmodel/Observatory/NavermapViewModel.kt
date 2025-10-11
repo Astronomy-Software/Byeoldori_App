@@ -1,12 +1,16 @@
-package com.example.byeoldori.viewmodel
+package com.example.byeoldori.viewmodel.Observatory
 
 import androidx.lifecycle.ViewModel
+import com.example.byeoldori.data.repository.NavermapRepository
 import com.naver.maps.geometry.LatLng
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.*
+import javax.inject.Inject
 
-class NaverMapViewModel: ViewModel() {
+@HiltViewModel
+class NaverMapViewModel @Inject constructor(
+    private val repo: NavermapRepository
+) : ViewModel() {
 
     private val _selectedLatLng = MutableStateFlow<LatLng?>(null)
     val selectedLatLng: StateFlow<LatLng?> = _selectedLatLng.asStateFlow()
@@ -20,5 +24,9 @@ class NaverMapViewModel: ViewModel() {
 
     fun updateSelectedAddress(address: String) {
         _selectedAddress.value = address
+    }
+
+    suspend fun reverseAddressRoad(lat: Double, lon: Double): String {
+        return repo.reverseAddressRoad(lat, lon)
     }
 }

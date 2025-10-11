@@ -20,6 +20,7 @@ data class ReviewDto(
     val score: Int
 )
 
+//타입별 조회
 @JsonClass(generateAdapter = true)
 data class ReviewResponse(
     val id: Long,
@@ -32,7 +33,9 @@ data class ReviewResponse(
     val likeCount: Int,
     val commentCount: Int,
     val createdAt: String,
-    val liked: Boolean
+    val liked: Boolean,
+    val score: Int? = null,
+    val observationSiteId: Long? = null,
 )
 
 @JsonClass(generateAdapter = true)

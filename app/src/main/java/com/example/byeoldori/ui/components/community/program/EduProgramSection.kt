@@ -11,14 +11,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.byeoldori.R
 import com.example.byeoldori.data.model.dto.EducationResponse
 import com.example.byeoldori.data.model.dto.SortBy
-import com.example.byeoldori.ui.components.community.EditorItem
 import com.example.byeoldori.ui.components.community.SortBar
 import com.example.byeoldori.ui.components.observatory.ReviewCard
 import com.example.byeoldori.ui.theme.*
@@ -26,10 +24,9 @@ import com.example.byeoldori.domain.Community.EduProgram
 import com.example.byeoldori.domain.Content
 import com.example.byeoldori.domain.Observatory.Review
 import com.example.byeoldori.ui.components.community.freeboard.formatCreatedAt
-import com.example.byeoldori.viewmodel.CommentsViewModel
-import com.example.byeoldori.viewmodel.EducationViewModel
+import com.example.byeoldori.viewmodel.Community.CommentsViewModel
+import com.example.byeoldori.viewmodel.Community.EducationViewModel
 import com.example.byeoldori.viewmodel.UiState
-import com.example.byeoldori.viewmodel.dummyProgramComments
 
 // EduProgram → Review 변환 (임시 어댑터)
 fun EduProgram.asReview(): Review =

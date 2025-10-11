@@ -29,7 +29,6 @@ fun WeatherDailyPanel(
 ) {
     val dailyState by viewModel.daily.collectAsState() //Compose State로 변환
 
-    // 최초 진입 시 우암산 좌표로 불러오기
     LaunchedEffect(lat, lon) {
         viewModel.getDaily(lat, lon)  // ← 좌표 기반 API 호출
     }
@@ -120,7 +119,7 @@ fun DailyForecastRow(forecast: DailyForecast) {
         // 관측 적합도
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text("관측 적합도", color = TextHighlight, fontSize = 12.sp)
-            Text(forecast.suitability.toPercent(), color = Color(0xFF75FF75), fontSize = 16.sp)
+            Text(forecast.suitability.toPercent(), color = suitabilityColor(forecast.suitability), fontSize = 16.sp)
         }
     }
 }

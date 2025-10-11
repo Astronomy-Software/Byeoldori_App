@@ -96,20 +96,33 @@ class ReviewRepository @Inject constructor(
         }
     }
 
-    //타입별 조회에서의 좋아요
-    fun applyLikeToList(
-        list: List<ReviewResponse>,
-        postId: Long,
-        liked: Boolean,
-        likeCount: Int
-    ): List<ReviewResponse> =
-        list.map { it.takeIf { r -> r.id != postId } ?: it.copy(liked = liked, likeCount = likeCount)
-        }
-
     //상세조회에서의 좋아요
     fun applyLikeToDetail(
         detail: ReviewDetailResponse,
         liked: Boolean,
         likeCount: Int
     ): ReviewDetailResponse = detail.copy(liked = liked, likeCount = likeCount)
+
+    //관측지에서의 관측지 정보
+    data class SiteInfo (
+        val reviewCount: Int,
+        val likeCount: Int,
+        val avgRating: Float
+    )
+
+    suspend fun getReviewBySite(siteId: Long): List<ReviewResponse> {
+        val all = getAllReviews(sortBy = SortBy.LATEST)
+        return all.filter { it.observationSiteId == siteId }
+    }
+
+    //관측지 리뷰의 리뷰수, 좋아요수, 평점 수 계산
+    suspend fun getSiteInfo(siteId: Long) : SiteInfo {
+        val reviews = getReviewBySite(siteId)
+        val count = reviews.size
+        val likeSum = reviews.sumOf { it.likeCount }
+        val avgRating =
+            if(count > 0) reviews.mapNotNull { it.score }.average().toFloat()
+            else 0f
+        return SiteInfo(count, likeSum, avgRating)
+    }
 }

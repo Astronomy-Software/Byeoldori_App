@@ -12,18 +12,20 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.app.ActivityCompat
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.byeoldori.R
 import com.example.byeoldori.data.model.dto.ObservationSite
-import com.example.byeoldori.domain.Observatory.MarkerInfo
-import com.example.byeoldori.domain.Observatory.ObservatoryType
+import com.example.byeoldori.data.repository.ReviewRepository
+import com.example.byeoldori.domain.Observatory.*
 import com.example.byeoldori.ui.components.observatory.CurrentLocationButton
-import com.example.byeoldori.viewmodel.NaverMapViewModel
+import com.example.byeoldori.viewmodel.Community.ReviewViewModel
 import com.google.android.gms.location.LocationServices
 import com.naver.maps.geometry.LatLng
 import com.naver.maps.map.*
 import com.naver.maps.map.overlay.*
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Locale
@@ -33,7 +35,7 @@ private const val TAG_UI = "NavermapUI"
 @Composable
 fun NaverMapWithSearchUI(
     modifier: Modifier = Modifier,
-    viewModel: NaverMapViewModel = viewModel(),
+    viewModel: NaverMapViewModel = hiltViewModel(),
     searchQuery: String,
     onSearchRequested: (String)->Unit,
     onLatLngUpdated: (LatLng)->Unit,
@@ -58,6 +60,7 @@ fun NaverMapWithSearchUI(
     val userMarker = remember { Marker() }
     var userMarkerPlaced by remember { mutableStateOf(false) }
     val markers = remember { mutableStateListOf<Marker>() }
+    val reviewVm: ReviewViewModel = hiltViewModel()
 
     LaunchedEffect(showOverlay) {
         naverMapObj?.let { map -> //naverMapObj가 있는 경우만 동작
@@ -87,16 +90,20 @@ fun NaverMapWithSearchUI(
                 searchAndMoveToLocation(
                     context, searchQuery, naverMap, mapView, selectedMarker,
                     onMarkerUpdated = { marker ->
+                        selectedMarker?.map = null
                         selectedMarker?.setIconTintColor(Color.BLACK)
-                        marker.setIconTintColor(Color.RED)
                         selectedMarker = marker
                     },
-                    onAddressUpdated = { viewModel.updateSelectedAddress(it) },
-                    onLatLngUpdated = { viewModel.updateSelectedLatLng(it) }
+                    onLatLngUpdated = onLatLngUpdated,
+                    onAddressUpdated = onAddressUpdated,
+                    onMarkerClick = { info ->
+                        onMarkerClick(info)
+                    }
                 )
             }
         }
     }
+
     DisposableEffect(Unit) {
         mapView.onCreate(null)
         mapView.onStart()
@@ -147,13 +154,15 @@ fun NaverMapWithSearchUI(
                                         userMarker.position = LatLng(lat, lon)
                                         userMarker.map = naverMap
                                         userMarkerPlaced = true
+                                        userMarker.setIconTintColor(android.graphics.Color.RED)
 
+                                        //이건 사용자의 현재위치 부분
                                         userMarker.setOnClickListener {
                                             val clicked = userMarker.position
                                             scope.launch {
                                                 val addr = withContext(Dispatchers.IO) {
                                                     try {
-                                                        val road = reverseAddressRoadNaver(clicked.latitude, clicked.longitude)
+                                                        val road = viewModel.reverseAddressRoad(clicked.latitude, clicked.longitude)
                                                         if (road.isNotBlank()) road
                                                         else getAddressFromLatLng(geocoder, clicked.latitude, clicked.longitude)
                                                     } catch (e: Exception) {
@@ -161,6 +170,42 @@ fun NaverMapWithSearchUI(
                                                         "주소를 불러오지 못했습니다."
                                                     }
                                                 }
+
+                                                //괄호 안 주소먼저 출력
+                                                val firstName = Regex("\\(([^)]+)\\)")
+                                                    .find(addr)
+                                                    ?.groupValues?.get(1)
+                                                    ?.trim()
+
+                                                // 괄호가 없으면, 뒤쪽 3~4단어 추출
+                                                val secondName = if (firstName == null) {
+                                                    val parts = addr.split(" ")
+                                                    // ‘도, 시, 구, 군’으로 끝나는 행정단위 이후만 표시
+                                                    val idx = parts.indexOfLast { it.endsWith("구") || it.endsWith("군") || it.endsWith("시") }
+                                                    parts.drop(idx + 1) // 뒤쪽 단어들만 남김
+                                                        .takeLast(4) // 너무 길면 마지막 4단어까지만
+                                                        .joinToString(" ")
+                                                        .ifBlank { "선택한 위치" }
+                                                } else null
+
+                                                val selectedName = firstName ?: secondName ?: "선택한 위치"
+
+                                                onMarkerClick(
+                                                    MarkerInfo(
+                                                        name = selectedName,                 // ex) "충북대학교병원" 또는 "오동동 토성로 424번길 23"
+                                                        type = ObservatoryType.GENERAL,
+                                                        address = addr,
+                                                        drawableRes = R.drawable.img_dummy,
+                                                        reviewCount = 0,
+                                                        likeCount = 0,
+                                                        rating = 0f,
+                                                        suitability = 0,  // 현재는 더미. 추후 날씨 API 연동 가능
+                                                        latitude = clicked.latitude,
+                                                        longitude = clicked.longitude,
+                                                        observationSiteId = null
+                                                    )
+                                                )
+
                                                 onLatLngUpdated(clicked)
                                                 onAddressUpdated(addr)
                                             }
@@ -172,6 +217,8 @@ fun NaverMapWithSearchUI(
                                 }
                             }
                         }
+
+                        //마커 추가(이 부분은 아무곳 클릭할 때 생기는 마커)
                         naverMap.setOnMapClickListener { _, clickLatLng ->
                             val marker = selectedMarker ?: Marker().also { selectedMarker = it }
                             marker.apply {
@@ -183,7 +230,7 @@ fun NaverMapWithSearchUI(
                                     scope.launch {
                                         val addr = withContext(Dispatchers.IO) {
                                             try {
-                                                val road = reverseAddressRoadNaver(p.latitude, p.longitude)
+                                                val road = viewModel.reverseAddressRoad(p.latitude, p.longitude)
                                                 if (road.isNotBlank()) road
                                                 else getAddressFromLatLng(geocoder, p.latitude, p.longitude)
                                             } catch (e: Exception) {
@@ -191,6 +238,40 @@ fun NaverMapWithSearchUI(
                                                 "주소를 불러오지 못했습니다."
                                             }
                                         }
+
+                                        //괄호 안 주소먼저 출력
+                                        val firstName = Regex("\\(([^)]+)\\)")
+                                            .find(addr)
+                                            ?.groupValues?.get(1)
+                                            ?.trim()
+
+                                        // 괄호가 없으면, 뒤쪽 3~4단어 추출
+                                        val secondName = if (firstName == null) {
+                                            val parts = addr.split(" ")
+                                            // ‘도, 시, 구, 군’으로 끝나는 행정단위 이후만 표시
+                                            val idx = parts.indexOfLast { it.endsWith("구") || it.endsWith("군") || it.endsWith("시") }
+                                            parts.drop(idx + 1) // 뒤쪽 단어들만 남김
+                                                .takeLast(4) // 너무 길면 마지막 4단어까지만
+                                                .joinToString(" ")
+                                                .ifBlank { "선택한 위치" }
+                                        } else null
+
+                                        val selectedName = firstName ?: secondName ?: "선택한 위치"
+
+                                        onMarkerClick(
+                                            MarkerInfo(
+                                                name = selectedName,
+                                                type = ObservatoryType.GENERAL,
+                                                address = addr,
+                                                drawableRes = R.drawable.img_dummy,
+                                                reviewCount = 0,
+                                                likeCount = 0,
+                                                rating = 0f,
+                                                suitability = 0,
+                                                latitude = p.latitude,
+                                                longitude = p.longitude
+                                            )
+                                        )
                                         onLatLngUpdated(p)
                                         onAddressUpdated(addr)
                                     }
@@ -227,15 +308,30 @@ fun NaverMapWithSearchUI(
         markers.forEach { it.map = null }
         markers.clear()
 
-        // 새 마커 추가
+        //관측지별 통계 선조회
+        val statsMap: Map<Long, ReviewRepository.SiteInfo> = kotlinx.coroutines.coroutineScope {
+            sites.map { site -> //관측지마다 코루틴을 하나씩 띄워서
+                async(Dispatchers.IO) {
+                    val info = runCatching { reviewVm.getSiteInfo(site.id) } //서버에서 해당 관측지의 리뷰 통계 가져옴
+                        .getOrElse { ReviewRepository.SiteInfo(0, 0, 0f) }
+                    site.id to info
+                }
+            }.awaitAll().toMap() //async로 만든 모든 병렬 작업을 기다럈다가 리스트로 결과 수집 -> Map변환
+        }
+
+        // 새 마커 추가(이 부분은 일반 / 인기 관측지 로드)
         sites.forEach { site ->
+            val info = statsMap[site.id]
+            val popular = (info?.reviewCount ?: 0) >= 5
+            val iconRes = if (popular) R.drawable.ic_marker_b else R.drawable.ic_marker_p
+
             Marker().apply {
                 position = LatLng(site.latitude, site.longitude)
                 captionText = site.name
-                // 타입 정보가 아직 없으므로 기본 아이콘 사용(필요시 타입에 따라 분기)
-                icon = OverlayImage.fromResource(R.drawable.ic_marker_p)
+                icon = OverlayImage.fromResource(iconRes)
                 map = naverMap
 
+                val thisMarker = this
                 setOnClickListener {
                     // 클릭 시 주소 역지오코딩(비동기) → MarkerInfo로 콜백
                     scope.launch {
@@ -243,7 +339,7 @@ fun NaverMapWithSearchUI(
                             try {
                                 Log.d(TAG_UI, "Reverse geocoding start (Naver): ${site.name}")
 
-                                val road = reverseAddressRoadNaver(site.latitude, site.longitude)
+                                val road = viewModel.reverseAddressRoad(site.latitude, site.longitude)
                                 val result = if (road.isNotBlank()) {
                                     Log.d(TAG_UI, "Reverse geocoding success (Naver): $road")
                                     road
@@ -260,18 +356,37 @@ fun NaverMapWithSearchUI(
                                 "주소를 불러오지 못했습니다."
                             }
                         }
+                        val reviewInfo = withContext(Dispatchers.IO) {
+                            try {
+                                reviewVm.getSiteInfo(site.id)
+                            } catch (e: Exception) {
+                                Log.e(TAG_UI, "ReviewInfo failed: ${e.message}", e)
+                                ReviewRepository.SiteInfo(reviewCount = 0, likeCount = 0, avgRating = 0f)
+                            }
+                        }
+                        val newInfo = withContext(Dispatchers.IO) {
+                            runCatching { reviewVm.getSiteInfo(site.id) }
+                                .getOrElse { ReviewRepository.SiteInfo(0, 0, 0f) }
+                        }
+                        val newPopular = newInfo.reviewCount >= 5
+                        withContext(Dispatchers.Main) {
+                            thisMarker.icon = OverlayImage.fromResource(
+                                if (newPopular) R.drawable.ic_marker_b else R.drawable.ic_marker_p
+                            )
+                        }
                         onMarkerClick(
                             MarkerInfo(
                                 name = site.name,
-                                type = ObservatoryType.GENERAL, // 기본값
+                                type = if (newPopular) ObservatoryType.POPULAR else ObservatoryType.GENERAL,
                                 address = addr,
                                 drawableRes = R.drawable.img_dummy,
-                                reviewCount = 0,
-                                likeCount = 0,
-                                rating = 0f,
+                                reviewCount = reviewInfo.reviewCount,
+                                likeCount = reviewInfo.likeCount,
+                                rating = reviewInfo.avgRating,
                                 suitability = 0,
                                 latitude = site.latitude,
-                                longitude = site.longitude
+                                longitude = site.longitude,
+                                observationSiteId = site.id
                             )
                         )
                     }

@@ -24,6 +24,8 @@ import com.example.byeoldori.data.model.dto.*
 import com.example.byeoldori.domain.Observatory.Review
 import com.example.byeoldori.ui.mapper.toUi
 import com.example.byeoldori.viewmodel.*
+import com.example.byeoldori.viewmodel.Community.CommentsViewModel
+import com.example.byeoldori.viewmodel.Community.ReviewViewModel
 
 @Composable
 fun rememberIsImeVisible(): Boolean {
@@ -43,7 +45,8 @@ fun ReviewDetail(
     onSyncReviewLikeCount: (id: String, liked: Boolean, next: Int) -> Unit,
     apiDetail: ReviewDetailResponse? = null, // 서버에서 가져온 상세(요약/카운트)
     apiPost: ReviewResponse? = null,
-    vm: ReviewViewModel? = null
+    vm: ReviewViewModel? = null,
+    commentsVm: CommentsViewModel? = null
 ) {
     val imeVisible = rememberIsImeVisible()
     val tailRequester = remember { BringIntoViewRequester() } //키보드가 올라왔을 때 댓글창 숨어버리는 거 방지
@@ -58,19 +61,31 @@ fun ReviewDetail(
     var reviewLikeCount by rememberSaveable { mutableStateOf(review.likeCount) }
     var liked by rememberSaveable { mutableStateOf(apiPost?.liked ?: review.liked) }
 
-    val commentsVm: CommentsViewModel = hiltViewModel()
-    val commentsState by commentsVm.comments.collectAsState()
-    val commentCounts by commentsVm.commentCounts.collectAsState()
+    val isPreview = LocalInspectionMode.current
+    val commentsViewModel: CommentsViewModel? =
+        commentsVm ?: if (!isPreview) hiltViewModel() else null
+
+    val commentsState: UiState<List<ReviewComment>> by if (commentsViewModel != null) {
+        commentsViewModel.comments.collectAsState()
+    } else {
+        remember { mutableStateOf<UiState<List<ReviewComment>>>(UiState.Idle) }
+    }
+
+    val commentCounts: Map<String, Int> by if (commentsViewModel != null) {
+        commentsViewModel.commentCounts.collectAsState()
+    } else {
+        remember { mutableStateOf(emptyMap<String, Int>()) }
+    }
 
     val commentCountUi = commentCounts[review.id] ?: when (val s = commentsState) {
         is UiState.Success -> s.data.size
         else -> 0
     }
-
     val commentList: List<ReviewComment> = when (val s = commentsState) {
         is UiState.Success -> s.data
         else -> emptyList()
     }
+
     val myId: Long? = currentUser.toLongOrNull()
     val myNick: String? = if (myId == null) currentUser else null
 
@@ -90,7 +105,7 @@ fun ReviewDetail(
 
     //댓글 로드
     LaunchedEffect(review.id) {
-        commentsVm.start(review.id)  // 서버에서 page=0부터 불러옴
+        commentsViewModel?.start(review.id)  // 서버에서 page=0부터 불러옴
     }
 
     Scaffold(
@@ -153,7 +168,7 @@ fun ReviewDetail(
 
                     val parentIdStr = parent?.id
 
-                    commentsVm.submit(content = t, parentId = parentIdStr) {
+                    commentsViewModel?.submit(content = t, parentId = parentIdStr) {
                         // 성공 콜백: 입력/대댓글 모드 해제
                         input = ""
                         parent = null
@@ -275,7 +290,7 @@ fun ReviewDetail(
                     liked = commentList.filter { it.liked }.map { it.id }.toSet(),
                     onLike = { tapped ->
                         tapped.id.toLongOrNull()?.let { cid ->
-                            commentsVm.toggleLike(cid)
+                            commentsViewModel?.toggleLike(cid)
                         }
                     },
                     onLikedChange = {},

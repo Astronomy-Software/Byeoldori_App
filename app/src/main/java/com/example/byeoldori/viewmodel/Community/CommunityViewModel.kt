@@ -1,4 +1,4 @@
-package com.example.byeoldori.viewmodel
+package com.example.byeoldori.viewmodel.Community
 
 import android.net.Uri
 import android.util.Log
@@ -9,6 +9,8 @@ import com.example.byeoldori.data.model.dto.LikeToggleResponse
 import com.example.byeoldori.data.model.dto.SortBy
 import com.example.byeoldori.data.repository.FreeRepository
 import com.example.byeoldori.ui.components.community.likedKeyFree
+import com.example.byeoldori.viewmodel.BaseViewModel
+import com.example.byeoldori.viewmodel.UiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -112,7 +114,8 @@ class CommunityViewModel @Inject constructor(
             }
         }
     }
-    fun clearCreateState() { _createState.value = UiState.Idle }
+    fun clearCreateState() { _createState.value = UiState.Idle
+    }
 
     fun toggleLike(
         postId: Long,

@@ -19,7 +19,7 @@ import com.example.byeoldori.ui.components.community.program.asReview
 import com.example.byeoldori.ui.components.observatory.ReviewCard
 import com.example.byeoldori.ui.theme.*
 import com.example.byeoldori.domain.Observatory.Review
-import com.example.byeoldori.viewmodel.*
+import com.example.byeoldori.viewmodel.Community.CommentsViewModel
 import kotlinx.coroutines.launch
 
 @Composable
@@ -47,7 +47,6 @@ fun HomeSection(
                 Box(Modifier.clickable { onReviewClick(review) }) {
                     ReviewCard(
                         review = review,
-                        //commentCount = dummyReviewComments.count { it.reviewId == review.id },
                         commentCount = commentCounts[review.id] ?: review.commentCount,
                         onSyncLikeCount = { next ->
                             onSyncReviewLikeCount(review.id, next)
