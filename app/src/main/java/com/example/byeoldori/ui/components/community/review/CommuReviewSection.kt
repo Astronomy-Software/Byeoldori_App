@@ -45,7 +45,7 @@ fun ReviewResponse.toReview(): Review = Review(
     site = "",
     equipment = "",
     date = "",
-    rating = 0,
+    rating = score ?: 0,
     siteScore = 0,
     liked = liked
 )
@@ -59,8 +59,7 @@ fun CommuReviewSection(
     onWriteClick: () -> Unit = {},
     onReviewClick: (Review) -> Unit,
     onChangeSort: (SortBy) -> Unit = {},
-    onSyncReviewLike: (id: String, liked: Boolean, next: Int) -> Unit,
-    selectedSiteId: Long? = null
+    onSyncReviewLike: (id: String, liked: Boolean, next: Int) -> Unit
 ) {
     var searchText by remember { mutableStateOf("") } //초기값이 빈 문자열인 변할 수 있는 상태 객체
     var sort by remember { mutableStateOf(ReviewSort.Latest) }

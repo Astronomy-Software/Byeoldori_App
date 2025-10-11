@@ -15,13 +15,17 @@ import androidx.core.app.ActivityCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.byeoldori.R
 import com.example.byeoldori.data.model.dto.ObservationSite
+import com.example.byeoldori.data.repository.ReviewRepository
 import com.example.byeoldori.domain.Observatory.*
 import com.example.byeoldori.ui.components.observatory.CurrentLocationButton
+import com.example.byeoldori.viewmodel.Community.ReviewViewModel
 import com.google.android.gms.location.LocationServices
 import com.naver.maps.geometry.LatLng
 import com.naver.maps.map.*
 import com.naver.maps.map.overlay.*
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Locale
@@ -56,6 +60,7 @@ fun NaverMapWithSearchUI(
     val userMarker = remember { Marker() }
     var userMarkerPlaced by remember { mutableStateOf(false) }
     val markers = remember { mutableStateListOf<Marker>() }
+    val reviewVm: ReviewViewModel = hiltViewModel()
 
     LaunchedEffect(showOverlay) {
         naverMapObj?.let { map -> //naverMapObj가 있는 경우만 동작
@@ -303,15 +308,30 @@ fun NaverMapWithSearchUI(
         markers.forEach { it.map = null }
         markers.clear()
 
+        //관측지별 통계 선조회
+        val statsMap: Map<Long, ReviewRepository.SiteInfo> = kotlinx.coroutines.coroutineScope {
+            sites.map { site -> //관측지마다 코루틴을 하나씩 띄워서
+                async(Dispatchers.IO) {
+                    val info = runCatching { reviewVm.getSiteInfo(site.id) } //서버에서 해당 관측지의 리뷰 통계 가져옴
+                        .getOrElse { ReviewRepository.SiteInfo(0, 0, 0f) }
+                    site.id to info
+                }
+            }.awaitAll().toMap() //async로 만든 모든 병렬 작업을 기다럈다가 리스트로 결과 수집 -> Map변환
+        }
+
         // 새 마커 추가(이 부분은 일반 / 인기 관측지 로드)
         sites.forEach { site ->
+            val info = statsMap[site.id]
+            val popular = (info?.reviewCount ?: 0) >= 5
+            val iconRes = if (popular) R.drawable.ic_marker_b else R.drawable.ic_marker_p
+
             Marker().apply {
                 position = LatLng(site.latitude, site.longitude)
                 captionText = site.name
-                // 타입 정보가 아직 없으므로 기본 아이콘 사용(필요시 타입에 따라 분기)
-                icon = OverlayImage.fromResource(R.drawable.ic_marker_p)
+                icon = OverlayImage.fromResource(iconRes)
                 map = naverMap
 
+                val thisMarker = this
                 setOnClickListener {
                     // 클릭 시 주소 역지오코딩(비동기) → MarkerInfo로 콜백
                     scope.launch {
@@ -336,15 +356,33 @@ fun NaverMapWithSearchUI(
                                 "주소를 불러오지 못했습니다."
                             }
                         }
+                        val reviewInfo = withContext(Dispatchers.IO) {
+                            try {
+                                reviewVm.getSiteInfo(site.id)
+                            } catch (e: Exception) {
+                                Log.e(TAG_UI, "ReviewInfo failed: ${e.message}", e)
+                                ReviewRepository.SiteInfo(reviewCount = 0, likeCount = 0, avgRating = 0f)
+                            }
+                        }
+                        val newInfo = withContext(Dispatchers.IO) {
+                            runCatching { reviewVm.getSiteInfo(site.id) }
+                                .getOrElse { ReviewRepository.SiteInfo(0, 0, 0f) }
+                        }
+                        val newPopular = newInfo.reviewCount >= 5
+                        withContext(Dispatchers.Main) {
+                            thisMarker.icon = OverlayImage.fromResource(
+                                if (newPopular) R.drawable.ic_marker_b else R.drawable.ic_marker_p
+                            )
+                        }
                         onMarkerClick(
                             MarkerInfo(
                                 name = site.name,
-                                type = ObservatoryType.GENERAL, // 기본값
+                                type = if (newPopular) ObservatoryType.POPULAR else ObservatoryType.GENERAL,
                                 address = addr,
                                 drawableRes = R.drawable.img_dummy,
-                                reviewCount = 0,
-                                likeCount = 0,
-                                rating = 0f,
+                                reviewCount = reviewInfo.reviewCount,
+                                likeCount = reviewInfo.likeCount,
+                                rating = reviewInfo.avgRating,
                                 suitability = 0,
                                 latitude = site.latitude,
                                 longitude = site.longitude,

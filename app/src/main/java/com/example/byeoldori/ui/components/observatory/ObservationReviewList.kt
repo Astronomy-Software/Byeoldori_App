@@ -34,8 +34,15 @@ fun ObservationReviewList(
     }
 
     val commentCounts by commentsVm.commentCounts.collectAsState()
-    val siteUi = remember(siteReviews, commentCounts) {
-        siteReviews.map { r -> r.copy(commentCount = commentCounts[r.id] ?: r.commentCount) }
+    val siteUi = remember(siteReviews, commentCounts, allReviews ) {
+        val scoreMap = allReviews.associate { it.id.toString() to (it.score ?: 0) }
+        siteReviews.map { r ->
+            val injectedRating = scoreMap[r.id]?.toInt() ?: r.rating
+            r.copy(
+                commentCount = commentCounts[r.id] ?: r.commentCount,
+                rating = injectedRating
+            )
+        }
     }
 
     var pending by remember { mutableStateOf<Pair<Review, ReviewResponse?>?>(null) }
@@ -65,8 +72,11 @@ fun ObservationReviewList(
                 vm.loadReviewDetail(id)
             },
             onToggleLike = { clickedUi ->
-                clickedUi.id.toLongOrNull()?.let { pid ->
-                    vm.toggleLike(pid) { /* 서버 성공 시 VM이 posts/detail 상태 갱신 */ }
+                clickedUi.id.toLongOrNull()?.let { postId ->
+                    vm.toggleLike(postId) { res ->
+                        // 서버 토글 결과를 이용해 상단 카드 likeCount 즉시 반영
+                        vm.applyLikeDelta(likedNow = res.liked)
+                    }
                 }
             }
         )

@@ -47,7 +47,6 @@ fun HomeSection(
                 Box(Modifier.clickable { onReviewClick(review) }) {
                     ReviewCard(
                         review = review,
-                        //commentCount = dummyReviewComments.count { it.reviewId == review.id },
                         commentCount = commentCounts[review.id] ?: review.commentCount,
                         onSyncLikeCount = { next ->
                             onSyncReviewLikeCount(review.id, next)

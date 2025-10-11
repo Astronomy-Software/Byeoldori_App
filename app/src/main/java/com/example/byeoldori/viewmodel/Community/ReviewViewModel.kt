@@ -54,10 +54,10 @@ class ReviewViewModel @Inject constructor(
     private val _scores = MutableStateFlow<Map<String, Int>>(emptyMap())
     val scores: StateFlow<Map<String, Int>> = _scores
 
+    private val _siteStats = MutableStateFlow<ReviewRepository.SiteInfo?>(null)
+    val siteStats: StateFlow<ReviewRepository.SiteInfo?> = _siteStats
 
-    init {
-        loadPosts()
-    }
+    init { loadPosts() }
 
     fun loadPosts() = viewModelScope.launch {
         _postsState.value = UiState.Loading
@@ -158,7 +158,6 @@ class ReviewViewModel @Inject constructor(
                     onResult(res)
 
                     // 목록 갱신: p.id가 Int면 toLong()해서 비교
-
                     val cur = _postsState.value
                     if (cur is UiState.Success) {
                         val updated = cur.data.map { p ->
@@ -183,4 +182,16 @@ class ReviewViewModel @Inject constructor(
         }
     }
 
+    suspend fun getSiteInfo(siteId: Long) = repo.getSiteInfo(siteId)
+
+    suspend fun loadSiteInfo(siteId: Long) { _siteStats.value = getSiteInfo(siteId) }
+
+    suspend fun clearSiteInfo() { _siteStats.value = null } //관측지 변경 시 상태 초기화
+
+    fun applyLikeDelta(likedNow: Boolean) {
+        val delta = if (likedNow) 1 else -1
+        _siteStats.update { curr ->
+            curr?.copy(likeCount = (curr.likeCount + delta).coerceAtLeast(0))
+        }
+    }
 }
