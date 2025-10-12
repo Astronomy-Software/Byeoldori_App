@@ -6,16 +6,23 @@ import android.webkit.WebViewClient
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import fi.iki.elonen.NanoHTTPD
+import kotlinx.coroutines.launch
 import java.io.InputStream
+import java.time.Instant
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 
 /**
  * ✅ 완전 통합 단일 파일 버전
- * - /assets/StellariumServer/ → http://localhost:9999/ 로 매핑
+ * - /assets/StellariumServer/ → http://localhost:14204/ 로 매핑
  * - HTML, CSS, JS, 이미지 전부 로컬에서 서빙
  * - JS 라우팅, fetch(), router-link 등 완전 지원
  */
@@ -23,21 +30,24 @@ import java.io.InputStream
 @Composable
 fun StellariumScreen() {
     val context = LocalContext.current
-    // NanoHTTPD 서버 생성 및 실행
+    val scope = rememberCoroutineScope()
+
+    // 1) 로컬 서버 시작/정지
     val server = remember {
-        LocalWebServer(context).apply {
-            start()
-        }
+        LocalWebServer(context).apply { start() }
     }
-
-    // Compose 생명주기 종료 시 서버 종료
     DisposableEffect(Unit) {
-        onDispose {
-            server.stop()
-        }
+        onDispose { server.stop() }
     }
 
-    // WebView 표시
+    // 2) WebView 참조 보관
+    val webViewState = remember { mutableStateOf<WebView?>(null) }
+
+    // 3) Tracker / GyroController 준비
+    val cameraTracker = remember { SkyCameraTracker() }
+    val gyroController = remember { GyroCameraController(context, cameraTracker) }
+
+    // 4) WebView 표시
     AndroidView(
         modifier = Modifier.fillMaxSize(),
         factory = { ctx ->
@@ -46,12 +56,42 @@ fun StellariumScreen() {
                 settings.domStorageEnabled = true
                 settings.allowFileAccess = true
                 webViewClient = WebViewClient()
-
-                // ✅ 로컬 서버 URL로 접속
                 loadUrl("http://localhost:14204/")
+                webViewState.value = this
             }
         }
     )
+
+    // 5) WebView가 준비되면 Controller 생성 (webViewState.value가 바뀔 때마다 갱신)
+    val controller = remember(webViewState.value) {
+        webViewState.value?.let { StellariumWebController(it) }
+    }
+
+    // 6) Controller 준비 후 Tracker 바인딩
+    LaunchedEffect(controller) {
+        controller?.let { cameraTracker.bindToStellarium(it) }
+    }
+
+    // 7) 자이로 start/stop & (옵션) 초기 명령
+    DisposableEffect(controller) {
+        if (controller != null) {
+            val job = scope.launch {
+                kotlinx.coroutines.delay(10000L)  // 3초 지연
+                controller.setLocation(37.5665, 126.9780, 38.0)
+                // ✅ 현재 시각 ISO 8601 UTC 포맷
+                val nowIso = DateTimeFormatter.ISO_INSTANT
+                    .withZone(ZoneOffset.UTC)
+                    .format(Instant.now())
+                controller.setTime(nowIso)   // 여기서 바로 전달 👈
+                gyroController.start()
+            }
+
+            onDispose {
+                job.cancel()
+                gyroController.stop()
+            }
+        } else onDispose { }
+    }
 }
 
 /**
