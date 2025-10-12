@@ -354,19 +354,18 @@ fun CommunityScreen(
                                 eduVm.selectPost(program.id)
                                 program.id.toLongOrNull()?.let { eduVm.loadEducationDetail(it) }
                             },
-                            onFreePostClick = { free ->
-                                selectedFreePost = free.id
-                                vm.selectPost(free.id)
-                                free.id.toLongOrNull()?.let { vm.loadPostDetail(it) }
+                            onFreePostClick = { postId ->
+                                selectedFreePost = postId
+                                vm.selectPost(postId)
+                                postId.filter(Char::isDigit).toLongOrNull()?.let { idL ->
+                                    vm.loadPostDetail(idL)
+                                } ?: Log.w("CommunityScreen", "Cannot parse postId to Long: $postId")
 
+                               // free.id.toLongOrNull()?.let { vm.loadPostDetail(it) }
                             },
                             onSyncReviewLikeCount = { id, next ->
                                 val i = reviews.indexOfFirst { it.id == id }
                                 if (i >= 0) reviews[i] = reviews[i].copy(likeCount = next)
-
-                                // (옵션) 초기 더미도 같이 갱신
-                                val j = dummyReviews.indexOfFirst { it.id == id }
-                                if (j >= 0) dummyReviews[j] = dummyReviews[j].copy(likeCount = next)
                             }
                         )
                     }

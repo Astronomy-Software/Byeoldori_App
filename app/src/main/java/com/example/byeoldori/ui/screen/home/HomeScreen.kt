@@ -1,5 +1,6 @@
 package com.example.byeoldori.ui.screen.home
 
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.*
@@ -7,6 +8,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.unit.*
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.example.byeoldori.data.model.dto.PostDetailResponse
 import com.example.byeoldori.domain.Community.EduProgram
 import com.example.byeoldori.domain.Community.FreePost
 import com.example.byeoldori.domain.Observatory.Review
@@ -28,7 +33,6 @@ fun HomeScreen(
     eduVm: EducationViewModel = hiltViewModel(),
     communityVm: CommunityViewModel = hiltViewModel()
 ) {
-
     val locationState = GetLocation(vm)
     var suitability by remember { mutableStateOf<Int?>(null) }
 
@@ -49,6 +53,20 @@ fun HomeScreen(
     var selectedReview by remember { mutableStateOf<Review?>(null) }
     var selectedEduProgram by remember { mutableStateOf<EduProgram?>(null) }
     var selectedPost by remember { mutableStateOf<FreePost?>(null) }
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val obs = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                // 홈으로 돌아오면 최신 데이터로 동기화
+                reviewVm.loadPosts()
+                eduVm.loadPosts()
+                communityVm.loadPosts()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(obs)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(obs) }
+    }
 
     if(selectedReview != null) {
         val detailState = reviewVm.detail.collectAsState().value
@@ -86,6 +104,7 @@ fun HomeScreen(
     }
 
     if(selectedPost != null) {
+        Log.d("HomeScreen", "Enter Free Detail branch: selectedPost.id=${selectedPost!!.id}")
         val freeDetailState = communityVm.postDetail.collectAsState().value
 
         LaunchedEffect(selectedPost!!.id) {
@@ -108,11 +127,16 @@ fun HomeScreen(
                 Text("자유게시판 게시글을 불러오지 못했습니다.")
             }
             is UiState.Success -> {
+                val detail: PostDetailResponse = freeDetailState.data
+                Log.d("HomeScreen", "Load Free detail success")
                 FreeBoardDetail(
                     post = selectedPost!!,
-                    onBack = { selectedPost = null },
+                    onBack = {
+                        selectedPost = null
+                        reviewVm.loadPosts()
+                    },
                     vm = communityVm,
-                    apiPost = freeDetailState.data
+                    apiPost = detail
                 )
             }
         }
@@ -122,7 +146,10 @@ fun HomeScreen(
     if(selectedEduProgram != null) {
         EduProgramDetail(
             program = selectedEduProgram!!,
-            onBack = { selectedEduProgram = null },
+            onBack = {
+                selectedEduProgram = null
+                eduVm.loadPosts()
+            },
             vm = eduVm,
             currentUser = "헤이헤이",
             onStartProgram = { /*TODO*/ }
@@ -186,10 +213,17 @@ fun HomeScreen(
                     eduVm.selectPost(program.id)
                     selectedEduProgram = program
                 },
-                onFreePostClick = { post ->
-                    communityVm.resetPostDetail()
-                    communityVm.selectPost(post.id)
-                    selectedPost = post
+                onFreePostClick = { postId ->
+                    Log.d("HomeScreen", "onFreePostClick id=$postId")
+                    val target = freeList.find { it.id == postId }
+                    if (target != null) {
+                        communityVm.resetPostDetail()
+                        communityVm.selectPost(target.id)  // 기존 로직 유지 (VM에 id 전달)
+                        selectedPost = target              // 상세 전환 트리거
+                        Log.d("HomeScreen", "Selected free post -> id=${target.id}, title=${target.title}")
+                    } else {
+                        Log.w("HomeScreen", "Free post not found in freeList. id=$postId")
+                    }
                 },
                 onSyncReviewLikeCount = { _, _ -> },
                 enableInternalScroll = false,

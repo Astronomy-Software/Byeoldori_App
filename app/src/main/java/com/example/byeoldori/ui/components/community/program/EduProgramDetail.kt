@@ -161,6 +161,7 @@ fun EduProgramDetail(
                         // 성공 후 입력/대댓글모드 해제
                         input = ""
                         parent = null
+                        vm?.loadPosts()
                     }
                 },
                 modifier = Modifier

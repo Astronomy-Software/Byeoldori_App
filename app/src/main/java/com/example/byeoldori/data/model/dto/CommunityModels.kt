@@ -27,7 +27,6 @@ data class FreePostResponse(
     val liked: Boolean
 )
 
-
 @JsonClass(generateAdapter = true)
 data class CreatedPostId(val id: Long)
 
@@ -45,6 +44,23 @@ data class PostResponse(
     val totalElements: Int,
     val totalPages: Int
 )
+
+@JsonClass(generateAdapter = true)
+data class PostDetailResponse(
+    val id: Long,
+    val type: String,
+    val title: String,
+    val content: String,
+    val authorId: Long,
+    val images: List<String> = emptyList(),
+    val viewCount: Int,
+    val likeCount: Int,
+    val commentCount: Int,
+    val createdAt: String,
+    val updatedAt: String? = null,
+    val liked: Boolean
+)
+
 
 @JsonClass(generateAdapter = true)
 data class CreateCommentRequest(
