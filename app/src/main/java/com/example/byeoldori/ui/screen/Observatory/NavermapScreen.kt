@@ -35,7 +35,6 @@ fun NavermapScreen(
     onMapReady: (NaverMap) -> Unit = {}
 ) {
     val state = vm.state.collectAsState().value
-    var Marker: MarkerInfo? = null
 
     RequestLocationPermission {
         Box(modifier = Modifier.fillMaxSize()) {
