@@ -1,12 +1,15 @@
 package com.example.byeoldori.ui.components.community
 
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.*
 import androidx.compose.foundation.pager.*
 import androidx.compose.foundation.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.*
@@ -29,16 +32,21 @@ fun HomeSection(
     popularFreePosts: List<FreePost>,
     onReviewClick: (Review) -> Unit = {},
     onProgramClick: (EduProgram) -> Unit = {},
-    onFreePostClick: (FreePost) -> Unit = {},
-    onSyncReviewLikeCount: (id: String, next: Int) -> Unit
+    //onFreePostClick: (FreePost) -> Unit = {},
+    onFreePostClick: (String) -> Unit = {},
+    onSyncReviewLikeCount: (id: String, next: Int) -> Unit,
+    enableInternalScroll: Boolean = true,   //추가
+    internalPadding: Dp = 16.dp
 ) {
     val commentsVm: CommentsViewModel = hiltViewModel()
     val commentCounts by commentsVm.commentCounts.collectAsState()
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp)
+            //.verticalScroll(rememberScrollState())
+            //.padding(16.dp)
+            .then(if (enableInternalScroll) Modifier.verticalScroll(rememberScrollState()) else Modifier)
+            .padding(internalPadding)
     ) {
         PagerSection(
             title = "최근 추가된 관측지 리뷰",
@@ -68,13 +76,16 @@ fun HomeSection(
             title = "인기 자유게시판 게시물",
             items = popularFreePosts,
             itemContent = { post ->
-                Box(Modifier.clickable { onFreePostClick(post) }) {
-                    ReviewCard(
-                        review = post.asReview(),
-                        commentCount = post.commentCount
-                        //commentCount = dummyFreeComments.count { it.reviewId == post.id }
-                    )
-                }
+                ReviewCard(
+                    review = post.asReview(),
+                    commentCount = post.commentCount,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(16.dp))
+                        .clickable {
+                            Log.d("HomeSection", "free click id=${post.id}")
+                            onFreePostClick(post.id) // (String) -> Unit 이므로 id만 전달
+                        }
+                )
             }
         )
         Spacer(modifier = Modifier.height(16.dp))
@@ -100,6 +111,7 @@ fun <T> PagerSection(
 
     Column(modifier.fillMaxWidth()) {
         Text(title,color= TextHighlight, fontSize = 16.sp)
+        Spacer(Modifier.height(8.dp))
         Box(
             modifier = Modifier
                 .fillMaxWidth()

@@ -11,6 +11,7 @@ import com.example.byeoldori.data.model.dto.EducationDetailResponse
 import com.example.byeoldori.data.model.dto.EducationPostResponse
 import com.example.byeoldori.data.model.dto.FreePostResponse
 import com.example.byeoldori.data.model.dto.LikeToggleResponse
+import com.example.byeoldori.data.model.dto.PostDetailResponse
 import com.example.byeoldori.data.model.dto.PostResponse
 import com.example.byeoldori.data.model.dto.ReviewDetailResponse
 import com.example.byeoldori.data.model.dto.ReviewPostResponse
@@ -62,7 +63,7 @@ interface CommunityApi {
     @GET("community/posts/{postId}")
     suspend fun getPostDetail(
         @Path("postId") postId: Long
-    ): FreePostResponse
+    ): PostDetailResponse
 
     @GET("community/posts/{postId}")
     suspend fun getReviewDetail(
