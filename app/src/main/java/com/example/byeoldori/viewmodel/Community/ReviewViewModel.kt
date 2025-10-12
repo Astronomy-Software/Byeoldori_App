@@ -2,21 +2,11 @@ package com.example.byeoldori.viewmodel.Community
 
 import android.util.Log
 import androidx.lifecycle.viewModelScope
-import com.example.byeoldori.data.model.dto.LikeToggleResponse
-import com.example.byeoldori.data.model.dto.ReviewDetailResponse
-import com.example.byeoldori.data.model.dto.ReviewResponse
-import com.example.byeoldori.data.model.dto.SortBy
+import com.example.byeoldori.data.model.dto.*
 import com.example.byeoldori.data.repository.ReviewRepository
-import com.example.byeoldori.viewmodel.BaseViewModel
-import com.example.byeoldori.viewmodel.UiState
+import com.example.byeoldori.viewmodel.*
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -113,6 +103,10 @@ class ReviewViewModel @Inject constructor(
 
     fun resetCreateState() {
         _createState.value = UiState.Idle
+    }
+
+    fun resetDetail() {
+        _detail.value = UiState.Idle
     }
 
     fun createReview(

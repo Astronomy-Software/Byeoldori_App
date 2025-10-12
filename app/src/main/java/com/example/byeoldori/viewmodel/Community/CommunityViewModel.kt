@@ -4,20 +4,12 @@ import android.net.Uri
 import android.util.Log
 import kotlinx.coroutines.flow.asStateFlow
 import androidx.lifecycle.viewModelScope
-import com.example.byeoldori.data.model.dto.FreePostResponse
-import com.example.byeoldori.data.model.dto.LikeToggleResponse
-import com.example.byeoldori.data.model.dto.SortBy
+import com.example.byeoldori.data.model.dto.*
 import com.example.byeoldori.data.repository.FreeRepository
 import com.example.byeoldori.ui.components.community.likedKeyFree
-import com.example.byeoldori.viewmodel.BaseViewModel
-import com.example.byeoldori.viewmodel.UiState
+import com.example.byeoldori.viewmodel.*
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -93,7 +85,7 @@ class CommunityViewModel @Inject constructor(
     fun loadPostDetail(id: Long) = viewModelScope.launch {
         _postDetail.value = UiState.Loading
         try {
-            val post = repo.getPostDetail(id)
+            val post = repo.getPostDetail(id.toLong())
             _postDetail.value = UiState.Success(post)
         } catch (e: Exception) {
             _postDetail.value = UiState.Error(handleException(e))
@@ -114,8 +106,8 @@ class CommunityViewModel @Inject constructor(
             }
         }
     }
-    fun clearCreateState() { _createState.value = UiState.Idle
-    }
+    fun clearCreateState() { _createState.value = UiState.Idle }
+    fun resetPostDetail() { _postDetail.value = UiState.Idle }
 
     fun toggleLike(
         postId: Long,

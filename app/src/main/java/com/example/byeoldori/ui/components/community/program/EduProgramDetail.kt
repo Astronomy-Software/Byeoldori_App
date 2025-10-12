@@ -34,7 +34,7 @@ fun EduProgramDetail(
     onBack: () -> Unit,
     onShare: () -> Unit = {},
     onMore: () -> Unit = {},
-    currentUser: String,
+    currentUser: String? = null,
     vm: EducationViewModel? = null,
     onStartProgram: () -> Unit = {}
 ) {
@@ -79,7 +79,7 @@ fun EduProgramDetail(
     val commentList: List<ReviewComment> =
         (commentsState as? UiState.Success)?.data ?: emptyList()
 
-    val myId: Long? = currentUser.toLongOrNull()         // 숫자로 변환되면 아이디
+    val myId: Long? = currentUser?.toLongOrNull()         // 숫자로 변환되면 아이디
     val myNick: String? = if (myId == null) currentUser else null
 
     val likedCommentIds by remember(commentList) {

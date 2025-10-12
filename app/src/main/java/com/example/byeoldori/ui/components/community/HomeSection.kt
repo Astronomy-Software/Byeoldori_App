@@ -30,15 +30,19 @@ fun HomeSection(
     onReviewClick: (Review) -> Unit = {},
     onProgramClick: (EduProgram) -> Unit = {},
     onFreePostClick: (FreePost) -> Unit = {},
-    onSyncReviewLikeCount: (id: String, next: Int) -> Unit
+    onSyncReviewLikeCount: (id: String, next: Int) -> Unit,
+    enableInternalScroll: Boolean = true,   //추가
+    internalPadding: Dp = 16.dp
 ) {
     val commentsVm: CommentsViewModel = hiltViewModel()
     val commentCounts by commentsVm.commentCounts.collectAsState()
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp)
+            //.verticalScroll(rememberScrollState())
+            //.padding(16.dp)
+            .then(if (enableInternalScroll) Modifier.verticalScroll(rememberScrollState()) else Modifier) // ✅ 토글
+            .padding(internalPadding)
     ) {
         PagerSection(
             title = "최근 추가된 관측지 리뷰",
@@ -100,6 +104,7 @@ fun <T> PagerSection(
 
     Column(modifier.fillMaxWidth()) {
         Text(title,color= TextHighlight, fontSize = 16.sp)
+        Spacer(Modifier.height(8.dp))
         Box(
             modifier = Modifier
                 .fillMaxWidth()
