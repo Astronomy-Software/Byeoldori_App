@@ -9,7 +9,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.byeoldori.character.Live2DScreen
-import com.example.byeoldori.ui.screen.SplashScreen
+import com.example.byeoldori.ui.theme.SplashScreen
 import com.example.byeoldori.viewmodel.AuthViewModel
 
 // 앱의 진입점 역할, Login 여부에 따라 Auth 혹은 Main 으로 전환

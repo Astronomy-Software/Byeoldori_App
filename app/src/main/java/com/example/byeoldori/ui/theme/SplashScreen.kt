@@ -1,4 +1,4 @@
-package com.example.byeoldori.ui.screen
+package com.example.byeoldori.ui.theme
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -33,7 +33,7 @@ fun SplashScreen(onSplashFinished: () -> Unit) {
         Image(
             painter = painterResource(id = R.drawable.byeoldori),
             contentDescription = "앱 로고",
-            modifier = Modifier.size(360.dp)
+            modifier = Modifier.size(300.dp)
         )
     }
 }

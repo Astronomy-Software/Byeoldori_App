@@ -28,7 +28,7 @@ sealed class AuthRoute(val route: String) {
 @Composable
 fun AuthRoot() {
     val nav = rememberNavController()
-    val signupvm: SignUpViewModel = hiltViewModel()
+    val signupVM: SignUpViewModel = hiltViewModel()
 
     Background(Modifier.fillMaxSize()) {
         NavHost(navController = nav, startDestination = AuthRoute.Login.route) {
@@ -43,21 +43,21 @@ fun AuthRoot() {
                 SignUpConsentScreen(
                     onNext = { nav.navigate(AuthRoute.SignUp.route) },
                     onBack = { nav.popBackStack() },
-                    vm = signupvm
+                    vm = signupVM
                 )
             }
             composable(AuthRoute.SignUp.route) {
                 SignUpScreen(
                     onNext = { nav.navigate(AuthRoute.EmailVerification.route) },
                     onBack = { nav.popBackStack() },
-                    vm = signupvm
+                    vm = signupVM
                 )
             }
             composable(AuthRoute.EmailVerification.route) {
                 EmailVerificationScreen(
                     onLogin = { nav.navigate(AuthRoute.Login.route) },
                     onBack = { nav.popBackStack() },
-                    vm = signupvm
+                    vm = signupVM
                 )
             }
             composable(AuthRoute.FindEmail.route) {

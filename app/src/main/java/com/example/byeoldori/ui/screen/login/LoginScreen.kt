@@ -1,7 +1,6 @@
 package com.example.byeoldori.ui.screen.login
 
 import android.widget.Toast
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -17,6 +16,8 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -25,13 +26,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.byeoldori.R
+import com.example.byeoldori.character.Live2DControllerViewModel
+import com.example.byeoldori.character.TailPosition
 import com.example.byeoldori.ui.components.InputForm
 import com.example.byeoldori.ui.components.SecretInputForm
 import com.example.byeoldori.ui.components.WideButton
@@ -69,11 +71,28 @@ private fun LoginContent(
     onSignUp: () -> Unit,
     onFindEmail: () -> Unit,
     onResetPassword : () -> Unit,
+    mascotVM: Live2DControllerViewModel = hiltViewModel(),
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
     val context = LocalContext.current
+    val mascotController = mascotVM.controller
+
+    LaunchedEffect(Unit) {
+        mascotController.showCharacter()
+        mascotController.setSize(250.dp)
+        mascotController.setLocation(0.dp,10.dp)
+        mascotController.centerHorizontally()
+        mascotController.showSpeech("로그인이나 회원가입을 하고\n같이 별보러가자!", TailPosition.Center, Alignment.TopCenter)
+    }
+
+    // 🧹 화면 떠날 때 마스코트 퇴장
+    DisposableEffect(Unit) {
+        onDispose {
+            mascotController.hideCharacter()
+        }
+    }
 
     Background(
         modifier = Modifier
@@ -87,12 +106,10 @@ private fun LoginContent(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
-            Image(
-                painter = painterResource(R.drawable.byeoldori),
-                contentDescription = "앱 로고",
+            Spacer( // 별도리 있을 공간
                 modifier = Modifier
-                    .width(300.dp)
-                    .height(300.dp)
+                    .width(330.dp)
+                    .height(330.dp)
             )
 
             // 이메일 입력
