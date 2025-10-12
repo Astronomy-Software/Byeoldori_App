@@ -5,7 +5,6 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
-import android.util.Log
 import java.lang.Math.toDegrees
 
 class GyroCameraController(
@@ -37,6 +36,7 @@ class GyroCameraController(
     override fun onSensorChanged(event: SensorEvent) {
         if (event.sensor.type != Sensor.TYPE_ROTATION_VECTOR) return
 
+        // TODO : 진북 보정... 사실안해도 충분히 괜찮은거 같긴하다.
         // 1) Rotation Vector → 회전 행렬
         SensorManager.getRotationMatrixFromVector(rotationMatrix, event.values)
 
@@ -53,15 +53,16 @@ class GyroCameraController(
 
         var azimuthDeg = toDegrees(orientationAngles[0].toDouble()).toFloat()
         val altitudeDeg = -toDegrees(orientationAngles[1].toDouble()).toFloat()
+        // 방향 반대로 해줘야 시선과 딱맞음
 
         // 4) 방위각 0~360도 정규화
         if (azimuthDeg < 0) azimuthDeg += 360f
 
-        // 5) 결과 출력 및 반영
-        Log.d(
-            "GyroController",
-            "Camera Azimuth=${"%.2f".format(azimuthDeg)}°, Altitude=${"%.2f".format(altitudeDeg)}°"
-        )
+        // 자이로센서 확인시 아래 주석 해제
+//        Log.d(
+//            "GyroController",
+//            "Camera Azimuth=${"%.2f".format(azimuthDeg)}°, Altitude=${"%.2f".format(altitudeDeg)}°"
+//        )
 
         tracker.updateCamera(
             azimuthDeg,

@@ -16,6 +16,9 @@ import androidx.compose.ui.viewinterop.AndroidView
 import fi.iki.elonen.NanoHTTPD
 import kotlinx.coroutines.launch
 import java.io.InputStream
+import java.time.Instant
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 
 /**
  * ✅ 완전 통합 단일 파일 버전
@@ -74,8 +77,12 @@ fun StellariumScreen() {
         if (controller != null) {
             val job = scope.launch {
                 kotlinx.coroutines.delay(10000L)  // 3초 지연
-                controller.setViewDirection(180.0, 45.0)
                 controller.setLocation(37.5665, 126.9780, 38.0)
+                // ✅ 현재 시각 ISO 8601 UTC 포맷
+                val nowIso = DateTimeFormatter.ISO_INSTANT
+                    .withZone(ZoneOffset.UTC)
+                    .format(Instant.now())
+                controller.setTime(nowIso)   // 여기서 바로 전달 👈
                 gyroController.start()
             }
 
