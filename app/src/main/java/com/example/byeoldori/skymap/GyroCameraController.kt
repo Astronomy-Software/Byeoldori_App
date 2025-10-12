@@ -53,7 +53,7 @@ class GyroCameraController(
 
         var azimuthDeg = toDegrees(orientationAngles[0].toDouble()).toFloat()
         val altitudeDeg = -toDegrees(orientationAngles[1].toDouble()).toFloat()
-        // 방향 반대로 해줘야 시선과 딱맞음
+        // 방향 반대로 해줘야 시선과 맞음
 
         // 4) 방위각 0~360도 정규화
         if (azimuthDeg < 0) azimuthDeg += 360f

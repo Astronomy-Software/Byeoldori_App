@@ -1,5 +1,6 @@
 package com.example.byeoldori.character
 
+import android.content.res.Resources
 import android.view.View
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
@@ -99,6 +100,26 @@ class Live2DController @Inject constructor() {
     fun moveBy(dx: Dp, dy: Dp) {
         _offsetX.value += dx
         _offsetY.value += dy
+        refreshModifier()
+    }
+    /** 위치 지정 */
+    fun setLocation(dx: Dp, dy: Dp) {
+        _offsetX.value = dx
+        _offsetY.value = dy
+        refreshModifier()
+    }
+    fun setX(dx: Dp) {
+        _offsetX.value = dx
+        refreshModifier()
+    }
+    fun setY(dy: Dp){
+        _offsetY.value = dy
+        refreshModifier()
+    }
+
+    /** 크기 지정 (비율 유지 + 최소 크기 보장) */
+    fun setSize(dw: Dp) {
+        _width.value = dw
         refreshModifier()
     }
 
@@ -228,5 +249,31 @@ class Live2DController @Inject constructor() {
         } else {
             0.12 + (1 - (1 - (t - 0.5) * 2).pow(2.0)) * 0.88
         }
+    }
+
+    /** ✅ X축 중앙 정렬 */
+    fun centerHorizontally() {
+        val displayMetrics = Resources.getSystem().displayMetrics
+        val screenWidthPx = displayMetrics.widthPixels
+        val density = displayMetrics.density
+        val screenWidthDp = (screenWidthPx / density).dp
+
+        val characterWidth = _width.value
+        val newOffsetX = (screenWidthDp - characterWidth) / 2
+        _offsetX.value = newOffsetX
+        refreshModifier()
+    }
+
+    /** ✅ Y축 중앙 정렬 */
+    fun centerVertically() {
+        val displayMetrics = Resources.getSystem().displayMetrics
+        val screenHeightPx = displayMetrics.heightPixels
+        val density = displayMetrics.density
+        val screenHeightDp = (screenHeightPx / density).dp
+
+        val characterHeight = _height.value
+        val newOffsetY = (screenHeightDp - characterHeight) / 2
+        _offsetY.value = newOffsetY
+        refreshModifier()
     }
 }
