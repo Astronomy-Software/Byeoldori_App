@@ -9,6 +9,7 @@ import com.example.byeoldori.data.api.CommunityApi
 import com.example.byeoldori.data.model.dto.CreateFreeRequest
 import com.example.byeoldori.data.model.dto.FreePostResponse
 import com.example.byeoldori.data.model.dto.LikeToggleResponse
+import com.example.byeoldori.data.model.dto.PostDetailResponse
 import com.example.byeoldori.data.model.dto.SearchBy
 import com.example.byeoldori.data.model.dto.SortBy
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -54,7 +55,7 @@ class FreeRepository @Inject constructor(
     }
 
     //상세 조회(id)
-    suspend fun getPostDetail(postId: Long): FreePostResponse {
+    suspend fun getPostDetail(postId: Long): PostDetailResponse {
         return api.getPostDetail(postId)
     }
 

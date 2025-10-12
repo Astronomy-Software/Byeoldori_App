@@ -18,14 +18,14 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.byeoldori.R
 import com.example.byeoldori.data.UserViewModel
 import com.example.byeoldori.data.model.dto.FreePostResponse
+import com.example.byeoldori.data.model.dto.PostDetailResponse
 import com.example.byeoldori.domain.Community.*
 import com.example.byeoldori.ui.components.community.*
 import com.example.byeoldori.ui.components.community.review.*
 import com.example.byeoldori.ui.mapper.toUi
 import com.example.byeoldori.ui.theme.*
 import com.example.byeoldori.viewmodel.*
-import com.example.byeoldori.viewmodel.Community.CommentsViewModel
-import com.example.byeoldori.viewmodel.Community.CommunityViewModel
+import com.example.byeoldori.viewmodel.Community.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -34,7 +34,7 @@ fun FreeBoardDetail (
     onBack: () -> Unit,
     onShare: () -> Unit = {},
     onMore: () -> Unit = {},
-    apiPost: FreePostResponse? = null, //api에서 받은 Post,
+    apiPost: PostDetailResponse? = null, //api에서 받은 Post,
     vm: CommunityViewModel? = null,
     onSyncFreeLikeCount: (id: String, liked: Boolean, next: Int) -> Unit = { _, _, _ -> }
 ) {
@@ -149,6 +149,7 @@ fun FreeBoardDetail (
                         // 성공 콜백: 입력/대댓글모드 해제
                         input = ""
                         parent = null
+                        vm?.loadPosts()
                     }
                 },
                 modifier = Modifier
@@ -184,7 +185,12 @@ fun FreeBoardDetail (
                     )
                     Spacer(Modifier.width(8.dp))
                     Column { //작성자
-                        Text(text = apiPost?.authorId?.toString() ?: post.author, fontSize = 17.sp, color = TextHighlight)
+                        val authorName = remember(apiPost?.authorId,post.author) {
+                            apiPost?.authorId?.let { id ->
+                                vm?.findNicknameByAuthorId(id)
+                            } ?: post.author
+                        }
+                        Text(text = authorName ?: "??", fontSize = 17.sp, color = TextHighlight)
                         Spacer(Modifier.height(4.dp))
                         Text( //작성일
                             text = apiPost?.createdAt?.toShortDate() ?: post.createdAt.toShortDate(),
@@ -198,7 +204,7 @@ fun FreeBoardDetail (
                     items = if (apiPost != null) {
                         listOf(
                             EditorItem.Paragraph(
-                                value = TextFieldValue(apiPost.contentSummary)
+                                value = TextFieldValue(apiPost.content)
                             )
                         )
                     } else {

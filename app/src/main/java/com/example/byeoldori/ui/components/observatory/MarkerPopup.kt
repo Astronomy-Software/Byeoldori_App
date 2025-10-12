@@ -53,7 +53,6 @@ fun MarkerPopup (
                 )
                 Spacer(Modifier.height(4.dp))
                 Text("주소: ${selectedAddress!!}", color = NaverGray, maxLines = 2, fontSize = 12.sp)
-                //Spacer(Modifier.height(4.dp))
                 Row {
                     Spacer(Modifier.weight(1f))
                     TextButton(onClick = onDismiss) { Text("닫기", color = NaverGrayA) }

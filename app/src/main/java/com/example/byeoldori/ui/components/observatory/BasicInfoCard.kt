@@ -80,7 +80,7 @@ fun BasicInfoCard(
                     }
 
                     Image(
-                        painter = painterResource(id = info.drawableRes),
+                        painter = painterResource(id = info.drawableRes ?: R.drawable.img_dummy),
                         contentDescription = null,
                         modifier = Modifier
                             .width(140.dp)

@@ -4,20 +4,12 @@ import android.net.Uri
 import android.util.Log
 import kotlinx.coroutines.flow.asStateFlow
 import androidx.lifecycle.viewModelScope
-import com.example.byeoldori.data.model.dto.FreePostResponse
-import com.example.byeoldori.data.model.dto.LikeToggleResponse
-import com.example.byeoldori.data.model.dto.SortBy
+import com.example.byeoldori.data.model.dto.*
 import com.example.byeoldori.data.repository.FreeRepository
 import com.example.byeoldori.ui.components.community.likedKeyFree
-import com.example.byeoldori.viewmodel.BaseViewModel
-import com.example.byeoldori.viewmodel.UiState
+import com.example.byeoldori.viewmodel.*
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -35,8 +27,8 @@ class CommunityViewModel @Inject constructor(
     private val _createState = MutableStateFlow<UiState<Long>>(UiState.Idle)
     val createState: StateFlow<UiState<Long>> = _createState.asStateFlow()
 
-    private val _postDetail = MutableStateFlow<UiState<FreePostResponse>>(UiState.Idle)
-    val postDetail: StateFlow<UiState<FreePostResponse>> = _postDetail.asStateFlow()
+    private val _postDetail = MutableStateFlow<UiState<PostDetailResponse>>(UiState.Idle)
+    val postDetail = _postDetail.asStateFlow()
 
     private val _sort = MutableStateFlow(SortBy.LATEST)
     val sort: StateFlow<SortBy> = _sort.asStateFlow()
@@ -93,8 +85,9 @@ class CommunityViewModel @Inject constructor(
     fun loadPostDetail(id: Long) = viewModelScope.launch {
         _postDetail.value = UiState.Loading
         try {
-            val post = repo.getPostDetail(id)
+            val post: PostDetailResponse = repo.getPostDetail(id)
             _postDetail.value = UiState.Success(post)
+            Log.d("CommunityVM", "게시글 상세 불러오기 성공 id=$id, title=${post.title}")
         } catch (e: Exception) {
             _postDetail.value = UiState.Error(handleException(e))
         }
@@ -114,8 +107,8 @@ class CommunityViewModel @Inject constructor(
             }
         }
     }
-    fun clearCreateState() { _createState.value = UiState.Idle
-    }
+    fun clearCreateState() { _createState.value = UiState.Idle }
+    fun resetPostDetail() { _postDetail.value = UiState.Idle }
 
     fun toggleLike(
         postId: Long,
@@ -185,12 +178,8 @@ class CommunityViewModel @Inject constructor(
         }
     }
 
-    fun setInitialCommentCount(id: String, count: Int) {
-        _commentCounts.value = _commentCounts.value + (id to count)
+    fun findNicknameByAuthorId(authorId: Long): String? {
+        val currentPosts = (_postsState.value as? UiState.Success)?.data ?: return null
+        return currentPosts.firstOrNull { it.authorId == authorId }?.authorNickname
     }
-    fun bumpCommentCount(id: String, delta: Int) {
-        val cur = _commentCounts.value[id] ?: 0
-        _commentCounts.value = _commentCounts.value + (id to (cur + delta).coerceAtLeast(0))
-    }
-
 }
