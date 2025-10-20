@@ -81,6 +81,10 @@ fun CommunityScreen(
     val eduDetailState by eduVm.detail.collectAsState()
     val commentsVm: CommentsViewModel = hiltViewModel()
 
+    LaunchedEffect(Unit) {
+        reviewVm.loadLocalThumbnails()
+    }
+
     LaunchedEffect(selectedId) {
         val idLong = selectedId?.toLongOrNull()
         if (idLong != null) vm.loadPostDetail(idLong)

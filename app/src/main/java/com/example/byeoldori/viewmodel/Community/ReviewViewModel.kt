@@ -1,5 +1,7 @@
 package com.example.byeoldori.viewmodel.Community
 
+import android.app.Application
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.example.byeoldori.data.model.dto.*
@@ -8,14 +10,16 @@ import com.example.byeoldori.domain.Observatory.Review
 import com.example.byeoldori.ui.components.community.review.toDomain
 import com.example.byeoldori.viewmodel.*
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class ReviewViewModel @Inject constructor(
-    private val repo: ReviewRepository
+    private val repo: ReviewRepository, @ApplicationContext context: Context
 ): BaseViewModel() {
+
     private val _postsState = MutableStateFlow<UiState<List<ReviewResponse>>>(UiState.Idle)
     val postsState: StateFlow<UiState<List<ReviewResponse>>> = _postsState.asStateFlow()
 
@@ -52,12 +56,18 @@ class ReviewViewModel @Inject constructor(
     private val _authorCache = MutableStateFlow<Map<Long, String>>(emptyMap())
     val authorCache: StateFlow<Map<Long, String>> = _authorCache
 
+    private val prefs = context.getSharedPreferences("thumbnails", Context.MODE_PRIVATE)
     private val _thumbnails = MutableStateFlow<Map<String, String>>(emptyMap())
     val thumbnails: StateFlow<Map<String, String>> = _thumbnails
+
+    fun loadLocalThumbnails() {
+        _thumbnails.value = prefs.all.mapValues { it.value.toString() }
+    }
 
     fun registerLocalThumbnail(id: String, url: String?) {
         if (url.isNullOrBlank()) return
         _thumbnails.value = _thumbnails.value + (id to url)
+        prefs.edit().putString(id, url).apply()
     }
 
     fun onListLoaded(list: List<ReviewResponse>) {
