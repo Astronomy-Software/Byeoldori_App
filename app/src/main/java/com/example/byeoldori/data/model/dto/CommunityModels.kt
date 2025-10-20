@@ -90,3 +90,10 @@ data class CommentsPageResponse(
     val totalElements: Int,
     val totalPages: Int
 )
+
+@JsonClass(generateAdapter = true)
+data class DeleteResponse(
+    val success: Boolean,
+    val message: String?,
+    val data: Any? = null
+)

@@ -21,13 +21,10 @@ import com.example.byeoldori.ui.theme.*
 import com.example.byeoldori.domain.Observatory.Review
 import com.example.byeoldori.ui.components.community.freeboard.formatCreatedAt
 import com.example.byeoldori.viewmodel.*
-import com.example.byeoldori.viewmodel.Community.CommentsViewModel
-import com.example.byeoldori.viewmodel.Community.ReviewViewModel
+import com.example.byeoldori.viewmodel.Community.*
 
 // 정렬 타입
-enum class ReviewSort(val label: String) {
-    Latest("최신순"), Like("좋아요순"), View("조회수순")
-}
+enum class ReviewSort(val label: String) { Latest("최신순"), Like("좋아요순"), View("조회수순") }
 
 fun ReviewResponse.toReview(): Review = Review(
     id = id.toString(),
@@ -47,11 +44,33 @@ fun ReviewResponse.toReview(): Review = Review(
     date = "",
     rating = score ?: 0,
     siteScore = 0,
-    liked = liked
+    liked = liked,
 )
 
+fun ReviewDetailResponse.toDomain(author: String? = null): Review = Review(
+    id = id.toString(),
+    title = title,
+    author = author ?: "익명",
+    profile =  R.drawable.profile1,
+    createdAt = createdAt,
+    viewCount = viewCount,
+    likeCount = likeCount,
+    commentCount = commentCount,
+    //이미지 + 본문 텍스트로 구성
+    contentItems = buildList {
+        images.forEach { add(Content.Image.Url(it)) }
+        add(Content.Text(content))
+    },
+    target = review?.target.orEmpty(),
+    site = review?.location.orEmpty(),
+    equipment = review?.equipment.orEmpty(),
+    date = review?.observationDate.orEmpty(),
+    rating = review?.score ?: 0,
+    siteScore = 0,
+    liked = liked,
+    thumbnail = images.firstOrNull()
+)
 
-// Review 탭 콘텐츠
 @Composable
 fun CommuReviewSection(
     vm: ReviewViewModel? = null,
@@ -75,9 +94,13 @@ fun CommuReviewSection(
         else -> emptyList()
     }
     val baseList = if (networkList.isNotEmpty()) networkList else reviewsAll
+    val thumbs by (vm?.thumbnails?.collectAsState() ?: remember { mutableStateOf<Map<String, String>>(emptyMap()) })
+    val withThumbs = remember(baseList, thumbs) {
+        baseList.map { r -> r.copy(thumbnail = r.thumbnail ?: thumbs[r.id]) }
+    }
 
-    val merged = remember(baseList, scores) {
-        baseList.map { r -> r.copy(rating = scores[r.id] ?: r.rating) }
+    val merged = remember(withThumbs, scores) {
+        withThumbs.map { r -> r.copy(rating = scores[r.id] ?: r.rating) }
     }
 
     val commentsVm: CommentsViewModel = hiltViewModel()
@@ -104,7 +127,6 @@ fun CommuReviewSection(
         SortBy.LIKES  -> ReviewSort.Like
         SortBy.VIEWS  -> ReviewSort.View
     }
-
 
     //정렬 기준이 바뀔 때 스크롤 맨 위로 이동
     LaunchedEffect(sort) { gridState.scrollToItem(0) }
@@ -158,9 +180,6 @@ fun CommuReviewSection(
                         review = review,
                         modifier = Modifier.clickable { onReviewClick(review) },
                         onSyncLikeCount = { next ->
-                        // onSyncReviewLikeCount(review.id, next)  // 상위 reviews 동기화
-                        //vm.updateLocalLikeCount(review.id, next)
-                        //vm.toggleLike(review.id.toLong())
                         },
                         onToggleLike = {
                             review.id.toLongOrNull()?.let { pid ->

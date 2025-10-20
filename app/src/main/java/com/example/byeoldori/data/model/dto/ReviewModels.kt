@@ -55,7 +55,7 @@ data class ReviewDetailResponse(
     val content: String,
     val authorId: Long,
     val images: List<String> = emptyList(),
-    val review: ReviewDto?,     // ★ 관측 정보 들어감
+    val review: ReviewDto?,
     val viewCount: Int,
     val likeCount: Int,
     val commentCount: Int,
@@ -64,3 +64,4 @@ data class ReviewDetailResponse(
     val liked: Boolean
 )
 
+fun ReviewDetailResponse.thumbnailUrl(): String? = images.firstOrNull()

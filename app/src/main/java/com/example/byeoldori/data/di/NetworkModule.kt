@@ -4,9 +4,11 @@ package com.example.byeoldori.data.di
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import coil.ImageLoader
 import com.example.byeoldori.BuildConfig
 import com.example.byeoldori.data.api.AuthApi
 import com.example.byeoldori.data.api.CommunityApi
+import com.example.byeoldori.data.api.FileUploadApi
 import com.example.byeoldori.data.api.ObservationSiteApi
 import com.example.byeoldori.data.api.RefreshApi
 import com.example.byeoldori.data.api.UserApi
@@ -215,4 +217,18 @@ object NetworkModule {
     @Provides @Singleton
     fun provideCommunityApi(@AuthedRetrofit retrofit: Retrofit): CommunityApi =
         retrofit.create(CommunityApi::class.java)
+
+    @Provides @Singleton
+    fun provideFileUploadApi(@AuthedRetrofit retrofit: Retrofit): FileUploadApi =
+        retrofit.create(FileUploadApi::class.java)
+
+    @Provides @Singleton
+    fun provideImageLoader(
+        @ApplicationContext context: Context,
+        @AuthedOkHttp okHttp: OkHttpClient
+    ): ImageLoader =
+        ImageLoader.Builder(context)
+            .okHttpClient(okHttp)
+            .crossfade(true)
+            .build()
 }

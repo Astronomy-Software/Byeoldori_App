@@ -130,6 +130,7 @@ fun CommunityScreen(
         showFreeBoardWriteForm -> {
             FreeBoardWriteForm(
                 author = currentUser,
+                vm = vm,
                 onCancel = {
                     showFreeBoardWriteForm = false
                     successMessage = "작성 취소되었습니다"
@@ -143,7 +144,6 @@ fun CommunityScreen(
                 onTempSave = {},
                 onMore = {},
                 onSubmitPost = { newPost ->
-                    dummyFreePosts.add(0, newPost)
                     showFreeBoardWriteForm = false
                     showSuccessDialog = true
             },

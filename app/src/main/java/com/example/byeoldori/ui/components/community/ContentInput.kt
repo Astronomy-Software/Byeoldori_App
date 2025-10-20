@@ -1,27 +1,27 @@
 package com.example.byeoldori.ui.components.community
 
 import android.net.Uri
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.relocation.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.graphics.*
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.*
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.unit.*
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import coil.imageLoader
 import com.example.byeoldori.R
+import com.example.byeoldori.ui.components.community.review.*
 import com.example.byeoldori.ui.theme.*
 import kotlinx.coroutines.launch
 
@@ -29,44 +29,24 @@ import kotlinx.coroutines.launch
 fun ContentInput(
     items: List<EditorItem>,
     onItemsChange: (List<EditorItem>) -> Unit,
-    onCheck: () -> Unit = {},
+    uploadItems: List<UploadItem> = emptyList(),
     onPickImages: (onPicked: (List<Uri>) -> Unit) -> Unit,
+    onCheck: () -> Unit = {},
     onChecklist: () -> Unit = {},
     modifier: Modifier = Modifier,
     readOnly: Boolean = false
 ) {
     var focusedParagraphIndex by remember { mutableStateOf<Int?>(null) }
 
-    // 커서 위치에 사진 삽입
-    val insertAtCaret: (List<Uri>) -> Unit = caret@ { uris ->
-        if (uris.isEmpty()) return@caret
-        val idx = focusedParagraphIndex ?: items.indexOfFirst { it is EditorItem.Paragraph }
-        if (idx == -1) return@caret
-
-        val p = items[idx] as EditorItem.Paragraph
-        val caret = p.value.selection.start.coerceIn(0, p.value.text.length)
-        val before = p.value.text.substring(0, caret)
-        val after  = p.value.text.substring(caret)
-
-        val newList = buildList {
-            addAll(items.take(idx))
-            add(EditorItem.Paragraph(value = TextFieldValue(before)))
-            uris.forEach { add(EditorItem.Photo(model = it)) }
-            add(EditorItem.Paragraph(value = TextFieldValue(after)))
-            addAll(items.drop(idx + 1))
-        }
-        onItemsChange(newList)
-    }
-
     Column(modifier = modifier.fillMaxWidth()) {
+
+        // --- 상단 도구 버튼 (작성 모드에서만)
         if (!readOnly) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.End)
             ) {
-                IconButton(onClick = {
-                    onPickImages { uris -> insertAtCaret(uris) }
-                }) {
+                IconButton(onClick = { onPickImages { _ -> } }) {
                     Icon(painterResource(R.drawable.ic_photo), contentDescription = "이미지", tint = Color.Unspecified)
                 }
                 IconButton(onClick = onCheck) {
@@ -78,137 +58,155 @@ fun ContentInput(
             }
         }
 
-        // 텍스트+이미지 통합 리스트
+        val paragraphs = items.filterIsInstance<EditorItem.Paragraph>()
+        val photos = items.filterIsInstance<EditorItem.Photo>()
+
+        // --- 본문(텍스트)
         Column(
-            modifier = Modifier
-                .fillMaxWidth(),
-                //.imePadding(),
+            modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            items.forEachIndexed { index, item ->
-                var offsetY by remember(item.id) { mutableStateOf(0f) }
-                var heightPx by remember(item.id) { mutableStateOf(0f) }
-
-                val dragModifier = if (readOnly) {
-                    Modifier
+            paragraphs.forEachIndexed { index, p ->
+                if (readOnly) {
+                    Text(text = p.value.text, color = TextHighlight)
                 } else {
-                    Modifier.pointerInput(item.id) {
-                        detectDragGesturesAfterLongPress(
-                            onDragEnd = { offsetY = 0f }
-                        ) { change, drag ->
-                            change.consume()
-                            offsetY += drag.y
-                            val threshold = heightPx * 0.6f
-                            val cur = index
-                            val target = when {
-                                offsetY < -threshold && cur > 0 -> cur - 1
-                                offsetY >  threshold && cur < items.lastIndex -> cur + 1
-                                else -> cur
-                            }
-                            if (target != cur) {
-                                val m = items.toMutableList()
-                                val moved = m.removeAt(cur)
-                                m.add(target, moved)
-                                onItemsChange(m)
-                                offsetY = 0f
-                            }
-                        }
-                    }
-                }
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .onSizeChanged { heightPx = it.height.toFloat() }
-                        .then(dragModifier)
-                        .graphicsLayer(translationY = offsetY)
-                ) {
-                    when (item) {
-                        is EditorItem.Paragraph -> {
-                            if (readOnly) {
-                                Text(
-                                    text = item.value.text,
-                                    color = TextHighlight
-                                )
-                            } else {
-                                // 내용 입력(텍스트)
-                                val bringIntoViewRequester = remember { BringIntoViewRequester() }
-                                val coroutineScope = rememberCoroutineScope()
-
-                                BasicTextField(
-                                    value = item.value,
-                                    onValueChange = { new ->
-                                        val m = items.toMutableList()
-                                        m[index] = EditorItem.Paragraph(id = item.id, value = new)
-                                        onItemsChange(m)
-                                    },
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .bringIntoViewRequester(bringIntoViewRequester)
-                                        .onFocusEvent { f ->
-                                            if (f.isFocused) {
-                                                focusedParagraphIndex = index
-                                                coroutineScope.launch {
-                                                    bringIntoViewRequester.bringIntoView()
-                                                }
-                                            }
-                                        }
-                                        .defaultMinSize(minHeight = 20.dp)
-                                        .padding(vertical = 8.dp),
-                                    textStyle = LocalTextStyle.current.copy(color = TextHighlight),
-                                    cursorBrush = SolidColor(TextDisabled),
-                                    maxLines = Int.MAX_VALUE,
-                                    decorationBox = { inner ->
-                                        if (item.value.text.isEmpty()) {
-                                            Text("내용을 입력해주세요", color = TextDisabled.copy(alpha = 0.4f))
-                                        }
-                                        inner()
-                                    }
-                                )
-                            }
-                        }
-                        is EditorItem.Photo -> {
-                            Box {
-                                if (item.model is Int) {
-                                    //프리뷰에서 이미지가 안보여서
-                                    Image(
-                                        painter = painterResource(item.model as Int),
-                                        contentDescription = null,
-                                        contentScale = ContentScale.FillWidth,
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .height(300.dp)
-                                            .clip(RoundedCornerShape(12.dp))
-                                    )
-                                } else {
-                                    AsyncImage(
-                                        model = item.model,
-                                        contentDescription = null,
-                                        contentScale = ContentScale.Crop,
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .width(200.dp)
-                                            .height(300.dp)
-                                            .clip(RoundedCornerShape(12.dp))
-                                    )
-                                }
-
-                                if (!readOnly) {
-                                    IconButton(
-                                        onClick = {
-                                            val m = items.toMutableList()
-                                            m.removeAt(index)
-                                            onItemsChange(m)
-                                        },
-                                        modifier = Modifier.align(Alignment.TopEnd)
-                                    ) {
-                                        Icon(Icons.Default.Delete, contentDescription = null, tint = Color.White)
+                    val bringIntoViewRequester = remember { BringIntoViewRequester() }
+                    val coroutineScope = rememberCoroutineScope()
+                    BasicTextField(
+                        value = p.value,
+                        onValueChange = { new ->
+                            val m = items.toMutableList()
+                            m[index] = EditorItem.Paragraph(id = p.id, value = new)
+                            onItemsChange(m)
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .bringIntoViewRequester(bringIntoViewRequester)
+                            .onFocusEvent { f ->
+                                if (f.isFocused) {
+                                    focusedParagraphIndex = index
+                                    coroutineScope.launch {
+                                        bringIntoViewRequester.bringIntoView()
                                     }
                                 }
                             }
+                            .defaultMinSize(minHeight = 20.dp)
+                            .padding(vertical = 8.dp),
+                        textStyle = LocalTextStyle.current.copy(color = TextHighlight),
+                        cursorBrush = SolidColor(TextDisabled),
+                        maxLines = Int.MAX_VALUE,
+                        decorationBox = { inner ->
+                            if (p.value.text.isEmpty()) {
+                                Text("내용을 입력해주세요", color = TextDisabled.copy(alpha = 0.4f))
+                            }
+                            inner()
                         }
-                    }
+                    )
                 }
             }
+        }
+
+        //업로드된 파일명 리스트
+        if (!readOnly && uploadItems.isNotEmpty()) {
+            Spacer(Modifier.height(12.dp))
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                uploadItems.forEach { item ->
+                    val color = when (item.status) {
+                        UploadStatus.UPLOADING -> WarningYellow
+                        UploadStatus.DONE -> SuccessGreen
+                        UploadStatus.ERROR -> ErrorRed
+                    }
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(color.copy(alpha = 0.2f), RoundedCornerShape(6.dp))
+                            .padding(6.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = item.name,
+                            color = TextHighlight,
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                        Text(
+                            text = when (item.status) {
+                                UploadStatus.UPLOADING -> "업로드 중..."
+                                UploadStatus.DONE -> "완료"
+                                UploadStatus.ERROR -> "실패"
+                            },
+                            color = color,
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                    Spacer(Modifier.height(4.dp))
+                }
+            }
+        }
+
+        //하단 사진 LazyRow 갤러리
+        if (readOnly && photos.isNotEmpty()) {
+            Spacer(Modifier.height(12.dp))
+            LazyRow( //수평 스크롤 리스트
+                modifier = Modifier.fillMaxWidth().height(200.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                contentPadding = PaddingValues(horizontal = 8.dp)
+            ) {
+                items(photos.size) { i ->
+                    val photo = photos[i]
+                    val context = LocalContext.current
+                    val imageLoader = context.imageLoader //Coil이 이미지를 로드할 때 사용할 ImageLoader를 가져옴
+                    AsyncImage(
+                        model = photo.model,
+                        imageLoader = imageLoader,
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .width(250.dp)
+                            .height(200.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Preview(showBackground = true, name = "ContentInput - Write Mode")
+@Composable
+fun Preview_ContentInput_WriteMode() {
+    MaterialTheme {
+        Surface(color = Color(0xFF241860)) {
+            var items = emptyList<EditorItem>()
+
+            // 업로드 상태 샘플
+            val uploadItems = listOf(
+                UploadItem(name = "orion_1.jpg", status = UploadStatus.UPLOADING),
+                UploadItem(name = "orion_2.jpg", status = UploadStatus.DONE, url = "https://picsum.photos/400/300"),
+                UploadItem(name = "orion_3.jpg", status = UploadStatus.ERROR),
+            )
+
+            ContentInput(
+                items = items,
+                onItemsChange = { items = it },
+                uploadItems = uploadItems,
+                onPickImages = { onPicked ->
+                    // 프리뷰에선 실제 갤러리 런처가 없으므로,
+                    // 더미 URI 리스트를 넘겨주는 형태로 동작만 시뮬레이션 할 수 있음.
+                    onPicked(
+                        listOf(
+                            Uri.parse("content://dummy/image/1"),
+                            Uri.parse("content://dummy/image/2")
+                        )
+                    )
+                },
+                onCheck = { /* no-op for preview */ },
+                onChecklist = { /* no-op for preview */ },
+                readOnly = false,
+                modifier = Modifier.padding(16.dp)
+            )
         }
     }
 }
