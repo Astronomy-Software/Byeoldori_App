@@ -19,10 +19,14 @@ class FileUploadViewModel @Inject constructor(
     private val _uploadState = MutableStateFlow<UiState<String>>(UiState.Idle)
     val uploadState: StateFlow<UiState<String>> = _uploadState
 
-    fun uploadImage(file: File, token: String? = null) {
+    fun uploadImage(
+        file: File,
+        token: String? = null,
+        onProgress: ((sent: Long,total: Long) -> Unit)? = null
+    ) {
         viewModelScope.launch {
             _uploadState.value = UiState.Loading
-            val url = repo.uploadImage(file,token)
+            val url = repo.uploadImage(file,token,onProgress)
             if (url != null) {
                 _uploadState.value = UiState.Success(url)
             } else {

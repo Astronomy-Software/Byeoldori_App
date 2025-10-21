@@ -108,6 +108,23 @@ class ReviewViewModel @Inject constructor(
         }
     }
 
+    //관측지 탭에서 해당 리뷰를 찾기 위함
+    fun reloadReviewsLatest(size: Int = 50) {
+        viewModelScope.launch {
+            _postsState.value = UiState.Loading
+            try {
+                val list = repo.getAllReviews(
+                    sortBy = SortBy.LATEST,
+                    searchBy = SearchBy.TITLE,
+                    keyword = null
+                )
+                _postsState.value = UiState.Success(list)
+            } catch (e: Exception) {
+                _postsState.value = UiState.Error(e.message ?: "리뷰를 불러오지 못했습니다.")
+            }
+        }
+    }
+
     fun setSort(sortBy: SortBy) {
         if (_sort.value == sortBy) return
         _sort.value = sortBy

@@ -16,10 +16,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.byeoldori.data.model.common.copyUriToCache
+import com.example.byeoldori.data.model.dto.ObservationSite
 import com.example.byeoldori.ui.components.community.*
 import com.example.byeoldori.domain.Observatory.Review
 import com.example.byeoldori.viewmodel.Community.FileUploadViewModel
 import com.example.byeoldori.viewmodel.Community.ReviewViewModel
+import com.example.byeoldori.viewmodel.Observatory.ObservatoryMapViewModel
 import com.example.byeoldori.viewmodel.UiState
 import kotlinx.coroutines.launch
 
@@ -28,8 +30,18 @@ enum class UploadStatus { UPLOADING, DONE, ERROR }
 data class UploadItem(
     val name: String,          // 예: 이미지1.png
     val url: String? = null,   // 업로드 완료시 서버 URL
-    val status: UploadStatus = UploadStatus.UPLOADING
+    val status: UploadStatus = UploadStatus.UPLOADING,
+    val sizeBytes: Long? = null,
+    val progress: Float = 0f   // 진행률(프로그래스바)
 )
+
+private fun findMatchingSiteId(siteName: String, allSites: List<ObservationSite>): Long? {
+    val normalizedInput = siteName.trim().replace(" ", "")
+    return allSites.firstOrNull { site ->
+        val normalizedSiteName = site.name.trim().replace(" ", "")
+        normalizedSiteName.contains(normalizedInput, ignoreCase = true)
+    }?.id
+}
 
 @Composable
 fun ReviewWriteForm(
@@ -40,7 +52,8 @@ fun ReviewWriteForm(
     onMore: () -> Unit,
     now: () -> Long = { System.currentTimeMillis() },
     vm: ReviewViewModel? = null,
-    initialReview: Review? = null
+    initialReview: Review? = null,
+    observatoryVm: ObservatoryMapViewModel = hiltViewModel()
 ) {
     // --- 상태들 ---
     var showCancelDialog by remember { mutableStateOf(false) }
@@ -58,6 +71,18 @@ fun ReviewWriteForm(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val fileUploadVm: FileUploadViewModel = hiltViewModel()
+    LaunchedEffect(Unit) {
+        fileUploadVm.reset() // 이전 Success/Error 잔상 제거
+    }
+    val siteState by observatoryVm.state.collectAsState()
+    val sites = when (val s = siteState) {
+        is UiState.Success -> s.data       // 관측지 리스트
+        else -> emptyList()
+    }
+    LaunchedEffect(Unit) {
+        observatoryVm.loadSites()  // 관측지 리스트 불러오기
+    }
+
     val uploadState by fileUploadVm.uploadState.collectAsState()
     var items by remember {
         mutableStateOf(listOf<EditorItem>(EditorItem.Paragraph())) //리뷰 본문
@@ -80,12 +105,29 @@ fun ReviewWriteForm(
         picked.forEach { uri ->
             scope.launch {//선택한 각 Uri를 순회하면서 코루틴으로 비동기 처리
                 val file = copyUriToCache(context, uri) //URI → File 변환 함수
+                fileUploadVm.reset()
+
+                val afdLen = context.contentResolver //uRI가 가리키는 파일의 크기를 알아냄
+                    .openAssetFileDescriptor(uri,"r") //시스템이 파일을 대신 열어줌
+                    ?.length
+                    ?: -1L
+                val size = if(afdLen > 0) afdLen else file.length()
 
                 uploadItems = uploadItems + UploadItem(
                     name = file.name,
-                    status = UploadStatus.UPLOADING
+                    status = UploadStatus.UPLOADING,
+                    sizeBytes = size,
+                    progress = 0f
                 )
-                fileUploadVm.uploadImage(file) //업로드 시작
+                val fileName = file.name
+                fileUploadVm.uploadImage(file) { sent, total ->
+                    val progress = if (total > 0) (sent.toFloat() / total).coerceIn(0f,1f) else 0f
+                    uploadItems = uploadItems.toMutableList().also { list ->
+                        val idx = list.indexOfFirst { it.name == fileName && it.status == UploadStatus.UPLOADING }
+                        if (idx >= 0) list[idx] = list[idx].copy(progress = progress)
+                    }
+
+                } //업로드 시작
             }
         }
     }
@@ -122,7 +164,7 @@ fun ReviewWriteForm(
                 val idx = uploadItems.indexOfFirst { it.status == UploadStatus.UPLOADING }
                 if (idx >= 0) {
                     val m = uploadItems.toMutableList()
-                    m[idx] = m[idx].copy(url = url, status = UploadStatus.DONE)
+                    m[idx] = m[idx].copy(url = url, status = UploadStatus.DONE, progress = 1f)
                     uploadItems = m
                 }
                 uploadedImageUrls = uploadedImageUrls + url
@@ -155,6 +197,7 @@ fun ReviewWriteForm(
                 WriteBar(
                     onSubmit = {
                         if(validateRequirement()) {
+                            val matchedId = findMatchingSiteId(site, sites)
                             vm?.createReview(
                                 title = title.trim(),
                                 content = buildContentText(items),
@@ -163,7 +206,8 @@ fun ReviewWriteForm(
                                 equipment = equipment.trim(),
                                 observationDate = date,
                                 score = ratingInt,
-                                imageUrls = uploadedImageUrls
+                                imageUrls = uploadedImageUrls,
+                                observationSiteId = matchedId
                             )
                         } else {
                             showValidationDialog = true

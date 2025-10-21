@@ -24,6 +24,18 @@ import com.example.byeoldori.R
 import com.example.byeoldori.ui.components.community.review.*
 import com.example.byeoldori.ui.theme.*
 import kotlinx.coroutines.launch
+import java.util.Locale
+
+// bytes → "123 KB" / "1.2 MB" 포맷
+private fun formatSize(bytes: Long?): String {
+    if (bytes == null || bytes < 0) return "오류"
+    val kb = (bytes + 1023) / 1024  // 올림에 가까운 보기 좋은 표기
+    return if (kb < 1024) {
+        "$kb KB"
+    } else {
+        String.format(Locale.getDefault(), "%.1f MB", kb / 1024.0)
+    }
+}
 
 @Composable
 fun ContentInput(
@@ -124,13 +136,38 @@ fun ContentInput(
                             .fillMaxWidth()
                             .background(color.copy(alpha = 0.2f), RoundedCornerShape(6.dp))
                             .padding(6.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            text = item.name,
-                            color = TextHighlight,
-                            style = MaterialTheme.typography.bodySmall
-                        )
+                        val sizeText = formatSize(item.sizeBytes)
+                        Row(
+                            modifier = Modifier.weight(1f),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "${item.name}  ($sizeText)",
+                                color = TextHighlight,
+                                style = MaterialTheme.typography.bodySmall,
+                                maxLines = 1
+                            )
+                            if (item.status == UploadStatus.UPLOADING) {
+                                Spacer(Modifier.width(8.dp))
+                                LinearProgressIndicator(
+                                    progress = item.progress,
+                                    modifier = Modifier
+                                        .width(100.dp)
+                                        .height(6.dp)
+                                        .clip(RoundedCornerShape(100)),
+                                    color = Purple500,
+                                    trackColor = Color.Transparent
+                                )
+                                Spacer(Modifier.height(2.dp))
+                                Text(
+                                    text = "${(item.progress * 100).toInt()}%",
+                                    color = TextDisabled,
+                                    style = MaterialTheme.typography.labelSmall
+                                )
+                            }
+                        }
                         Text(
                             text = when (item.status) {
                                 UploadStatus.UPLOADING -> "업로드 중..."
@@ -183,25 +220,16 @@ fun Preview_ContentInput_WriteMode() {
 
             // 업로드 상태 샘플
             val uploadItems = listOf(
-                UploadItem(name = "orion_1.jpg", status = UploadStatus.UPLOADING),
-                UploadItem(name = "orion_2.jpg", status = UploadStatus.DONE, url = "https://picsum.photos/400/300"),
-                UploadItem(name = "orion_3.jpg", status = UploadStatus.ERROR),
+                UploadItem(name = "orion_1.jpg", status = UploadStatus.UPLOADING,sizeBytes = 128_500, progress = 0.42f),
+                UploadItem(name = "orion_2.jpg", status = UploadStatus.DONE, url = "https://picsum.photos/400/300",sizeBytes = 1_734_003, progress = 1f ),
+                UploadItem(name = "orion_3.jpg", status = UploadStatus.ERROR,sizeBytes = null, progress = 0f),
             )
 
             ContentInput(
                 items = items,
                 onItemsChange = { items = it },
                 uploadItems = uploadItems,
-                onPickImages = { onPicked ->
-                    // 프리뷰에선 실제 갤러리 런처가 없으므로,
-                    // 더미 URI 리스트를 넘겨주는 형태로 동작만 시뮬레이션 할 수 있음.
-                    onPicked(
-                        listOf(
-                            Uri.parse("content://dummy/image/1"),
-                            Uri.parse("content://dummy/image/2")
-                        )
-                    )
-                },
+                onPickImages = {},
                 onCheck = { /* no-op for preview */ },
                 onChecklist = { /* no-op for preview */ },
                 readOnly = false,
