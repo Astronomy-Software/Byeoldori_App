@@ -3,8 +3,6 @@ package com.example.byeoldori.data.repository
 import android.util.Log
 import com.example.byeoldori.data.api.FileUploadApi
 import com.example.byeoldori.data.api.ProgressRequestBody
-import com.example.byeoldori.data.model.dto.FileUploadResponse
-import com.example.byeoldori.data.remote.MultipartFactory
 import okhttp3.MultipartBody
 import java.io.File
 import javax.inject.Inject
