@@ -135,12 +135,10 @@ fun ReviewCard(
     ) {
         Column(Modifier.fillMaxSize()) {
             //대표 이미지
-            val thumb = review.contentItems.firstOrNull { it is Content.Image } as? Content.Image
-            val model: Any = when (thumb) {
-                is Content.Image.Url -> thumb.url
-                is Content.Image.Resource -> thumb.resId
-                else -> R.drawable.img_dummy
-            }
+            val thumbUrl = review.thumbnail
+                ?: (review.contentItems.firstOrNull { it is Content.Image.Url } as? Content.Image.Url)?.url
+            val model: Any = thumbUrl ?: R.drawable.img_dummy
+
             val imageModifier = Modifier
                 .fillMaxWidth()
                 .padding(10.dp)

@@ -1,5 +1,6 @@
 package com.example.byeoldori.ui.components.community.review
 
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.relocation.*
@@ -21,6 +22,7 @@ import androidx.compose.ui.focus.*
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.byeoldori.data.model.dto.*
+import com.example.byeoldori.domain.Content
 import com.example.byeoldori.domain.Observatory.Review
 import com.example.byeoldori.ui.mapper.toUi
 import com.example.byeoldori.viewmodel.*
@@ -86,8 +88,22 @@ fun ReviewDetail(
         else -> emptyList()
     }
 
+    val detailUi: UiState<Review> by (vm?.detailUi?.collectAsState() ?: remember { mutableStateOf<UiState<Review>>(UiState.Idle) })
+
+    val reviewForUi: Review = when(val s = detailUi) {
+        is UiState.Success -> s.data //서버에서 받은 최신 상세 리뷰
+        else -> review
+    }
+
     val myId: Long? = currentUser.toLongOrNull()
     val myNick: String? = if (myId == null) currentUser else null
+
+    LaunchedEffect(reviewForUi.id) { commentsViewModel?.start(reviewForUi.id) }
+
+    LaunchedEffect(reviewForUi) {
+        val photos = reviewForUi.contentItems.filterIsInstance<Content.Image.Url>()
+        Log.d("DetailCheck", "이미지 개수: ${photos.size} -> ${photos.map { it.url }}")
+    }
 
     LaunchedEffect(imeVisible) {
         if (imeVisible) {
@@ -101,11 +117,6 @@ fun ReviewDetail(
             keyboardController?.show() //키보드 올라오게
             requestKeyboard = false  // 한 번만 실행
         }
-    }
-
-    //댓글 로드
-    LaunchedEffect(review.id) {
-        commentsViewModel?.start(review.id)  // 서버에서 page=0부터 불러옴
     }
 
     Scaffold(
@@ -192,7 +203,8 @@ fun ReviewDetail(
             item {
                 Spacer(Modifier.height(10.dp))
                 Text( // 제목
-                    text = apiPost?.title ?: review.title,
+                    //text = apiPost?.title ?: review.title,
+                    text = reviewForUi.title,
                     style = MaterialTheme.typography.headlineSmall.copy(
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp,
@@ -211,16 +223,18 @@ fun ReviewDetail(
                     Spacer(Modifier.width(8.dp))
                     Column {
                         Text( //사용자 이름
-                            text = apiPost?.authorNickname ?: review.author,
+                           // text = apiPost?.authorNickname ?: review.author,
+                            text = reviewForUi.author,
                             style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                             fontSize = 17.sp,
                             color = TextHighlight
                         )
                         Spacer(Modifier.height(4.dp))
                         Text( //작성일
-                            text = (apiPost?.createdAt ?: review.createdAt.toShortDate()).let {
-                                if (apiPost != null) it.toShortDate() else it
-                            },
+//                            text = (apiPost?.createdAt ?: review.createdAt.toShortDate()).let {
+//                                if (apiPost != null) it.toShortDate() else it
+//                            },
+                            text = reviewForUi.createdAt.toShortDate(),
                             style = MaterialTheme.typography.bodySmall.copy(color = TextDisabled),
                             fontSize = 17.sp
                         )
@@ -245,15 +259,16 @@ fun ReviewDetail(
                 )
                // Divider(color = Color.LightGray.copy(alpha = 0.4f), thickness = 1.dp)
                 ContentInput(
-                    items = when {
-                        apiPost?.contentSummary != null -> listOf(
-                            EditorItem.Paragraph(value = TextFieldValue(apiPost.contentSummary))
-                        )
-                        apiDetail?.content != null -> listOf(
-                            EditorItem.Paragraph(value = TextFieldValue(apiDetail.content))
-                        )
-                        else -> review.contentItems.toUi()
-                    },
+//                    items = when {
+//                        apiPost?.contentSummary != null -> listOf(
+//                            EditorItem.Paragraph(value = TextFieldValue(apiPost.contentSummary))
+//                        )
+//                        apiDetail?.content != null -> listOf(
+//                            EditorItem.Paragraph(value = TextFieldValue(apiDetail.content))
+//                        )
+//                        else -> review.contentItems.toUi()
+//                    },
+                    items = reviewForUi.contentItems.toUi(),
                     onItemsChange = {},
                     onCheck = {},
                     onPickImages = {},

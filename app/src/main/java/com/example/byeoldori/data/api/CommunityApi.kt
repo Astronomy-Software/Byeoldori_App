@@ -17,6 +17,7 @@ import com.example.byeoldori.data.model.dto.ReviewDetailResponse
 import com.example.byeoldori.data.model.dto.ReviewPostResponse
 import com.example.byeoldori.data.model.dto.ReviewResponse
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Path
@@ -98,5 +99,16 @@ interface CommunityApi {
         @Path("postId") postId: Long,
         @Path("commentId") commentId: Long
     ): LikeToggleResponse
+
+    @DELETE("community/posts/{postId}")
+    suspend fun deletePost(
+        @Path("postId") postId: Long
+    )
+
+    @DELETE("community/posts/{postId}/comments/{commentId}")
+    suspend fun deleteComment(
+        @Path("postId") postId: Long,
+        @Path("commentId") commentId: Long
+    )
 
 }

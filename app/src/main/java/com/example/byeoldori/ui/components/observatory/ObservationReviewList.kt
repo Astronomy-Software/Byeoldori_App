@@ -48,6 +48,10 @@ fun ObservationReviewList(
     var pending by remember { mutableStateOf<Pair<Review, ReviewResponse?>?>(null) }
     val detailState by vm.detail.collectAsState()
 
+    LaunchedEffect(siteId) {
+        vm.reloadReviewsLatest(size = 50) // 최신 페이지를 다시 받아옴
+    }
+
     // 상세가 성공하면 콜백 1회 호출하고 pending 해제
     LaunchedEffect(detailState, pending) {
         val (ui, apiPost) = pending ?: return@LaunchedEffect

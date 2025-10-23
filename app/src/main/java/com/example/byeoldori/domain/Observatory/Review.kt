@@ -9,7 +9,6 @@ data class Review (
     val author: String,
     val rating: Int, //관측 평점
     val likeCount: Int,
-    //val imageRes: Int?,
     val commentCount: Int,
     val profile: Int?,
     val viewCount: Int,  //조회수
@@ -20,5 +19,6 @@ data class Review (
     val siteScore: Int,
     val equipment: String,
     val contentItems: List<Content>, //본문 + 이미지
-    val liked: Boolean = false
+    val liked: Boolean = false,
+    val thumbnail: String? = null
 )

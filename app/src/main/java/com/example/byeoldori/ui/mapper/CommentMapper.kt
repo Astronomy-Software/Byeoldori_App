@@ -94,8 +94,6 @@ fun formatServerDateKst(raw: String?): String {
     return "--:--"
 }
 
-
-
 fun CommentResponse.toUi(postId: String): ReviewComment {
     return ReviewComment(
         id = id.toString(),
@@ -105,7 +103,7 @@ fun CommentResponse.toUi(postId: String): ReviewComment {
         profile = R.drawable.profile1,
         content = content,
         likeCount = likeCount,
-        commentCount = 0,            // 서버에서 대댓글 수를 주면 매핑
+        commentCount = 0,
         createdAt = formatServerDateKst(createdAt),
         parentId = parentId?.toString(),
         liked = liked
