@@ -213,7 +213,6 @@ fun ReviewDetail(
                         vm?.loadPosts()
                     }
                 },
-
                 modifier = Modifier
                     .fillMaxWidth()
                     .focusRequester(focusRequester)

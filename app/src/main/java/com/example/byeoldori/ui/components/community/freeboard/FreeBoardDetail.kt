@@ -19,12 +19,26 @@ import com.example.byeoldori.R
 import com.example.byeoldori.data.UserViewModel
 import com.example.byeoldori.data.model.dto.PostDetailResponse
 import com.example.byeoldori.domain.Community.*
+import com.example.byeoldori.domain.Content
 import com.example.byeoldori.ui.components.community.*
 import com.example.byeoldori.ui.components.community.review.*
 import com.example.byeoldori.ui.mapper.toUi
 import com.example.byeoldori.ui.theme.*
 import com.example.byeoldori.viewmodel.*
 import com.example.byeoldori.viewmodel.Community.*
+
+private fun mergeApiIntoFree(api: PostDetailResponse, base: FreePost): FreePost {
+    val textItem = Content.Text(api.content.orEmpty())
+    val photos = (api.images ?: emptyList()).map { Content.Image.Url(it) }
+    return base.copy(
+        title = api.title ?: base.title,
+        createdAt = api.createdAt ?: base.createdAt,
+        likeCount = api.likeCount ?: base.likeCount,
+        commentCount = api.commentCount ?: base.commentCount,
+        liked = api.liked ?: base.liked,
+        contentItems = listOf(textItem) + photos
+    )
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,7 +50,8 @@ fun FreeBoardDetail (
     vm: CommunityViewModel? = null,
     onSyncFreeLikeCount: (id: String, liked: Boolean, next: Int) -> Unit = { _, _, _ -> },
     onEdit: Boolean = true,
-    onDelete: (postId: String) -> Unit = {}
+    onDelete: (postId: String) -> Unit = {},
+    onEditPost: (FreePost) -> Unit = {}
 ) {
     var input by rememberSaveable { mutableStateOf("") }
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -141,7 +156,11 @@ fun FreeBoardDetail (
                                 if(onEdit) {
                                     DropdownMenuItem(
                                         text = { Text("수정",color = Color.Black) },
-                                        onClick = {}
+                                        onClick = {
+                                            moreMenu = false
+                                            val editable = apiPost?.let { mergeApiIntoFree(it, post) } ?: post
+                                            onEditPost(editable)
+                                        }
                                     )
                                     Divider(color = Color.Black.copy(alpha = 0.6f), thickness = 1.dp, modifier = Modifier.fillMaxWidth())
                                     DropdownMenuItem(
@@ -222,11 +241,14 @@ fun FreeBoardDetail (
                 Spacer(Modifier.height(16.dp))
                 ContentInput( //내용 입력(텍스트 + 이미지)
                     items = if (apiPost != null) {
-                        listOf(
-                            EditorItem.Paragraph(
-                                value = TextFieldValue(apiPost.content)
-                            )
-                        )
+                        val text = apiPost.content.orEmpty()
+                        val textItem = if (text.isNotBlank()) {
+                            listOf(EditorItem.Paragraph(value = TextFieldValue(text)))
+                        } else emptyList()
+
+                        val photoItems = (apiPost.images ?: emptyList())
+                            .map { url -> EditorItem.Photo(model = url) }
+                        textItem + photoItems   // ← 텍스트 + 이미지 함께 렌더링
                     } else {
                         post.contentItems.toUi()
                     },

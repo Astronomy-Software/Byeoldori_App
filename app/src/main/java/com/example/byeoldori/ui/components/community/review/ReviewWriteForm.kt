@@ -99,11 +99,6 @@ fun ReviewWriteForm(
             items = items + EditorItem.Paragraph()
         }
     }
-    val uiItems = remember(items, isEditMode) {
-        if (isEditMode) items.filterIsInstance<EditorItem.Paragraph>()
-        else items
-    }
-
     //갤러리 선택 후 삽입 콜백을 잠시 보관
     var pendingOnPicked by remember { mutableStateOf<((List<Uri>) -> Unit)?>(null) }
     var uploadItems by remember(initialReview?.id) {

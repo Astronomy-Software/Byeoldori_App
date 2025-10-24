@@ -11,49 +11,157 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.byeoldori.data.model.common.copyUriToCache
 import com.example.byeoldori.domain.Community.FreePost
+import com.example.byeoldori.domain.Content
 import com.example.byeoldori.ui.components.community.*
 import com.example.byeoldori.ui.components.community.review.*
 import com.example.byeoldori.ui.mapper.toUi
 import com.example.byeoldori.viewmodel.*
-import com.example.byeoldori.viewmodel.Community.CommunityViewModel
+import com.example.byeoldori.viewmodel.Community.*
+import kotlinx.coroutines.launch
 
 @Composable
 fun FreeBoardWriteForm (
-    author: String,
     onCancel: () -> Unit,
     onSubmit: () -> Unit,            // 등록
     onTempSave: () -> Unit,          // 임시 저장
     onMore: () -> Unit,
-    now: () -> Long = { System.currentTimeMillis() },
     onSubmitPost: (FreePost) -> Unit,
-    initialPost: FreePost? = null, //?
+    initialPost: FreePost? = null,
     vm: CommunityViewModel? = null,
     onClose: () -> Unit
 ) {
+    val isEditMode = initialPost != null
     var showCancelDialog by remember { mutableStateOf(false) }
     var showValidationDialog by remember { mutableStateOf(false) }
-    var title by rememberSaveable { mutableStateOf("") }
+    var title by rememberSaveable { mutableStateOf(initialPost?.title ?: "") }
     var pendingOnPicked by remember { mutableStateOf<((List<Uri>) -> Unit)?>(null) }
-    var imageUris by remember { mutableStateOf<List<Uri>>(emptyList()) }
-
-    val pickImages = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.PickMultipleVisualMedia(maxItems = 10)
-    ) { uris ->
-        // ContentInput이 넘겨준 onPicked를 여기서 호출
-        pendingOnPicked?.invoke(uris ?: emptyList())
-        pendingOnPicked = null
-    }
-    var items by remember {
+    var items by remember(initialPost?.id) {
         mutableStateOf(
             initialPost?.contentItems?.toUi()   // 도메인 → UI 변환
-                ?: listOf<EditorItem>(EditorItem.Paragraph())
+                ?: emptyList()
         )
     }
+    LaunchedEffect(initialPost?.id) {
+        if (items.none { it is EditorItem.Paragraph }) {
+            items = items + EditorItem.Paragraph()
+        }
+    }
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val fileUploadVm: FileUploadViewModel = hiltViewModel()
+    LaunchedEffect(Unit) {
+        fileUploadVm.reset() // 이전 Success/Error 잔상 제거
+    }
+
     val createState by (vm?.createState?.collectAsState()
         ?: remember { mutableStateOf<UiState<Any>>(UiState.Idle) })
+
+    var uploadItems by remember(initialPost?.id) {
+        mutableStateOf(
+            if (isEditMode)
+                initialPost!!.contentItems
+                    .filterIsInstance<Content.Image.Url>()
+                    .map { urlItem ->
+                        UploadItem(
+                            name = urlItem.url.substringAfterLast("/"),
+                            url = urlItem.url,
+                            status = UploadStatus.DONE,
+                            sizeBytes = null,
+                            progress = 1f
+                        )
+                    }
+            else emptyList()
+
+        )
+    }
+    val pickImages = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickMultipleVisualMedia(maxItems = 10)
+    ) { uris -> //uri리스트
+        val picked = uris ?: emptyList()
+        pendingOnPicked?.invoke(picked)
+        pendingOnPicked = null
+
+        picked.forEach { uri ->
+            scope.launch {
+                val file = copyUriToCache(context, uri) //URI → File 변환 함수
+                fileUploadVm.reset()
+
+                val afdLen = context.contentResolver
+                    .openAssetFileDescriptor(uri,"r")
+                    ?.length
+                    ?: -1L
+                val size = if(afdLen > 0) afdLen else file.length()
+
+                uploadItems = uploadItems + UploadItem(
+                    name = file.name,
+                    status = UploadStatus.UPLOADING,
+                    sizeBytes = size,
+                    progress = 0f
+                )
+                val fileName = file.name
+                fileUploadVm.uploadImage(file) { sent, total ->
+                    val progress = if (total > 0) (sent.toFloat() / total).coerceIn(0f,1f) else 0f
+                    uploadItems = uploadItems.toMutableList().also { list ->
+                        val idx = list.indexOfFirst { it.name == fileName && it.status == UploadStatus.UPLOADING }
+                        if (idx >= 0) list[idx] = list[idx].copy(progress = progress)
+                    }
+
+                } //업로드 시작
+            }
+        }
+    }
+    var uploadedImageUrls by remember {
+        mutableStateOf(
+            initialPost?.contentItems //기존 이미지 있으면 미리 URL로 채워두기
+                ?.filterIsInstance<Content.Image.Url>()
+                ?.map { it.url }
+                ?: emptyList()
+        )
+    }
+
+    //업로드 성공 시 URL을 items/리스트에 반영
+    val uploadState by fileUploadVm.uploadState.collectAsState()
+    LaunchedEffect(uploadState) {
+        when (val s = uploadState) {
+            is UiState.Success -> {
+                val url = s.data
+                // 진행 중이던 항목을 DONE으로 교체
+                val idx = uploadItems.indexOfFirst { it.status == UploadStatus.UPLOADING }
+                if (idx >= 0) {
+                    val m = uploadItems.toMutableList()
+                    m[idx] = m[idx].copy(url = url, status = UploadStatus.DONE, progress = 1f)
+                    uploadItems = m
+                }
+                // 본문 items에도 사진 블록 추가
+                items = items + EditorItem.Photo(model = url)
+                // payload용 URL 누적
+                uploadedImageUrls = uploadedImageUrls + url
+
+                fileUploadVm.reset()
+            }
+            is UiState.Error -> {
+                // 실패 표시
+                val idx = uploadItems.indexOfFirst { it.status == UploadStatus.UPLOADING }
+                if (idx >= 0) {
+                    val m = uploadItems.toMutableList()
+                    m[idx] = m[idx].copy(status = UploadStatus.ERROR)
+                    uploadItems = m
+                }
+                fileUploadVm.reset()
+            }
+            else -> Unit
+        }
+    }
+
+    fun buildContentText(list: List<EditorItem>) =
+        list.filterIsInstance<EditorItem.Paragraph>()
+            .joinToString("\n") { it.value.text }
 
     Box(Modifier.fillMaxSize()) {
         LazyColumn(
@@ -66,15 +174,28 @@ fun FreeBoardWriteForm (
             item {
                 WriteBar(
                     onSubmit = {
-                        val bodyText = items
-                            .filterIsInstance<EditorItem.Paragraph>()
-                            .joinToString("\n") { it.value.text.trim() }
-                            .trim()
+                        val body = buildContentText(items).trim()
+                        if (title.isBlank() || body.isBlank()) {
+                            // 유효성 경고 다이얼로그 띄우기 등
+                            return@WriteBar
+                        }
 
-                        if (title.isBlank() || bodyText.isBlank()) {
-                            showValidationDialog = true
+                        if(isEditMode) {
+                            val idL = initialPost!!.id.toLong()
+                            vm?.updatePost(
+                                postId = idL,
+                                title = title.trim(),
+                                content = body,
+                                imageUrls = uploadedImageUrls,
+                                onDone = onSubmit
+                            )
                         } else {
-                            vm?.createPost(title, bodyText, imageUris) // ← 진짜 본문 전달
+                            vm?.createPost(
+                                title = title.trim(),
+                                content = body,
+                                imageUrls = uploadedImageUrls
+                            )
+                            onSubmit()
                         }
                     },
                     onTempSave = onTempSave,
@@ -99,16 +220,18 @@ fun FreeBoardWriteForm (
                 ContentInput(
                     items = items,
                     onItemsChange = { items = it },
+                    uploadItems = uploadItems,
                     onPickImages = { onPicked ->
                         pendingOnPicked = onPicked
                         pickImages.launch(
                             androidx.activity.result.PickVisualMediaRequest(
-                                androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia.ImageOnly
+                                ActivityResultContracts.PickVisualMedia.ImageOnly
                             )
                         )
                     },
                     onCheck = {},
-                    onChecklist = { /* 자유게시판이면 생략 or 원하는 동작 */ }
+                    onChecklist = { /* 자유게시판이면 생략 or 원하는 동작 */ },
+                    readOnly = false
                 )
             }
         }
@@ -162,7 +285,6 @@ fun FreeBoardWriteForm (
 private fun Preview_FreeBoardWriteForm() {
     MaterialTheme {
         FreeBoardWriteForm(
-            author = "astro_user",
             onCancel = {},
             onSubmit = {},
             onTempSave = {},

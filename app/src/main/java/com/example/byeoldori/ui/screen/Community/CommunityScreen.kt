@@ -19,10 +19,7 @@ import com.example.byeoldori.domain.Community.EduProgram
 import com.example.byeoldori.domain.Community.FreePost
 import com.example.byeoldori.domain.Observatory.Review
 import com.example.byeoldori.viewmodel.*
-import com.example.byeoldori.viewmodel.Community.CommentsViewModel
-import com.example.byeoldori.viewmodel.Community.CommunityViewModel
-import com.example.byeoldori.viewmodel.Community.EducationViewModel
-import com.example.byeoldori.viewmodel.Community.ReviewViewModel
+import com.example.byeoldori.viewmodel.Community.*
 
 // --- 탭 정의 ---
 enum class CommunityTab(val label: String, val routeSeg: String) {
@@ -68,6 +65,7 @@ fun CommunityScreen(
     val commentsVm: CommentsViewModel = hiltViewModel()
 
     var editReview by remember { mutableStateOf<Review?>(null) } //리뷰 수정 가능하게끔
+    var editPost by remember { mutableStateOf<FreePost?>(null) }
 
     LaunchedEffect(Unit) {
         reviewVm.loadLocalThumbnails()
@@ -114,6 +112,23 @@ fun CommunityScreen(
                 onMore = {}
             )
         }
+        editPost != null -> {
+            FreeBoardWriteForm(
+                vm = vm,
+                initialPost = editPost,                 // ← 초기값 주입 (수정 모드)
+                onCancel = { editPost = null },         // 취소 → 닫기
+                onSubmit = {
+                    editPost = null                     // 저장 후 닫기
+                    successMessage = "게시글이 수정되었습니다"
+                    showSuccessDialog = true
+                    vm.loadPosts()                      // 목록 갱신
+                },
+                onTempSave = {},
+                onMore = {},
+                onSubmitPost = {},
+                onClose = { editPost = null }
+            )
+        }
 
         showWriteForm -> {
             // 작성 화면만 표시 (탭/목록 숨김)
@@ -140,7 +155,6 @@ fun CommunityScreen(
         }
         showFreeBoardWriteForm -> {
             FreeBoardWriteForm(
-                author = currentUser,
                 vm = vm,
                 onCancel = {
                     showFreeBoardWriteForm = false
@@ -199,7 +213,6 @@ fun CommunityScreen(
         }
         selectedFreePost != null -> {
             val apiPost = (postDetailState as? UiState.Success)?.data
-
             val uiPost = selectedPost?.toFreePost()
                 ?: dummyFreePosts.firstOrNull { it.id == selectedFreePost }
                 ?: FreePost( // 최후 fallback (혹시라도 못 찾을 때)
@@ -230,6 +243,11 @@ fun CommunityScreen(
                             vm.loadPosts()
                         }
                     }
+                },
+                onEditPost = { post ->                //수정 진입
+                    editPost = post                   // 편집 상태로 전환
+                    selectedFreePost = null           // 상세 닫기
+                    vm.clearSelection()
                 }
             )
         }
@@ -249,6 +267,10 @@ fun CommunityScreen(
                             vm.loadPosts()
                         }
                     }
+                },
+                onEditPost = { post ->                //수정 진입
+                    editPost = post                   // 편집 상태로 전환
+                    vm.clearSelection()
                 }
             )
         }
@@ -463,7 +485,6 @@ fun CommunityScreen(
             title = { Text("알림",color = Color.Black) },
             text = {
                 Column {
-                    //Text("정상적으로 등록되었습니다.", color = Color.Black)
                     Spacer(Modifier.height(8.dp))
                     Text(successMessage, color = Color.DarkGray)
                 }

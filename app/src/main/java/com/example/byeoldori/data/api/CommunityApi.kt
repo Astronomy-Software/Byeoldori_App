@@ -117,4 +117,10 @@ interface CommunityApi {
         @Path("postId") postId: Long,
         @Body body: CreateReviewRequest
     )
+
+    @PATCH("community/posts/{postId}")
+    suspend fun updatePost(
+        @Path("postId") postId: Long,
+        @Body body: CreateFreeRequest
+    )
 }

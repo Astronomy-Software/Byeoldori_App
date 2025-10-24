@@ -8,9 +8,11 @@ import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.example.byeoldori.data.api.CommunityApi
 import com.example.byeoldori.data.model.dto.CreateFreeRequest
+import com.example.byeoldori.data.model.dto.CreateReviewRequest
 import com.example.byeoldori.data.model.dto.FreePostResponse
 import com.example.byeoldori.data.model.dto.LikeToggleResponse
 import com.example.byeoldori.data.model.dto.PostDetailResponse
+import com.example.byeoldori.data.model.dto.ReviewDto
 import com.example.byeoldori.data.model.dto.SearchBy
 import com.example.byeoldori.data.model.dto.SortBy
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -115,5 +117,21 @@ class FreeRepository @Inject constructor(
             }
             throw e
         }
+    }
+
+    suspend fun updatePost(
+        postId: Long,
+        title: String,
+        content: String,
+        imageUrls: List<String> = emptyList()
+    ) {
+        val imageFiltered = imageUrls.filter { it.startsWith("http://") || it.startsWith("https://") }
+        val req = CreateFreeRequest(
+            title = title,
+            content = content,
+            imageUrls = imageFiltered.ifEmpty { null }
+        )
+        api.updatePost(postId, req)
+        Log.d(TAG, "리뷰 수정 완료 id=$postId")
     }
 }

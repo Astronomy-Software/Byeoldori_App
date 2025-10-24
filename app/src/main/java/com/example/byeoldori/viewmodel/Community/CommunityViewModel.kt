@@ -96,11 +96,10 @@ class CommunityViewModel @Inject constructor(
         }
     }
 
-    fun createPost(title: String, content: String,images: List<Uri> = emptyList()) {
+    fun createPost(title: String, content: String,imageUrls: List<String> = emptyList()) {
         viewModelScope.launch {
             _createState.value = UiState.Loading
             runCatching {
-                val imageUrls = images.map { it.toString() }
                 repo.createFreePost(title, content, imageUrls)
             }.onSuccess { newId ->
                 _createState.value = UiState.Success(newId)
@@ -201,6 +200,30 @@ class CommunityViewModel @Inject constructor(
                 .onFailure { e ->
                     _deleteState.value = UiState.Error(e.message ?: "게시글이 삭제되지 않았습니다.")
                 }
+        }
+    }
+
+    fun updatePost(
+        postId: Long,
+        title: String,
+        content: String,
+        imageUrls: List<String> = emptyList(),
+        onDone: () -> Unit = {}
+    ) {
+        viewModelScope.launch {
+            try {
+                repo.updatePost(
+                    postId = postId,
+                    title = title,
+                    content = content,
+                    imageUrls = imageUrls
+                )
+                loadPostDetail(postId)
+                loadPosts()
+                onDone()
+            } catch (e: Exception) {
+                Log.e("ReviewVM", "리뷰 수정 실패: ${e.message}", e)
+            }
         }
     }
 }
