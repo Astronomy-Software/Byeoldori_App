@@ -49,7 +49,8 @@ fun ReviewDetail(
     vm: ReviewViewModel? = null,
     commentsVm: CommentsViewModel? = null,
     onEdit: Boolean = true,
-    onDelete: (reviewId: String) -> Unit = {}
+    onDelete: (reviewId: String) -> Unit = {},
+    onEditReview: (Review) -> Unit = {}
 ) {
     val imeVisible = rememberIsImeVisible()
     val tailRequester = remember { BringIntoViewRequester() } //키보드가 올라왔을 때 댓글창 숨어버리는 거 방지
@@ -173,7 +174,10 @@ fun ReviewDetail(
                                 if(onEdit) {
                                     DropdownMenuItem(
                                         text = { Text("수정",color = Color.Black) },
-                                        onClick = {}
+                                        onClick = {
+                                            moreMenu = false
+                                            onEditReview(reviewForUi) //현재 리뷰 데이터를 넘김
+                                        }
                                     )
                                     Divider(color = Color.Black.copy(alpha = 0.6f), thickness = 1.dp, modifier = Modifier.fillMaxWidth())
                                     DropdownMenuItem(

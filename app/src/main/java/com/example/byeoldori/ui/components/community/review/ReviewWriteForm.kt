@@ -17,8 +17,10 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.byeoldori.data.model.common.copyUriToCache
 import com.example.byeoldori.data.model.dto.ObservationSite
+import com.example.byeoldori.domain.Content
 import com.example.byeoldori.ui.components.community.*
 import com.example.byeoldori.domain.Observatory.Review
+import com.example.byeoldori.ui.mapper.toUi
 import com.example.byeoldori.viewmodel.Community.FileUploadViewModel
 import com.example.byeoldori.viewmodel.Community.ReviewViewModel
 import com.example.byeoldori.viewmodel.Observatory.ObservatoryMapViewModel
@@ -56,14 +58,17 @@ fun ReviewWriteForm(
     observatoryVm: ObservatoryMapViewModel = hiltViewModel()
 ) {
     // --- 상태들 ---
+    val isEditMode = initialReview != null
     var showCancelDialog by remember { mutableStateOf(false) }
     var showValidationDialog by remember { mutableStateOf(false) }
-    var title by rememberSaveable { mutableStateOf("") }
-    var rating by rememberSaveable { mutableStateOf("") }
-    var ratingInt by rememberSaveable { mutableStateOf(0) }
-    var target by rememberSaveable { mutableStateOf("") }
-    var site by rememberSaveable { mutableStateOf("") }
-    var equipment by rememberSaveable { mutableStateOf("") }
+
+    var title by rememberSaveable { mutableStateOf( initialReview?.title ?: "") }
+    var ratingInt by rememberSaveable { mutableStateOf(initialReview?.rating ?: 0) }
+    var rating by rememberSaveable { mutableStateOf(if (ratingInt > 0) "$ratingInt/5" else "") }
+    var target by rememberSaveable { mutableStateOf(initialReview?.target ?: "") }
+    var site by rememberSaveable { mutableStateOf(initialReview?.site ?: "") }
+    var equipment by rememberSaveable { mutableStateOf(initialReview?.equipment ?: "") }
+    var date by rememberSaveable { mutableStateOf(initialReview?.date ?: "") }
     var startTime by rememberSaveable { mutableStateOf("") }
     var endTime by rememberSaveable { mutableStateOf("") }
     var showRatingPicker by remember { mutableStateOf(false) }
@@ -84,13 +89,41 @@ fun ReviewWriteForm(
     }
 
     val uploadState by fileUploadVm.uploadState.collectAsState()
-    var items by remember {
-        mutableStateOf(listOf<EditorItem>(EditorItem.Paragraph())) //리뷰 본문
+    var items by remember(initialReview?.id) {
+        mutableStateOf(
+            initialReview?.contentItems?.toUi() ?: emptyList()
+        )
+    }
+    LaunchedEffect(initialReview?.id) {
+        if (items.none { it is EditorItem.Paragraph }) {
+            items = items + EditorItem.Paragraph()
+        }
+    }
+    val uiItems = remember(items, isEditMode) {
+        if (isEditMode) items.filterIsInstance<EditorItem.Paragraph>()
+        else items
     }
 
     //갤러리 선택 후 삽입 콜백을 잠시 보관
     var pendingOnPicked by remember { mutableStateOf<((List<Uri>) -> Unit)?>(null) }
-    var uploadItems by remember { mutableStateOf<List<UploadItem>>(emptyList()) } //현재 업로드 중인 파일 목록을 상태로 관리
+    var uploadItems by remember(initialReview?.id) {
+        mutableStateOf(
+            if (isEditMode)
+                initialReview!!.contentItems
+                    .filterIsInstance<Content.Image.Url>()
+                    .map { urlItem ->
+                        UploadItem(
+                            name = urlItem.url.substringAfterLast("/"),
+                            url = urlItem.url,
+                            status = UploadStatus.DONE,
+                            sizeBytes = null,
+                            progress = 1f
+                        )
+                    }
+            else emptyList()
+
+        )
+    } //현재 업로드 중인 파일 목록을 상태로 관리
 
     //갤러리 UI 열어주고 선택된 이미지들의 Uri리스트를 콜백으로 돌려줌
     val pickImages = rememberLauncherForActivityResult(
@@ -131,13 +164,18 @@ fun ReviewWriteForm(
             }
         }
     }
-
-    var date by rememberSaveable { mutableStateOf(initialReview?.date ?: "") }
     val createStateState = vm?.createState?.collectAsState()
     val createState = createStateState?.value ?: UiState.Idle
 
     //서버 업로드가 끝나서 성공적으로 URL을 받은 이미지들만 저장하는 리스트
-    var uploadedImageUrls by remember { mutableStateOf<List<String>>(emptyList()) }
+    var uploadedImageUrls by remember {
+        mutableStateOf(
+            initialReview?.contentItems //기존 이미지 있으면 미리 URL로 채워두기
+                ?.filterIsInstance<Content.Image.Url>()
+                ?.map { it.url }
+                ?: emptyList()
+        )
+    }
 
     fun buildContentText(items: List<EditorItem>): String =
         items.joinToString("\n") {
@@ -167,6 +205,8 @@ fun ReviewWriteForm(
                     m[idx] = m[idx].copy(url = url, status = UploadStatus.DONE, progress = 1f)
                     uploadItems = m
                 }
+                items = items + EditorItem.Photo(model = url)
+
                 uploadedImageUrls = uploadedImageUrls + url
                 fileUploadVm.reset() //다음 이미지 업로드를 준비하기 위해 Idle로 초기화
             }
@@ -198,17 +238,37 @@ fun ReviewWriteForm(
                     onSubmit = {
                         if(validateRequirement()) {
                             val matchedId = findMatchingSiteId(site, sites)
-                            vm?.createReview(
-                                title = title.trim(),
-                                content = buildContentText(items),
-                                location = site.trim(),
-                                target = target.trim(),
-                                equipment = equipment.trim(),
-                                observationDate = date,
-                                score = ratingInt,
-                                imageUrls = uploadedImageUrls,
-                                observationSiteId = matchedId
-                            )
+                            val payloadContent = buildContentText(items)
+
+                            if (isEditMode) {
+                                val idL = initialReview!!.id.toLong()
+                                vm?.updateReview(
+                                    postId = idL,
+                                    title = title.trim(),
+                                    content = payloadContent,
+                                    location = site.trim(),
+                                    target = target.trim(),
+                                    equipment = equipment.trim(),
+                                    observationDate = date,
+                                    score = ratingInt,
+                                    observationSiteId = matchedId,
+                                    imageUrls = uploadedImageUrls
+                                ) {
+                                    onSubmit() // 상위 완료 처리(알림, 다이얼로그 등)
+                                }
+                            } else {
+                                vm?.createReview(
+                                    title = title.trim(),
+                                    content = buildContentText(items),
+                                    location = site.trim(),
+                                    target = target.trim(),
+                                    equipment = equipment.trim(),
+                                    observationDate = date,
+                                    score = ratingInt,
+                                    imageUrls = uploadedImageUrls,
+                                    observationSiteId = matchedId
+                                )
+                            }
                         } else {
                             showValidationDialog = true
                         }
@@ -249,7 +309,7 @@ fun ReviewWriteForm(
             item {
                 ContentInput(
                     items = items,
-                    onItemsChange = { items = it },
+                    onItemsChange = { newItems -> items = newItems },
                     uploadItems = uploadItems,
                     onPickImages = { onPicked ->
                         // ContentInput이 넘겨준 onPicked를 보관했다가,
@@ -267,22 +327,20 @@ fun ReviewWriteForm(
             }
         }
 
-        when (val s = createState) {
-            is UiState.Loading -> {
-                LinearProgressIndicator(Modifier.fillMaxWidth())
-            }
-            is UiState.Success -> {
-                LaunchedEffect(s) {
-                    val first = uploadedImageUrls.firstOrNull()
-                    val createdId: Long = s.data
-                    vm?.registerLocalThumbnail(createdId.toString(), first)
-                    onSubmit()
+        if(!isEditMode) {
+            when (val s = createState) {
+                is UiState.Loading -> { LinearProgressIndicator(Modifier.fillMaxWidth()) }
+                is UiState.Success -> {
+                    LaunchedEffect(s) {
+                        val first = uploadedImageUrls.firstOrNull()
+                        val createdId: Long = s.data
+                        vm?.registerLocalThumbnail(createdId.toString(), first)
+                        onSubmit()
+                    }
                 }
+                is UiState.Error -> { Text(s.message ?: "작성 실패", color = Color.Red) }
+                UiState.Idle -> Unit
             }
-            is UiState.Error -> {
-                Text(s.message ?: "작성 실패", color = Color.Red)
-            }
-            UiState.Idle -> Unit
         }
 
         if (showCancelDialog) {

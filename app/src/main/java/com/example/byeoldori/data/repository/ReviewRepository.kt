@@ -126,4 +126,33 @@ class ReviewRepository @Inject constructor(
         return SiteInfo(count, likeSum, avgRating)
     }
 
+    suspend fun updateReview(
+        postId: Long,
+        title: String,
+        content: String,
+        location: String,
+        target: String,
+        equipment: String,
+        observationDate: String,
+        score: Int,
+        observationSiteId: Long? = null,
+        imageUrls: List<String> = emptyList()
+    ) {
+        val imageFiltered = imageUrls.filter { it.startsWith("http://") || it.startsWith("https://") }
+        val req = CreateReviewRequest(
+            title = title,
+            content = content,
+            review = ReviewDto(
+                location = location,
+                observationSiteId = observationSiteId,
+                target = target,
+                equipment = equipment,
+                observationDate = observationDate,
+                score = score
+            ),
+            imageUrls = imageFiltered.ifEmpty { null }
+        )
+        api.updateReview(postId, req)
+        Log.d(TAG, "리뷰 수정 완료 id=$postId")
+    }
 }

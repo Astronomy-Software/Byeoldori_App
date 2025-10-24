@@ -67,6 +67,8 @@ fun CommunityScreen(
     val eduDetailState by eduVm.detail.collectAsState()
     val commentsVm: CommentsViewModel = hiltViewModel()
 
+    var editReview by remember { mutableStateOf<Review?>(null) } //리뷰 수정 가능하게끔
+
     LaunchedEffect(Unit) {
         reviewVm.loadLocalThumbnails()
     }
@@ -94,10 +96,31 @@ fun CommunityScreen(
     }
 
     when {
+        editReview != null -> { //수정 모드일 때
+            ReviewWriteForm(
+                author = currentUser,
+                vm = reviewVm,
+                initialReview = editReview,            //수정 모드
+                onCancel = {
+                    editReview = null                  // 수정 취소
+                },
+                onSubmit = {
+                    editReview = null                  // 수정 완료 후 닫기
+                    successMessage = "리뷰가 수정되었습니다"
+                    showSuccessDialog = true
+                    reviewVm.loadPosts()
+                },
+                onTempSave = {},
+                onMore = {}
+            )
+        }
+
         showWriteForm -> {
             // 작성 화면만 표시 (탭/목록 숨김)
             ReviewWriteForm(
                 author = currentUser,
+                vm = reviewVm,
+                initialReview = null, //작성모드
                 onCancel = {
                     showWriteForm = false
                     successMessage = "작성 취소되었습니다"
@@ -111,9 +134,7 @@ fun CommunityScreen(
                     reviewVm.resetCreateState()
                 },
                 onTempSave = {},
-                onMore = { /* 더보기 */ },
-                vm = reviewVm,
-                initialReview = null
+                onMore = { /* 더보기 */ }
             )
 
         }
@@ -168,6 +189,11 @@ fun CommunityScreen(
                             vm.loadPosts()
                         }
                     }
+                },
+                onEditReview = { review ->
+                    editReview = review
+                    selectedReview = null //상세 닫기
+                    showWriteForm = false //수정 모드로 변경
                 }
             )
         }

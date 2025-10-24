@@ -256,4 +256,40 @@ class ReviewViewModel @Inject constructor(
             curr?.copy(likeCount = (curr.likeCount + delta).coerceAtLeast(0))
         }
     }
+
+    fun updateReview(
+        postId: Long,
+        title: String,
+        content: String,
+        location: String,
+        target: String,
+        equipment: String,
+        observationDate: String,
+        score: Int,
+        observationSiteId: Long? = null,
+        imageUrls: List<String> = emptyList(),
+        onDone: () -> Unit = {}
+    ) {
+        viewModelScope.launch {
+            try {
+                repo.updateReview(
+                    postId = postId,
+                    title = title,
+                    content = content,
+                    location = location,
+                    target = target,
+                    equipment = equipment,
+                    observationDate = observationDate,
+                    score = score,
+                    observationSiteId = observationSiteId,
+                    imageUrls = imageUrls
+                )
+                loadReviewDetail(postId)
+                loadPosts()
+                onDone()
+            } catch (e: Exception) {
+                Log.e("ReviewVM", "리뷰 수정 실패: ${e.message}", e)
+            }
+        }
+    }
 }
