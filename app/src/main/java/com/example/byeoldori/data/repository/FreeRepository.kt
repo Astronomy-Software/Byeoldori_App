@@ -1,5 +1,6 @@
 package com.example.byeoldori.data.repository
 
+import android.content.ContentValues.TAG
 import android.content.Context
 import android.util.Log
 import androidx.datastore.preferences.core.edit
@@ -100,5 +101,19 @@ class FreeRepository @Inject constructor(
 
     suspend fun loadLikedKeys(): Set<String> {
         return LikedPrefs.loadLikedKeys(context)
+    }
+
+    suspend fun deletePost(postId: Long) {
+        try {
+            api.deletePost(postId)
+            Log.d(TAG, "게시글 삭제 성공: id=$postId")
+        } catch (e: Exception) {
+            if (e is retrofit2.HttpException) {
+                Log.e(TAG, "게시글 삭제 실패: code=${e.code()}, body=${e.response()?.errorBody()?.string()}")
+            } else {
+                Log.e(TAG, "게시글 삭제 실패: ${e.message}", e)
+            }
+            throw e
+        }
     }
 }

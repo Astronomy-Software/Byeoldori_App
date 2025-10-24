@@ -45,6 +45,9 @@ class CommunityViewModel @Inject constructor(
     private val _commentCounts = MutableStateFlow<Map<String, Int>>(emptyMap())
     val commentCounts: StateFlow<Map<String, Int>> = _commentCounts
 
+    private val _deleteState = MutableStateFlow<UiState<Unit>>(UiState.Idle)
+    val deleteState: StateFlow<UiState<Unit>> = _deleteState.asStateFlow()
+
     init {
         restoreLikedFromLocal()
         loadPosts()
@@ -181,5 +184,23 @@ class CommunityViewModel @Inject constructor(
     fun findNicknameByAuthorId(authorId: Long): String? {
         val currentPosts = (_postsState.value as? UiState.Success)?.data ?: return null
         return currentPosts.firstOrNull { it.authorId == authorId }?.authorNickname
+    }
+
+    fun deletePost(postId: Long, onSuccess: (() -> Unit)? = null) {
+        viewModelScope.launch {
+            _deleteState.value = UiState.Loading
+            runCatching { repo.deletePost(postId) }
+                .onSuccess {
+                    val cur = _postsState.value
+                    if (cur is UiState.Success) _postsState.value = UiState.Success(cur.data.filterNot { it.id == postId })
+
+                    clearSelection()
+                    _deleteState.value = UiState.Success(Unit)
+                    onSuccess?.invoke()
+                }
+                .onFailure { e ->
+                    _deleteState.value = UiState.Error(e.message ?: "게시글이 삭제되지 않았습니다.")
+                }
+        }
     }
 }

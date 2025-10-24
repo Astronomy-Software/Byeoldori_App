@@ -125,4 +125,5 @@ class ReviewRepository @Inject constructor(
             else 0f
         return SiteInfo(count, likeSum, avgRating)
     }
+
 }

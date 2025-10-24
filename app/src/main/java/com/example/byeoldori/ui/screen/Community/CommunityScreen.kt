@@ -32,20 +32,6 @@ enum class CommunityTab(val label: String, val routeSeg: String) {
     Board("자유게시판", "board")
 }
 
-private fun isMine(
-    commentAuthorId: Long?,
-    commentAuthorNick: String?,
-    myId: Long?,
-    myNick: String?
-): Boolean {
-    // 1순위: id 일치
-    if (commentAuthorId != null && myId != null && commentAuthorId == myId) return true
-    // 2순위(보조): 닉네임 정확 일치 (nullable/공백 방어)
-    val a = commentAuthorNick?.trim()
-    val b = myNick?.trim()
-    return !a.isNullOrEmpty() && a == b
-}
-
 @Composable
 fun CommunityScreen(
     tab: CommunityTab,
@@ -172,7 +158,17 @@ fun CommunityScreen(
                         dummyReviews[j] = dummyReviews[j].copy(liked = liked, likeCount = next)
                     }
                 },
-                vm = reviewVm
+                vm = reviewVm,
+                onEdit = true, //수정 메뉴 보이도록
+                onDelete = { id ->
+                    id.toLongOrNull()?.let { pid ->
+                        vm.deletePost(pid) {
+                            selectedReview = null
+                            reviewVm.loadPosts()
+                            vm.loadPosts()
+                        }
+                    }
+                }
             )
         }
         selectedFreePost != null -> {
@@ -199,7 +195,16 @@ fun CommunityScreen(
                     selectedFreePost = null
                     vm.clearSelection()
                 },
-                vm = vm
+                vm = vm,
+                onEdit = true,
+                onDelete = { id ->
+                    id.toLongOrNull()?.let { pid ->
+                        vm.deletePost(pid) {
+                            selectedFreePost = null
+                            vm.loadPosts()
+                        }
+                    }
+                }
             )
         }
 
@@ -209,7 +214,16 @@ fun CommunityScreen(
                 post = selectedPost!!.toFreePost(),
                 apiPost = apiPost,
                 onBack = { vm.clearSelection() },
-                vm = vm
+                vm = vm,
+                onEdit = true,
+                onDelete = { id ->
+                    id.toLongOrNull()?.let { pid ->
+                        vm.deletePost(pid) {
+                            selectedFreePost = null
+                            vm.loadPosts()
+                        }
+                    }
+                }
             )
         }
 
@@ -223,7 +237,16 @@ fun CommunityScreen(
                 },
                 currentUser = currentUser,
                 onStartProgram = { /* 필요 시 구현 */ },
-                vm = eduVm
+                vm = eduVm,
+                onEdit = true,
+                onDelete = { id ->
+                    id.toLongOrNull()?.let { pid ->
+                        vm.deletePost(pid) {
+                            selectedProgram = null
+                            eduVm.loadPosts()
+                        }
+                    }
+                }
             )
         }
 
@@ -236,7 +259,16 @@ fun CommunityScreen(
                 onBack = { eduVm.clearSelection() },
                 currentUser = currentUser,
                 onStartProgram = { /* 필요 시 구현 */ },
-                vm = eduVm
+                vm = eduVm,
+                onEdit = true,
+                onDelete = { id ->
+                    id.toLongOrNull()?.let { pid ->
+                        vm.deletePost(pid) {
+                            selectedProgram = null
+                            eduVm.loadPosts()
+                        }
+                    }
+                }
             )
         }
 
@@ -309,10 +341,6 @@ fun CommunityScreen(
                                 val posts = (eduState as UiState.Success<List<EducationResponse>>).data
                                 val counts by commentsVm.commentCounts.collectAsState()
 
-                                val uiPrograms = posts
-                                    .map { it.toEduProgram() }
-                                    .map { p -> p.copy(commentCount = counts[p.id] ?: p.commentCount) }
-
                                 EduProgramSection(
                                     eduProgramsAll = posts.map { it.toEduProgram() },
                                     onWriteClick = { /* 교육 글쓰기 있으면 연결 */ },
@@ -364,8 +392,6 @@ fun CommunityScreen(
                                 postId.filter(Char::isDigit).toLongOrNull()?.let { idL ->
                                     vm.loadPostDetail(idL)
                                 } ?: Log.w("CommunityScreen", "Cannot parse postId to Long: $postId")
-
-                               // free.id.toLongOrNull()?.let { vm.loadPostDetail(it) }
                             },
                             onSyncReviewLikeCount = { id, next ->
                                 val i = reviews.indexOfFirst { it.id == id }

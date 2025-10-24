@@ -17,7 +17,6 @@ import androidx.compose.ui.unit.*
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.byeoldori.R
 import com.example.byeoldori.data.UserViewModel
-import com.example.byeoldori.data.model.dto.FreePostResponse
 import com.example.byeoldori.data.model.dto.PostDetailResponse
 import com.example.byeoldori.domain.Community.*
 import com.example.byeoldori.ui.components.community.*
@@ -33,10 +32,11 @@ fun FreeBoardDetail (
     post: FreePost, //더미 Post
     onBack: () -> Unit,
     onShare: () -> Unit = {},
-    onMore: () -> Unit = {},
     apiPost: PostDetailResponse? = null, //api에서 받은 Post,
     vm: CommunityViewModel? = null,
-    onSyncFreeLikeCount: (id: String, liked: Boolean, next: Int) -> Unit = { _, _, _ -> }
+    onSyncFreeLikeCount: (id: String, liked: Boolean, next: Int) -> Unit = { _, _, _ -> },
+    onEdit: Boolean = true,
+    onDelete: (postId: String) -> Unit = {}
 ) {
     var input by rememberSaveable { mutableStateOf("") }
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -52,7 +52,6 @@ fun FreeBoardDetail (
 
     var likeCount by rememberSaveable(post.id) { mutableStateOf(initialCount) } //로컬 카운트
     var liked by rememberSaveable(post.id) { mutableStateOf(initialLiked) }
-
 
     val commentsVm: CommentsViewModel = hiltViewModel() //화면에 연결된 CommentsViewModel 인스턴스 주입
     val commentsState by commentsVm.comments.collectAsState()
@@ -73,6 +72,9 @@ fun FreeBoardDetail (
     }
     //상태 변화 즉시 리스트 갱신
     val commentList: List<ReviewComment> = (commentsState as? UiState.Success)?.data ?: emptyList()
+
+    var moreMenu by remember { mutableStateOf(false) }
+    var showDeleted by remember { mutableStateOf(false) }
 
     LaunchedEffect(requestKeyboard) {
         if (requestKeyboard) {
@@ -124,12 +126,30 @@ fun FreeBoardDetail (
                             )
                         }
                         Spacer(Modifier.width(10.dp))
-                        IconButton(onClick = onMore) {
-                            Icon(
-                                painter = painterResource(R.drawable.ic_more),
-                                contentDescription = "더보기",
-                                tint = Color.White
-                            )
+                        Box {
+                            IconButton(onClick = { moreMenu = true }) {
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_more),
+                                    contentDescription = "더보기",
+                                    tint = Color.White
+                                )
+                            }
+                            DropdownMenu(
+                                expanded = moreMenu,
+                                onDismissRequest = { moreMenu = false }
+                            ) {
+                                if(onEdit) {
+                                    DropdownMenuItem(
+                                        text = { Text("수정",color = Color.Black) },
+                                        onClick = {}
+                                    )
+                                    Divider(color = Color.Black.copy(alpha = 0.6f), thickness = 1.dp, modifier = Modifier.fillMaxWidth())
+                                    DropdownMenuItem(
+                                        text = { Text("삭제",color = Color.Black) },
+                                        onClick = { showDeleted = true }
+                                    )
+                                }
+                            }
                         }
                     }
                 )
@@ -269,13 +289,32 @@ fun FreeBoardDetail (
                     liked = LikeState.ids.filter { it.startsWith("freeComment:") }
                         .map { it.removePrefix("freeComment:") }.toSet(),
                     onDelete = {
-                        //del ->
-//                        val idx = commentList.indexOfFirst { it.id == del.id }
-//                        if (idx >= 0) commentList.removeAt(idx)
                     }
                 )
             }
         }
+    }
+    if (showDeleted) {
+        AlertDialog(
+            onDismissRequest = { showDeleted = false },
+            title = { Text("게시글 삭제",color = Color.Black) },
+            text = { Text("정말로 이 게시글을 삭제하시겠어요?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDeleted = false
+                        moreMenu = false
+                        onDelete(post.id)
+                    }
+                ) { Text("삭제") }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showDeleted = false
+                    moreMenu = false
+                }) { Text("취소") }
+            }
+        )
     }
 }
 
@@ -287,7 +326,6 @@ private fun Preview_FreeBoardDetail() {
         post = sample,
         onBack = {},
         onShare = {},
-        onMore = {},
         apiPost = null,
         vm = null
     )
