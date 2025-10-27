@@ -1,5 +1,6 @@
 package com.example.byeoldori.viewmodel.Community
 
+import android.content.Context
 import android.net.Uri
 import android.util.Log
 import kotlinx.coroutines.flow.asStateFlow
@@ -9,13 +10,15 @@ import com.example.byeoldori.data.repository.FreeRepository
 import com.example.byeoldori.ui.components.community.likedKeyFree
 import com.example.byeoldori.viewmodel.*
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class CommunityViewModel @Inject constructor(
-    private val repo: FreeRepository
+    private val repo: FreeRepository,
+    @ApplicationContext private val context: Context
 ): BaseViewModel() {
 
     private val _postsState = MutableStateFlow<UiState<List<FreePostResponse>>>(UiState.Idle)
@@ -48,8 +51,23 @@ class CommunityViewModel @Inject constructor(
     private val _deleteState = MutableStateFlow<UiState<Unit>>(UiState.Idle)
     val deleteState: StateFlow<UiState<Unit>> = _deleteState.asStateFlow()
 
+    private val prefs = context.getSharedPreferences("free_thumbnails", Context.MODE_PRIVATE)
+    private val _thumbnails = MutableStateFlow<Map<String, String>>(emptyMap())
+    val thumbnails: StateFlow<Map<String, String>> = _thumbnails
+
+    fun loadLocalThumbnails() {
+        _thumbnails.value = prefs.all.mapValues { it.value.toString() }
+    }
+
+    fun registerLocalThumbnail(id: String, url: String?) {
+        if (url.isNullOrBlank()) return
+        _thumbnails.value = _thumbnails.value + (id to url)
+        prefs.edit().putString(id, url).apply()
+    }
+
     init {
         restoreLikedFromLocal()
+        loadLocalThumbnails()
         loadPosts()
     }
 
@@ -59,7 +77,12 @@ class CommunityViewModel @Inject constructor(
             val posts = repo.getAllPosts(sort.value)
             _postsState.value = UiState.Success(posts)
             //리스트 받아올 때 현재 개수 반영
-            _likeCounts.update { it + posts.associate { p-> p.id.toString() to p.likeCount } }
+            _likedIds.update { ids ->
+                val serverLiked = posts.filter { it.liked }
+                    .map { likedKeyFree(it.id.toString()) }
+                    .toSet()
+                ids + serverLiked
+            }
         } catch (e: Exception) {
             _postsState.value = UiState.Error(handleException(e))
         }
@@ -90,6 +113,7 @@ class CommunityViewModel @Inject constructor(
         try {
             val post: PostDetailResponse = repo.getPostDetail(id)
             _postDetail.value = UiState.Success(post)
+            registerLocalThumbnail(id.toString(), post.images.firstOrNull())
             Log.d("CommunityVM", "게시글 상세 불러오기 성공 id=$id, title=${post.title}")
         } catch (e: Exception) {
             _postDetail.value = UiState.Error(handleException(e))
@@ -103,6 +127,7 @@ class CommunityViewModel @Inject constructor(
                 repo.createFreePost(title, content, imageUrls)
             }.onSuccess { newId ->
                 _createState.value = UiState.Success(newId)
+                registerLocalThumbnail(newId.toString(), imageUrls.firstOrNull())
                 loadPosts()
             }.onFailure { e ->
                 _createState.value = UiState.Error(e.message ?: "게시글 생성 실패")
@@ -218,6 +243,7 @@ class CommunityViewModel @Inject constructor(
                     content = content,
                     imageUrls = imageUrls
                 )
+                registerLocalThumbnail(postId.toString(), imageUrls.firstOrNull())
                 loadPostDetail(postId)
                 loadPosts()
                 onDone()

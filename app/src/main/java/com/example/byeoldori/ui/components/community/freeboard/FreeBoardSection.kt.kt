@@ -175,6 +175,8 @@ fun FreeBoardSection(
             ) {
                 items(filtered, key = { it.id }) { post ->
                     val uiCommentCount = commentCounts[post.id] ?: post.commentCount
+                    //val uiLikeCount = likeCounts[post.id] ?: post.likeCount
+                    val isLikedFromVm = likedIds.contains(likedKeyFree(post.id))
                     val uiLikeCount = likeCounts[post.id] ?: post.likeCount
 
                     Column {
@@ -182,7 +184,7 @@ fun FreeBoardSection(
                             post = post,
                             commentCount = uiCommentCount,
                             likeCount = uiLikeCount,
-                            isLiked = post.liked,
+                            isLiked = isLikedFromVm,
                             onClick = { onClickPost(post.id) },
                             onLikeClick = { vm?.toggleLike(post.id.toLong()) }
                         )

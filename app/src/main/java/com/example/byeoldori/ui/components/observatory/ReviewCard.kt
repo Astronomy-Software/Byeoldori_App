@@ -17,6 +17,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
 import coil.compose.AsyncImage
+import coil.compose.rememberAsyncImagePainter
 import com.example.byeoldori.R
 import com.example.byeoldori.domain.Content
 import com.example.byeoldori.ui.theme.*
@@ -135,34 +136,21 @@ fun ReviewCard(
     ) {
         Column(Modifier.fillMaxSize()) {
             //대표 이미지
-            val thumbUrl = review.thumbnail
-                ?: (review.contentItems.firstOrNull { it is Content.Image.Url } as? Content.Image.Url)?.url
-            val model: Any = thumbUrl ?: R.drawable.img_dummy
+            val thumbModel: Any =
+                review.thumbnail
+                    ?.takeIf { it.startsWith("http://") || it.startsWith("https://") }
+                    ?: R.drawable.img_dummy
 
-            val imageModifier = Modifier
-                .fillMaxWidth()
-                .padding(10.dp)
-                .height(110.dp)
-                .clip(RoundedCornerShape(16.dp))
-
-            when (model) {
-                is Int -> {
-                    Image(
-                        painter = painterResource(model),
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
-                        modifier = imageModifier
-                    )
-                }
-                else -> {
-                    AsyncImage(
-                        model = model,
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
-                        modifier = imageModifier
-                    )
-                }
-            }
+            AsyncImage(
+                model = thumbModel,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(10.dp)
+                    .height(110.dp)
+                    .clip(RoundedCornerShape(16.dp))
+            )
             Column(Modifier.padding(start = 15.dp)) {
                 Text(
                     text = review.title,
@@ -194,8 +182,10 @@ fun ReviewCard(
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.clickable {
-                            val newCount = if (likeKey in LikeState.ids) likeCount - 1 else likeCount + 1
-                            LikeState.ids = if (likeKey in LikeState.ids) LikeState.ids - likeKey else LikeState.ids + likeKey
+                            val newCount =
+                                if (likeKey in LikeState.ids) likeCount - 1 else likeCount + 1
+                            LikeState.ids =
+                                if (likeKey in LikeState.ids) LikeState.ids - likeKey else LikeState.ids + likeKey
                             likeCount = newCount
                             onSyncLikeCount(newCount)  //상위 reviews 동기화 → 탭 전환해도 유지
                         }
@@ -209,8 +199,9 @@ fun ReviewCard(
                         Spacer(Modifier.width(4.dp))
                         Text("$likeCount", color = TextHighlight, fontSize = 14.sp)
                     }
-                    Row(verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.offset(x=(-8).dp)
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.offset(x = (-8).dp)
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.ic_comment),
