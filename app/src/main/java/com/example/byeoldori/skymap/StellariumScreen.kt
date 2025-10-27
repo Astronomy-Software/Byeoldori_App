@@ -1,5 +1,6 @@
 package com.example.byeoldori.skymap
 
+import android.app.Activity
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,15 +13,32 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import kotlinx.coroutines.launch
-import java.time.Instant
-import java.time.ZoneOffset
-import java.time.format.DateTimeFormatter
 
 @Composable
 fun StellariumScreen() {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+
+    // ✅ 상태바 컨트롤러 준비
+    val window = (context as Activity).window
+    val insetsController = remember {
+        WindowInsetsControllerCompat(window, window.decorView)
+    }
+    // ✅ 진입 시 상태바 숨기기 & 나갈 때 복원
+    DisposableEffect(Unit) {
+        // 상단 상태바만 숨김
+        insetsController.hide(WindowInsetsCompat.Type.statusBars())
+        insetsController.systemBarsBehavior =
+            WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+
+        onDispose {
+            // 상태바 다시 보이게
+            insetsController.show(WindowInsetsCompat.Type.statusBars())
+        }
+    }
 
     // 1) 로컬 서버 시작/정지
     val server = remember {
@@ -45,8 +63,10 @@ fun StellariumScreen() {
                 settings.javaScriptEnabled = true
                 settings.domStorageEnabled = true
                 settings.allowFileAccess = true
+                // 브릿지 등록
+                addJavascriptInterface(AppBridge(context,gyroController), "AndroidBridge")
                 webViewClient = WebViewClient()
-                loadUrl("http://localhost:14204/")
+                loadUrl("http://localhost:8080/")
                 webViewState.value = this
             }
         }
@@ -66,14 +86,13 @@ fun StellariumScreen() {
     DisposableEffect(controller) {
         if (controller != null) {
             val job = scope.launch {
-                kotlinx.coroutines.delay(10000L)  // 10초 지연
-                controller.setLocation(37.5665, 126.9780, 38.0)
-                // ✅ 현재 시각 ISO 8601 UTC 포맷
-                val nowIso = DateTimeFormatter.ISO_INSTANT
-                    .withZone(ZoneOffset.UTC)
-                    .format(Instant.now())
-                controller.setTime(nowIso)   // 여기서 바로 전달 👈
-                gyroController.start()
+//                kotlinx.coroutines.delay(10000L)  // 10초 지연
+//                controller.setLocation(37.5665, 126.9780, 38.0)
+//                // ✅ 현재 시각 ISO 8601 UTC 포맷
+//                val nowIso = DateTimeFormatter.ISO_INSTANT
+//                    .withZone(ZoneOffset.UTC)
+//                    .format(Instant.now())
+//                controller.setTime(nowIso)   // 여기서 바로 전달 👈
             }
 
             onDispose {
