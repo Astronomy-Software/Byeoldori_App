@@ -17,12 +17,10 @@ import com.example.byeoldori.ui.components.community.freeboard.*
 import com.example.byeoldori.ui.components.community.review.*
 import com.example.byeoldori.domain.Community.EduProgram
 import com.example.byeoldori.domain.Community.FreePost
+import com.example.byeoldori.domain.Content
 import com.example.byeoldori.domain.Observatory.Review
 import com.example.byeoldori.viewmodel.*
-import com.example.byeoldori.viewmodel.Community.CommentsViewModel
-import com.example.byeoldori.viewmodel.Community.CommunityViewModel
-import com.example.byeoldori.viewmodel.Community.EducationViewModel
-import com.example.byeoldori.viewmodel.Community.ReviewViewModel
+import com.example.byeoldori.viewmodel.Community.*
 
 // --- 탭 정의 ---
 enum class CommunityTab(val label: String, val routeSeg: String) {
@@ -30,20 +28,6 @@ enum class CommunityTab(val label: String, val routeSeg: String) {
     Program("교육 프로그램", "program"),
     Review("관측 후기", "review"),
     Board("자유게시판", "board")
-}
-
-private fun isMine(
-    commentAuthorId: Long?,
-    commentAuthorNick: String?,
-    myId: Long?,
-    myNick: String?
-): Boolean {
-    // 1순위: id 일치
-    if (commentAuthorId != null && myId != null && commentAuthorId == myId) return true
-    // 2순위(보조): 닉네임 정확 일치 (nullable/공백 방어)
-    val a = commentAuthorNick?.trim()
-    val b = myNick?.trim()
-    return !a.isNullOrEmpty() && a == b
 }
 
 @Composable
@@ -81,8 +65,15 @@ fun CommunityScreen(
     val eduDetailState by eduVm.detail.collectAsState()
     val commentsVm: CommentsViewModel = hiltViewModel()
 
+    var editReview by remember { mutableStateOf<Review?>(null) } //리뷰 수정 가능하게끔
+    var editPost by remember { mutableStateOf<FreePost?>(null) }
+
+    val reviewThumbs by reviewVm.thumbnails.collectAsState()
+    val freeThumbs by vm.thumbnails.collectAsState()
+
     LaunchedEffect(Unit) {
         reviewVm.loadLocalThumbnails()
+        vm.loadLocalThumbnails()
     }
 
     LaunchedEffect(selectedId) {
@@ -108,10 +99,48 @@ fun CommunityScreen(
     }
 
     when {
+        editReview != null -> { //수정 모드일 때
+            ReviewWriteForm(
+                author = currentUser,
+                vm = reviewVm,
+                initialReview = editReview,            //수정 모드
+                onCancel = {
+                    editReview = null                  // 수정 취소
+                },
+                onSubmit = {
+                    editReview = null                  // 수정 완료 후 닫기
+                    successMessage = "리뷰가 수정되었습니다"
+                    showSuccessDialog = true
+                    reviewVm.loadPosts()
+                },
+                onTempSave = {},
+                onMore = {}
+            )
+        }
+        editPost != null -> {
+            FreeBoardWriteForm(
+                vm = vm,
+                initialPost = editPost,                 // ← 초기값 주입 (수정 모드)
+                onCancel = { editPost = null },         // 취소 → 닫기
+                onSubmit = {
+                    editPost = null                     // 저장 후 닫기
+                    successMessage = "게시글이 수정되었습니다"
+                    showSuccessDialog = true
+                    vm.loadPosts()                      // 목록 갱신
+                },
+                onTempSave = {},
+                onMore = {},
+                onSubmitPost = {},
+                onClose = { editPost = null }
+            )
+        }
+
         showWriteForm -> {
             // 작성 화면만 표시 (탭/목록 숨김)
             ReviewWriteForm(
                 author = currentUser,
+                vm = reviewVm,
+                initialReview = null, //작성모드
                 onCancel = {
                     showWriteForm = false
                     successMessage = "작성 취소되었습니다"
@@ -125,15 +154,12 @@ fun CommunityScreen(
                     reviewVm.resetCreateState()
                 },
                 onTempSave = {},
-                onMore = { /* 더보기 */ },
-                vm = reviewVm,
-                initialReview = null
+                onMore = { /* 더보기 */ }
             )
 
         }
         showFreeBoardWriteForm -> {
             FreeBoardWriteForm(
-                author = currentUser,
                 vm = vm,
                 onCancel = {
                     showFreeBoardWriteForm = false
@@ -172,12 +198,26 @@ fun CommunityScreen(
                         dummyReviews[j] = dummyReviews[j].copy(liked = liked, likeCount = next)
                     }
                 },
-                vm = reviewVm
+                vm = reviewVm,
+                onEdit = true, //수정 메뉴 보이도록
+                onDelete = { id ->
+                    id.toLongOrNull()?.let { pid ->
+                        vm.deletePost(pid) {
+                            selectedReview = null
+                            reviewVm.loadPosts()
+                            vm.loadPosts()
+                        }
+                    }
+                },
+                onEditReview = { review ->
+                    editReview = review
+                    selectedReview = null //상세 닫기
+                    showWriteForm = false //수정 모드로 변경
+                }
             )
         }
         selectedFreePost != null -> {
             val apiPost = (postDetailState as? UiState.Success)?.data
-
             val uiPost = selectedPost?.toFreePost()
                 ?: dummyFreePosts.firstOrNull { it.id == selectedFreePost }
                 ?: FreePost( // 최후 fallback (혹시라도 못 찾을 때)
@@ -199,7 +239,21 @@ fun CommunityScreen(
                     selectedFreePost = null
                     vm.clearSelection()
                 },
-                vm = vm
+                vm = vm,
+                onEdit = true,
+                onDelete = { id ->
+                    id.toLongOrNull()?.let { pid ->
+                        vm.deletePost(pid) {
+                            selectedFreePost = null
+                            vm.loadPosts()
+                        }
+                    }
+                },
+                onEditPost = { post ->                //수정 진입
+                    editPost = post                   // 편집 상태로 전환
+                    selectedFreePost = null           // 상세 닫기
+                    vm.clearSelection()
+                }
             )
         }
 
@@ -209,7 +263,20 @@ fun CommunityScreen(
                 post = selectedPost!!.toFreePost(),
                 apiPost = apiPost,
                 onBack = { vm.clearSelection() },
-                vm = vm
+                vm = vm,
+                onEdit = true,
+                onDelete = { id ->
+                    id.toLongOrNull()?.let { pid ->
+                        vm.deletePost(pid) {
+                            selectedFreePost = null
+                            vm.loadPosts()
+                        }
+                    }
+                },
+                onEditPost = { post ->                //수정 진입
+                    editPost = post                   // 편집 상태로 전환
+                    vm.clearSelection()
+                }
             )
         }
 
@@ -223,7 +290,16 @@ fun CommunityScreen(
                 },
                 currentUser = currentUser,
                 onStartProgram = { /* 필요 시 구현 */ },
-                vm = eduVm
+                vm = eduVm,
+                onEdit = true,
+                onDelete = { id ->
+                    id.toLongOrNull()?.let { pid ->
+                        vm.deletePost(pid) {
+                            selectedProgram = null
+                            eduVm.loadPosts()
+                        }
+                    }
+                }
             )
         }
 
@@ -236,10 +312,18 @@ fun CommunityScreen(
                 onBack = { eduVm.clearSelection() },
                 currentUser = currentUser,
                 onStartProgram = { /* 필요 시 구현 */ },
-                vm = eduVm
+                vm = eduVm,
+                onEdit = true,
+                onDelete = { id ->
+                    id.toLongOrNull()?.let { pid ->
+                        vm.deletePost(pid) {
+                            selectedProgram = null
+                            eduVm.loadPosts()
+                        }
+                    }
+                }
             )
         }
-
         else -> {
             Column(Modifier.fillMaxSize()) {
                 // 탭바
@@ -309,10 +393,6 @@ fun CommunityScreen(
                                 val posts = (eduState as UiState.Success<List<EducationResponse>>).data
                                 val counts by commentsVm.commentCounts.collectAsState()
 
-                                val uiPrograms = posts
-                                    .map { it.toEduProgram() }
-                                    .map { p -> p.copy(commentCount = counts[p.id] ?: p.commentCount) }
-
                                 EduProgramSection(
                                     eduProgramsAll = posts.map { it.toEduProgram() },
                                     onWriteClick = { /* 교육 글쓰기 있으면 연결 */ },
@@ -332,15 +412,30 @@ fun CommunityScreen(
 
                     CommunityTab.Home -> {
                         val reviewList = when (val s = reviewVm.postsState.collectAsState().value) {
-                            is UiState.Success -> s.data.map { it.toReview() }
+                            is UiState.Success -> s.data.map { res ->
+                                val base = res.toReview()
+                                val thumbsUrl = reviewThumbs[res.id.toString()]
+                                if(!thumbsUrl.isNullOrBlank()) {
+                                    base.copy(contentItems = listOf(Content.Image.Url(thumbsUrl)) + base.contentItems)
+                                } else base
+                            }
                             else -> emptyList()
                         }
                         val eduList = when (val s = eduVm.postsState.collectAsState().value) {
                             is UiState.Success -> s.data.map { it.toEduProgram() }
                             else -> emptyList()
                         }
+                        LaunchedEffect(freeThumbs) {
+                            Log.d("HomeFreeThumbs", "thumbs size=${freeThumbs.size} firstKeys=${freeThumbs.keys.take(3)}")
+                        }
                         val freeList = when (val s = vm.postsState.collectAsState().value) {
-                            is UiState.Success -> s.data.map { it.toFreePost() }
+                            is UiState.Success -> s.data.map { res ->
+                                val base = res.toFreePost()
+                                val thumbsUrl = freeThumbs[res.id.toString()]
+                                if(!thumbsUrl.isNullOrBlank()) {
+                                    base.copy(contentItems = listOf(Content.Image.Url(thumbsUrl)) + base.contentItems)
+                                } else base
+                            }
                             else -> emptyList()
                         }
 
@@ -364,8 +459,6 @@ fun CommunityScreen(
                                 postId.filter(Char::isDigit).toLongOrNull()?.let { idL ->
                                     vm.loadPostDetail(idL)
                                 } ?: Log.w("CommunityScreen", "Cannot parse postId to Long: $postId")
-
-                               // free.id.toLongOrNull()?.let { vm.loadPostDetail(it) }
                             },
                             onSyncReviewLikeCount = { id, next ->
                                 val i = reviews.indexOfFirst { it.id == id }
@@ -411,7 +504,6 @@ fun CommunityScreen(
             title = { Text("알림",color = Color.Black) },
             text = {
                 Column {
-                    //Text("정상적으로 등록되었습니다.", color = Color.Black)
                     Spacer(Modifier.height(8.dp))
                     Text(successMessage, color = Color.DarkGray)
                 }

@@ -42,13 +42,15 @@ fun ReviewDetail(
     review: Review,
     onBack: () -> Unit = {},
     onShare: () -> Unit = {},
-    onMore: () -> Unit = {},
     currentUser: String,
     onSyncReviewLikeCount: (id: String, liked: Boolean, next: Int) -> Unit,
     apiDetail: ReviewDetailResponse? = null, // 서버에서 가져온 상세(요약/카운트)
     apiPost: ReviewResponse? = null,
     vm: ReviewViewModel? = null,
-    commentsVm: CommentsViewModel? = null
+    commentsVm: CommentsViewModel? = null,
+    onEdit: Boolean = true,
+    onDelete: (reviewId: String) -> Unit = {},
+    onEditReview: (Review) -> Unit = {}
 ) {
     val imeVisible = rememberIsImeVisible()
     val tailRequester = remember { BringIntoViewRequester() } //키보드가 올라왔을 때 댓글창 숨어버리는 거 방지
@@ -97,6 +99,9 @@ fun ReviewDetail(
 
     val myId: Long? = currentUser.toLongOrNull()
     val myNick: String? = if (myId == null) currentUser else null
+
+    var moreMenu by remember { mutableStateOf(false) } //더보기 누르면 수정/삭제 버튼
+    var showDeleted by remember { mutableStateOf(false) } //삭제 확인 다이얼로그
 
     LaunchedEffect(reviewForUi.id) { commentsViewModel?.start(reviewForUi.id) }
 
@@ -153,12 +158,34 @@ fun ReviewDetail(
                             )
                         }
                         Spacer(Modifier.width(10.dp))
-                        IconButton(onClick = onMore) {
-                            Icon(
-                                painter = painterResource(R.drawable.ic_more),
-                                contentDescription = "더보기",
-                                tint = Color.White
-                            )
+
+                        Box {
+                            IconButton(onClick = { moreMenu = true }) {
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_more),
+                                    contentDescription = "더보기",
+                                    tint = Color.White
+                                )
+                            }
+                            DropdownMenu(
+                                expanded = moreMenu,
+                                onDismissRequest = { moreMenu = false }
+                            ) {
+                                if(onEdit) {
+                                    DropdownMenuItem(
+                                        text = { Text("수정",color = Color.Black) },
+                                        onClick = {
+                                            moreMenu = false
+                                            onEditReview(reviewForUi) //현재 리뷰 데이터를 넘김
+                                        }
+                                    )
+                                    Divider(color = Color.Black.copy(alpha = 0.6f), thickness = 1.dp, modifier = Modifier.fillMaxWidth())
+                                    DropdownMenuItem(
+                                        text = { Text("삭제",color = Color.Black) },
+                                        onClick = { showDeleted = true }
+                                    )
+                                }
+                            }
                         }
                     }
                 )
@@ -186,7 +213,6 @@ fun ReviewDetail(
                         vm?.loadPosts()
                     }
                 },
-
                 modifier = Modifier
                     .fillMaxWidth()
                     .focusRequester(focusRequester)
@@ -231,9 +257,6 @@ fun ReviewDetail(
                         )
                         Spacer(Modifier.height(4.dp))
                         Text( //작성일
-//                            text = (apiPost?.createdAt ?: review.createdAt.toShortDate()).let {
-//                                if (apiPost != null) it.toShortDate() else it
-//                            },
                             text = reviewForUi.createdAt.toShortDate(),
                             style = MaterialTheme.typography.bodySmall.copy(color = TextDisabled),
                             fontSize = 17.sp
@@ -257,17 +280,7 @@ fun ReviewDetail(
                     modifier = Modifier.fillMaxWidth(),
                     enabled = false //수정 못하게
                 )
-               // Divider(color = Color.LightGray.copy(alpha = 0.4f), thickness = 1.dp)
                 ContentInput(
-//                    items = when {
-//                        apiPost?.contentSummary != null -> listOf(
-//                            EditorItem.Paragraph(value = TextFieldValue(apiPost.contentSummary))
-//                        )
-//                        apiDetail?.content != null -> listOf(
-//                            EditorItem.Paragraph(value = TextFieldValue(apiDetail.content))
-//                        )
-//                        else -> review.contentItems.toUi()
-//                    },
                     items = reviewForUi.contentItems.toUi(),
                     onItemsChange = {},
                     onCheck = {},
@@ -323,6 +336,28 @@ fun ReviewDetail(
                 )
             }
         }
+    }
+    if (showDeleted) {
+        AlertDialog(
+            onDismissRequest = { showDeleted = false },
+            title = { Text("리뷰 삭제",color = Color.Black) },
+            text = { Text("정말로 이 리뷰를 삭제하시겠어요?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDeleted = false
+                        moreMenu = false
+                        onDelete(review.id)
+                    }
+                ) { Text("삭제") }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showDeleted = false
+                    moreMenu = false
+                }) { Text("취소") }
+            }
+        )
     }
 }
 

@@ -1,5 +1,6 @@
 package com.example.byeoldori.data.repository
 
+import android.content.ContentValues.TAG
 import android.content.Context
 import android.util.Log
 import androidx.datastore.preferences.core.edit
@@ -7,9 +8,11 @@ import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.example.byeoldori.data.api.CommunityApi
 import com.example.byeoldori.data.model.dto.CreateFreeRequest
+import com.example.byeoldori.data.model.dto.CreateReviewRequest
 import com.example.byeoldori.data.model.dto.FreePostResponse
 import com.example.byeoldori.data.model.dto.LikeToggleResponse
 import com.example.byeoldori.data.model.dto.PostDetailResponse
+import com.example.byeoldori.data.model.dto.ReviewDto
 import com.example.byeoldori.data.model.dto.SearchBy
 import com.example.byeoldori.data.model.dto.SortBy
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -100,5 +103,35 @@ class FreeRepository @Inject constructor(
 
     suspend fun loadLikedKeys(): Set<String> {
         return LikedPrefs.loadLikedKeys(context)
+    }
+
+    suspend fun deletePost(postId: Long) {
+        try {
+            api.deletePost(postId)
+            Log.d(TAG, "게시글 삭제 성공: id=$postId")
+        } catch (e: Exception) {
+            if (e is retrofit2.HttpException) {
+                Log.e(TAG, "게시글 삭제 실패: code=${e.code()}, body=${e.response()?.errorBody()?.string()}")
+            } else {
+                Log.e(TAG, "게시글 삭제 실패: ${e.message}", e)
+            }
+            throw e
+        }
+    }
+
+    suspend fun updatePost(
+        postId: Long,
+        title: String,
+        content: String,
+        imageUrls: List<String> = emptyList()
+    ) {
+        val imageFiltered = imageUrls.filter { it.startsWith("http://") || it.startsWith("https://") }
+        val req = CreateFreeRequest(
+            title = title,
+            content = content,
+            imageUrls = imageFiltered.ifEmpty { null }
+        )
+        api.updatePost(postId, req)
+        Log.d(TAG, "리뷰 수정 완료 id=$postId")
     }
 }

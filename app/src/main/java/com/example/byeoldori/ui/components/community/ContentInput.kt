@@ -2,6 +2,7 @@ package com.example.byeoldori.ui.components.community
 
 import android.net.Uri
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.relocation.*
@@ -28,13 +29,9 @@ import java.util.Locale
 
 // bytes → "123 KB" / "1.2 MB" 포맷
 private fun formatSize(bytes: Long?): String {
-    if (bytes == null || bytes < 0) return "오류"
-    val kb = (bytes + 1023) / 1024  // 올림에 가까운 보기 좋은 표기
-    return if (kb < 1024) {
-        "$kb KB"
-    } else {
-        String.format(Locale.getDefault(), "%.1f MB", kb / 1024.0)
-    }
+    if (bytes == null || bytes < 0) return "—"   // ← "오류" 대신 미상 표시
+    val kb = (bytes + 1023) / 1024
+    return if (kb < 1024) "$kb KB" else String.format(Locale.getDefault(), "%.1f MB", kb / 1024.0)
 }
 
 @Composable
@@ -49,6 +46,7 @@ fun ContentInput(
     readOnly: Boolean = false
 ) {
     var focusedParagraphIndex by remember { mutableStateOf<Int?>(null) }
+    var previewIndex by remember { mutableStateOf<Int?>(null) }
 
     Column(modifier = modifier.fillMaxWidth()) {
 
@@ -87,9 +85,13 @@ fun ContentInput(
                     BasicTextField(
                         value = p.value,
                         onValueChange = { new ->
-                            val m = items.toMutableList()
-                            m[index] = EditorItem.Paragraph(id = p.id, value = new)
-                            onItemsChange(m)
+                            val idxInItems = items.indexOfFirst { it is EditorItem.Paragraph && it.id == p.id }
+                            if (idxInItems >= 0) {
+                                val m = items.toMutableList()
+                                val old = m[idxInItems] as EditorItem.Paragraph
+                                m[idxInItems] = old.copy(value = new)
+                                onItemsChange(m)
+                            }
                         },
                         modifier = Modifier
                             .fillMaxWidth()
@@ -139,12 +141,13 @@ fun ContentInput(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         val sizeText = formatSize(item.sizeBytes)
+                        val textToShow = if (sizeText == "—") item.name else "${item.name}  ($sizeText)"
                         Row(
                             modifier = Modifier.weight(1f),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "${item.name}  ($sizeText)",
+                                text = textToShow,
                                 color = TextHighlight,
                                 style = MaterialTheme.typography.bodySmall,
                                 maxLines = 1
@@ -184,10 +187,12 @@ fun ContentInput(
         }
 
         //하단 사진 LazyRow 갤러리
-        if (readOnly && photos.isNotEmpty()) {
+        if (photos.isNotEmpty()) {
             Spacer(Modifier.height(12.dp))
             LazyRow( //수평 스크롤 리스트
-                modifier = Modifier.fillMaxWidth().height(200.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp),
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                 contentPadding = PaddingValues(horizontal = 8.dp)
             ) {
@@ -195,6 +200,7 @@ fun ContentInput(
                     val photo = photos[i]
                     val context = LocalContext.current
                     val imageLoader = context.imageLoader //Coil이 이미지를 로드할 때 사용할 ImageLoader를 가져옴
+
                     AsyncImage(
                         model = photo.model,
                         imageLoader = imageLoader,
@@ -204,9 +210,18 @@ fun ContentInput(
                             .width(250.dp)
                             .height(200.dp)
                             .clip(RoundedCornerShape(12.dp))
+                            .clickable { previewIndex = i }
                     )
+                    Spacer(Modifier.height(20.dp))
                 }
             }
+        }
+        previewIndex?.let { start ->
+            FullScreenImage(
+                models = photos.map { it.model },
+                startIndex = start,
+                onDismiss = { previewIndex = null }
+            )
         }
     }
 }

@@ -74,7 +74,7 @@ fun ReviewDetailResponse.toDomain(author: String? = null): Review = Review(
 @Composable
 fun CommuReviewSection(
     vm: ReviewViewModel? = null,
-    reviewsAll: List<Review>,
+    reviewsAll: List<Review> = emptyList(),
     onWriteClick: () -> Unit = {},
     onReviewClick: (Review) -> Unit,
     onChangeSort: (SortBy) -> Unit = {},
@@ -88,15 +88,22 @@ fun CommuReviewSection(
     val scores by (vm?.scores?.collectAsState() ?: remember { mutableStateOf<Map<String, Int>>(emptyMap()) })
     val currentSort by (vm?.sort?.collectAsState() ?: remember { mutableStateOf(SortBy.LATEST) })
 
-    val networkList: List<Review> = when (state) {
-        is UiState.Success -> (state as UiState.Success<List<ReviewResponse>>)
-            .data.map { it.toReview() }
+    var lastServer by remember { mutableStateOf<List<Review>>(emptyList()) }
+    LaunchedEffect(state) {
+        val s = state
+        if (s is UiState.Success) lastServer = s.data.map { it.toReview() }
+    }
+
+    val baseList: List<Review> = when (state) {
+        is UiState.Success -> (state as UiState.Success<List<ReviewResponse>>).data.map { it.toReview() }
         else -> emptyList()
     }
-    val baseList = if (networkList.isNotEmpty()) networkList else reviewsAll
     val thumbs by (vm?.thumbnails?.collectAsState() ?: remember { mutableStateOf<Map<String, String>>(emptyMap()) })
     val withThumbs = remember(baseList, thumbs) {
-        baseList.map { r -> r.copy(thumbnail = r.thumbnail ?: thumbs[r.id]) }
+        baseList.map { r ->
+            val url = r.thumbnail ?: thumbs[r.id]
+            val vaildUrl = url?.startsWith("http://") == true || url?.startsWith("https://") == true
+            r.copy(thumbnail = if(vaildUrl) url else null) }
     }
 
     val merged = remember(withThumbs, scores) {
@@ -164,7 +171,6 @@ fun CommuReviewSection(
                 )
             }
             Spacer(Modifier.height(12.dp))
-
             LazyVerticalGrid(
                 state = gridState,
                 columns = GridCells.Fixed(2), //컬럼 개수 2개

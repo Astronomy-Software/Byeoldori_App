@@ -33,10 +33,11 @@ fun EduProgramDetail(
     program: EduProgram,
     onBack: () -> Unit,
     onShare: () -> Unit = {},
-    onMore: () -> Unit = {},
     currentUser: String? = null,
     vm: EducationViewModel? = null,
-    onStartProgram: () -> Unit = {}
+    onStartProgram: () -> Unit = {},
+    onEdit: Boolean = true,
+    onDelete: (programId: String) -> Unit = {}
 ) {
     var input by rememberSaveable { mutableStateOf("") }
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -85,6 +86,9 @@ fun EduProgramDetail(
     val likedCommentIds by remember(commentList) {
         mutableStateOf(commentList.filter { it.liked }.map { it.id }.toSet())
     }
+
+    var moreMenu by remember { mutableStateOf(false) }
+    var showDeleted by remember { mutableStateOf(false) }
 
     LaunchedEffect(requestKeyboard) {
         if (requestKeyboard) {
@@ -136,12 +140,34 @@ fun EduProgramDetail(
                             )
                         }
                         Spacer(Modifier.width(10.dp))
-                        IconButton(onClick = onMore) {
-                            Icon(
-                                painter = painterResource(R.drawable.ic_more),
-                                contentDescription = "더보기",
-                                tint = Color.White
-                            )
+                        Box {
+                            IconButton(onClick = { moreMenu = true }) {
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_more),
+                                    contentDescription = "더보기",
+                                    tint = Color.White
+                                )
+                            }
+                            DropdownMenu(
+                                expanded = moreMenu,
+                                onDismissRequest = { moreMenu = false }
+                            ) {
+                                if (onEdit) {
+                                    DropdownMenuItem(
+                                        text = { Text("수정", color = Color.Black) },
+                                        onClick = {}
+                                    )
+                                    Divider(
+                                        color = Color.Black.copy(alpha = 0.6f),
+                                        thickness = 1.dp,
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text("삭제", color = Color.Black) },
+                                        onClick = { showDeleted = true }
+                                    )
+                                }
+                            }
                         }
                     }
                 )
@@ -315,6 +341,28 @@ fun EduProgramDetail(
             }
         }
     }
+    if (showDeleted) {
+        AlertDialog(
+            onDismissRequest = { showDeleted = false },
+            title = { Text("교욱 프로그램 삭제",color = Color.Black) },
+            text = { Text("정말로 이 교육 프로그램을 삭제하시겠어요?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDeleted = false
+                        moreMenu = false
+                        onDelete(program.id)
+                    }
+                ) { Text("삭제") }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showDeleted = false
+                    moreMenu = false
+                }) { Text("취소") }
+            }
+        )
+    }
 }
 
 @Preview(showBackground = true, backgroundColor = 0xFF241860, widthDp = 500, heightDp = 1000)
@@ -325,7 +373,6 @@ private fun Preview_EduProgramDetail() {
         program = sample,
         onBack = {},
         onShare = {},
-        onMore = {},
         currentUser = "astro_user",
         onStartProgram = {},
         vm = null

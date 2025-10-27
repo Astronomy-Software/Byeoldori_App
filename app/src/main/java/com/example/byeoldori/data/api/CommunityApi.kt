@@ -19,6 +19,7 @@ import com.example.byeoldori.data.model.dto.ReviewResponse
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
+import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
@@ -111,4 +112,15 @@ interface CommunityApi {
         @Path("commentId") commentId: Long
     )
 
+    @PATCH("community/posts/{postId}")
+    suspend fun updateReview(
+        @Path("postId") postId: Long,
+        @Body body: CreateReviewRequest
+    )
+
+    @PATCH("community/posts/{postId}")
+    suspend fun updatePost(
+        @Path("postId") postId: Long,
+        @Body body: CreateFreeRequest
+    )
 }
