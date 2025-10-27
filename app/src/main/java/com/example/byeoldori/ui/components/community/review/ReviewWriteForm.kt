@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -120,6 +121,8 @@ fun ReviewWriteForm(
         )
     } //현재 업로드 중인 파일 목록을 상태로 관리
 
+    val MAX_IMAGE_BYTES = 10L * 1024 * 1024 // 10MB
+    val snackbar = remember { SnackbarHostState() }
     //갤러리 UI 열어주고 선택된 이미지들의 Uri리스트를 콜백으로 돌려줌
     val pickImages = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickMultipleVisualMedia(maxItems = 10)
@@ -140,6 +143,10 @@ fun ReviewWriteForm(
                     ?.length
                     ?: -1L
                 val size = if(afdLen > 0) afdLen else file.length()
+                if (size > MAX_IMAGE_BYTES) {
+                    snackbar.showSnackbar("이미지 '${file.name}'이(가) 10MB를 초과하여 업로드할 수 없습니다.")
+                    return@launch
+                }
 
                 uploadItems = uploadItems + UploadItem(
                     name = file.name,
@@ -213,6 +220,7 @@ fun ReviewWriteForm(
                     m[idx] = m[idx].copy(status = UploadStatus.ERROR)
                     uploadItems = m
                 }
+                snackbar.showSnackbar(s.message ?: "이미지 업로드에 실패했습니다.")
                 fileUploadVm.reset()
             }
             else -> Unit
@@ -220,6 +228,12 @@ fun ReviewWriteForm(
     }
 
     Box(Modifier.fillMaxSize()) {
+        SnackbarHost(
+            hostState = snackbar,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(16.dp)
+        )
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()

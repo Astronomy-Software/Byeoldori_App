@@ -80,6 +80,8 @@ fun FreeBoardWriteForm (
 
         )
     }
+    val MAX_IMAGE_BYTES = 10L * 1024 * 1024 // 10MB
+    val snackbar = remember { SnackbarHostState() }
     val pickImages = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickMultipleVisualMedia(maxItems = 10)
     ) { uris -> //uri리스트
@@ -97,6 +99,10 @@ fun FreeBoardWriteForm (
                     ?.length
                     ?: -1L
                 val size = if(afdLen > 0) afdLen else file.length()
+                if (size > MAX_IMAGE_BYTES) {
+                    snackbar.showSnackbar("이미지 '${file.name}'이(가) 10MB를 초과하여 업로드할 수 없습니다.")
+                    return@launch
+                }
 
                 uploadItems = uploadItems + UploadItem(
                     name = file.name,
@@ -153,6 +159,7 @@ fun FreeBoardWriteForm (
                     m[idx] = m[idx].copy(status = UploadStatus.ERROR)
                     uploadItems = m
                 }
+                snackbar.showSnackbar(s.message ?: "이미지 업로드에 실패했습니다.")
                 fileUploadVm.reset()
             }
             else -> Unit
@@ -164,6 +171,12 @@ fun FreeBoardWriteForm (
             .joinToString("\n") { it.value.text }
 
     Box(Modifier.fillMaxSize()) {
+        SnackbarHost(
+            hostState = snackbar,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(16.dp)
+        )
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()

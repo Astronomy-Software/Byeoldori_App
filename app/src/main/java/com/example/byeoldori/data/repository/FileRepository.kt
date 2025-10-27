@@ -7,6 +7,9 @@ import okhttp3.MultipartBody
 import java.io.File
 import javax.inject.Inject
 
+private const val TAG = "FileRepository"
+private const val MAX_IMAGE_BYTES = 10L * 1024 * 1024 // 10MB
+
 class FileRepository @Inject constructor(
     private val api: FileUploadApi
 ) {
@@ -15,23 +18,28 @@ class FileRepository @Inject constructor(
         token: String? = null,
         onProgress: ((sent: Long,total: Long) -> Unit)? = null
     ): String? {
-        return try {
-            val contentType = "image/jpeg"
-            val body = ProgressRequestBody(file,contentType) { sent, total ->
-                onProgress?.invoke(sent,total)
-            }
-            val part = MultipartBody.Part.createFormData("file",file.name,body)
-            val response = api.uploadImage(part,token?.let { "Bearer $it" }) //만약 토큰이 있다면 Bearer<token>형태로 헤더에 포함
+        val size = file.length()
+        if (size > MAX_IMAGE_BYTES) {
+            throw IllegalArgumentException("파일 크기는 10MB를 초과할 수 없습니다.")
+        }
+        val contentType = "image/jpeg"
+        val body = ProgressRequestBody(file,contentType) { sent, total ->
+            onProgress?.invoke(sent,total)
+        }
+        val part = MultipartBody.Part.createFormData("file",file.name,body)
+        val authHeader = token?.let { "Bearer $it" }
 
-            if(response.success) {
-                response.data.url //서버가 반환한 이미지 URL을 리턴
+        return try {
+            val response = api.uploadImage(part, authHeader)
+            if (response.success) {
+                response.data.url
             } else {
-                Log.e("FileRepository", "업로드 실패: ${response.message}")
-                null
+                Log.e(TAG, "업로드 실패: ${response.message}")
+                throw IllegalStateException(response.message ?: "업로드 실패")
             }
         } catch (e: Exception) {
-            Log.e("FileRepository", "이미지 업로드 중 오류", e)
-            null
+            Log.e(TAG, "이미지 업로드 중 오류: ${e.message}", e)
+            throw e
         }
     }
 }
