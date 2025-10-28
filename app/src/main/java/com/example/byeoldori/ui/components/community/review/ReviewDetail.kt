@@ -106,6 +106,13 @@ fun ReviewDetail(
 
     var deleteTarget by remember { mutableStateOf<ReviewComment?>(null) }
     var showDeleteDialog by remember { mutableStateOf(false) }
+    val isOwner = remember(currentUserId, myNick, apiPost, reviewForUi) {
+        when {
+            apiPost?.authorId != null && currentUserId != null -> apiPost.authorId == currentUserId
+            myNick != null -> reviewForUi.author == myNick
+            else -> false
+        }
+    }
 
     LaunchedEffect(reviewForUi.id) { commentsViewModel?.start(reviewForUi.id) }
 
@@ -175,7 +182,7 @@ fun ReviewDetail(
                                 expanded = moreMenu,
                                 onDismissRequest = { moreMenu = false }
                             ) {
-                                if(onEdit) {
+                                if(onEdit && isOwner) {
                                     DropdownMenuItem(
                                         text = { Text("수정",color = Color.Black) },
                                         onClick = {

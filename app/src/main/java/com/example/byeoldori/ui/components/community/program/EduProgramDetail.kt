@@ -16,6 +16,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.byeoldori.R
+import com.example.byeoldori.data.UserViewModel
 import com.example.byeoldori.data.model.dto.*
 import com.example.byeoldori.domain.Community.*
 import com.example.byeoldori.ui.components.community.*
@@ -37,8 +38,13 @@ fun EduProgramDetail(
     vm: EducationViewModel? = null,
     onStartProgram: () -> Unit = {},
     onEdit: Boolean = true,
-    onDelete: (programId: String) -> Unit = {}
+    onDelete: (programId: String) -> Unit = {},
+    onEditProgram: (EduProgram) -> Unit = {}
 ) {
+    val userVm: UserViewModel = hiltViewModel()
+    LaunchedEffect(Unit) { userVm.getMyProfile() }
+    val me = userVm.userProfile.collectAsState().value
+    val myId = me?.id
     var input by rememberSaveable { mutableStateOf("") }
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusRequester = remember { FocusRequester() }
@@ -80,7 +86,6 @@ fun EduProgramDetail(
     val commentList: List<ReviewComment> =
         (commentsState as? UiState.Success)?.data ?: emptyList()
 
-    val myId: Long? = currentUser?.toLongOrNull()         // 숫자로 변환되면 아이디
     val myNick: String? = if (myId == null) currentUser else null
 
     val likedCommentIds by remember(commentList) {
@@ -91,6 +96,10 @@ fun EduProgramDetail(
     var showDeleted by remember { mutableStateOf(false) }
     var deleteTarget by remember { mutableStateOf<ReviewComment?>(null) }
     var showDeleteDialog by remember { mutableStateOf(false) }
+    val postAuthorId: Long? = apiPost?.authorId ?: apiDetail?.authorId
+    val isOwner = remember(myId, postAuthorId) {
+        myId != null && postAuthorId != null && myId == postAuthorId
+    }
 
     LaunchedEffect(requestKeyboard) {
         if (requestKeyboard) {
@@ -154,10 +163,13 @@ fun EduProgramDetail(
                                 expanded = moreMenu,
                                 onDismissRequest = { moreMenu = false }
                             ) {
-                                if (onEdit) {
+                                if (onEdit && isOwner) {
                                     DropdownMenuItem(
                                         text = { Text("수정", color = Color.Black) },
-                                        onClick = {}
+                                        onClick = {
+                                            moreMenu = false
+                                            onEditProgram(program)
+                                        }
                                     )
                                     Divider(
                                         color = Color.Black.copy(alpha = 0.6f),

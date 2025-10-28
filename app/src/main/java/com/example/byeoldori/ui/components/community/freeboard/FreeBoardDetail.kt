@@ -93,6 +93,12 @@ fun FreeBoardDetail (
 
     var deleteTarget by remember { mutableStateOf<ReviewComment?>(null) }
     var showDeleteDialog by remember { mutableStateOf(false) }
+    val isOwner = remember(currentUserId, currentUserNickname, apiPost, post) {
+        when {
+            apiPost?.authorId != null && currentUserId != null -> apiPost.authorId == currentUserId
+            else -> false
+        }
+    }
 
     LaunchedEffect(requestKeyboard) {
         if (requestKeyboard) {
@@ -156,7 +162,7 @@ fun FreeBoardDetail (
                                 expanded = moreMenu,
                                 onDismissRequest = { moreMenu = false }
                             ) {
-                                if(onEdit) {
+                                if(onEdit && isOwner) {
                                     DropdownMenuItem(
                                         text = { Text("수정",color = Color.Black) },
                                         onClick = {
