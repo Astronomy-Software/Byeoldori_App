@@ -112,6 +112,7 @@ interface CommunityApi {
         @Path("commentId") commentId: Long
     )
 
+
     @PATCH("community/posts/{postId}")
     suspend fun updateReview(
         @Path("postId") postId: Long,

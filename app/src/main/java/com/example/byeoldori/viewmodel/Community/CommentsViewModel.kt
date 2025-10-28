@@ -121,4 +121,29 @@ class CommentsViewModel @Inject constructor(
             onResult(res)
         } catch (_: Exception) { /* 에러 처리 필요시 추가 */ }
     }
+
+    fun delete(
+        commentId: Long,
+        onComplete: (() -> Unit)? = null
+    ) = viewModelScope.launch {
+        val postId = postIdLong ?: return@launch
+        val response = repo.deleteComment(postId, commentId)
+
+        response.onSuccess {
+            val next = when (val s = _comments.value) {
+                //s.data는 List<CommentResponse>
+                is UiState.Success -> UiState.Success(s.data.filterNot { it.id.toLongOrNull() == commentId }) //commentId와 일치하는 댓글을 제외하고 나머지를 남김
+                else -> s
+            }
+            _comments.value = next
+
+            val cur = _commentCounts.value[postIdStr] ?: 0
+            _commentCounts.value = _commentCounts.value + (postIdStr to (cur - 1).coerceAtLeast(0))
+            onComplete?.invoke()
+        }.onFailure { e->
+            _comments.value = UiState.Error(e.message ?: "댓글 삭제 실패")
+        }
+
+    }
+
 }

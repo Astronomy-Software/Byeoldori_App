@@ -103,6 +103,9 @@ fun ReviewDetail(
     var moreMenu by remember { mutableStateOf(false) } //더보기 누르면 수정/삭제 버튼
     var showDeleted by remember { mutableStateOf(false) } //삭제 확인 다이얼로그
 
+    var deleteTarget by remember { mutableStateOf<ReviewComment?>(null) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
+
     LaunchedEffect(reviewForUi.id) { commentsViewModel?.start(reviewForUi.id) }
 
     LaunchedEffect(reviewForUi) {
@@ -332,7 +335,10 @@ fun ReviewDetail(
                         input = ""
                         requestKeyboard = true
                     },
-                    onDelete = {}
+                    onDelete = { target ->
+                        deleteTarget = target
+                        showDeleteDialog = true
+                    }
                 )
             }
         }
@@ -356,6 +362,37 @@ fun ReviewDetail(
                     showDeleted = false
                     moreMenu = false
                 }) { Text("취소") }
+            }
+        )
+    }
+    if (showDeleteDialog && deleteTarget != null) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false; deleteTarget = null },
+            title = { Text("댓글 삭제", color = Color.Black) },
+            text  = { Text("이 댓글을 삭제할까요?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val cid = deleteTarget!!.id.toLongOrNull()
+                        if (cid != null) {
+                            commentsViewModel?.delete(cid) {
+                                // 성공 시 닫기
+                                showDeleteDialog = false
+                                deleteTarget = null
+                                // 필요하면 상단 카운터/목록 갱신 트리거
+                                vm?.loadPosts()
+                            }
+                        } else {
+                            showDeleteDialog = false
+                            deleteTarget = null
+                        }
+                    }
+                ) { Text("삭제") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false; deleteTarget = null }) {
+                    Text("취소")
+                }
             }
         )
     }
