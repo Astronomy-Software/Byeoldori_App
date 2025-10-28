@@ -43,6 +43,7 @@ fun ReviewDetail(
     onBack: () -> Unit = {},
     onShare: () -> Unit = {},
     currentUser: String,
+    currentUserId: Long? = null,
     onSyncReviewLikeCount: (id: String, liked: Boolean, next: Int) -> Unit,
     apiDetail: ReviewDetailResponse? = null, // 서버에서 가져온 상세(요약/카운트)
     apiPost: ReviewResponse? = null,
@@ -206,14 +207,29 @@ fun ReviewDetail(
                 onSend = { raw ->
                     val t = raw.trim()
                     if (t.isEmpty()) return@CommentInput
-
-                    val parentIdStr = parent?.id
-
-                    commentsViewModel?.submit(content = t, parentId = parentIdStr) {
-                        // 성공 콜백: 입력/대댓글 모드 해제
-                        input = ""
-                        parent = null
-                        vm?.loadPosts()
+                    if(editingTarget != null) { //수정 모드
+                        val targetId = editingTarget!!.id.toLongOrNull()
+                        val postId = review.id.toLongOrNull()
+                        if(targetId != null && postId != null) {
+                            commentsViewModel?.update(
+                                postId = postId,
+                                commentId = targetId,
+                                content = t
+                            ) {
+                                // 성공 콜백: 입력/대댓글 모드 해제
+                                input = ""
+                                parent = null
+                                vm?.loadPosts()
+                            }
+                        }
+                    } else {
+                        val parentIdStr = parent?.id
+                        commentsViewModel?.submit(content = t, parentId = parentIdStr) {
+                            // 성공 콜백: 입력/대댓글 모드 해제
+                            input = ""
+                            parent = null
+                            vm?.loadPosts()
+                        }
                     }
                 },
                 modifier = Modifier
@@ -232,7 +248,6 @@ fun ReviewDetail(
             item {
                 Spacer(Modifier.height(10.dp))
                 Text( // 제목
-                    //text = apiPost?.title ?: review.title,
                     text = reviewForUi.title,
                     style = MaterialTheme.typography.headlineSmall.copy(
                         fontWeight = FontWeight.Bold,
@@ -252,7 +267,6 @@ fun ReviewDetail(
                     Spacer(Modifier.width(8.dp))
                     Column {
                         Text( //사용자 이름
-                           // text = apiPost?.authorNickname ?: review.author,
                             text = reviewForUi.author,
                             style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                             fontSize = 17.sp,
@@ -283,15 +297,21 @@ fun ReviewDetail(
                     modifier = Modifier.fillMaxWidth(),
                     enabled = false //수정 못하게
                 )
-                ContentInput(
-                    items = reviewForUi.contentItems.toUi(),
-                    onItemsChange = {},
-                    onCheck = {},
-                    onPickImages = {},
-                    onChecklist = {},
-                    readOnly = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
+                val hasImages = hasHttpImage(reviewForUi.contentItems)
+                val uiItems = reviewForUi.contentItems.toUi()
+                if(hasImages) {
+                    ContentInput(
+                        items = reviewForUi.contentItems.toUi(),
+                        onItemsChange = {},
+                        onCheck = {},
+                        onPickImages = {},
+                        onChecklist = {},
+                        readOnly = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                } else {
+                    ReadOnlyParagraphs(uiItems)
+                }
                 Spacer(Modifier.height(16.dp))
                 // 좋아요 + 댓글 바
                 LikeCommentBar(

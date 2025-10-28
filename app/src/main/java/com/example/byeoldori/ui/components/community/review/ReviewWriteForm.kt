@@ -49,6 +49,7 @@ private fun findMatchingSiteId(siteName: String, allSites: List<ObservationSite>
 @Composable
 fun ReviewWriteForm(
     author: String,
+    currentUserId: Long? = null,
     onCancel: () -> Unit,
     onSubmit: () -> Unit,           // 등록
     onTempSave: () -> Unit,         // 임시 저장

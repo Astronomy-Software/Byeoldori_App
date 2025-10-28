@@ -7,9 +7,10 @@ data class ReviewComment(
     val authorId: Long,
     val authorNickname: String?,
     val profile: Int?,
-    val content: String,
+    val content: String? = null,
     val likeCount: Int,
     val commentCount: Int,
     val createdAt: String,
+    val deleted: Boolean = false,
     val liked: Boolean
 )

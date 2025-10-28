@@ -106,6 +106,7 @@ fun CommentResponse.toUi(postId: String): ReviewComment {
         commentCount = 0,
         createdAt = formatServerDateKst(createdAt),
         parentId = parentId?.toString(),
-        liked = liked
+        liked = liked,
+        deleted = deleted
     )
 }

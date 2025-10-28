@@ -186,12 +186,29 @@ fun FreeBoardDetail (
                     val t = raw.trim()
                     if (t.isEmpty()) return@CommentInput
 
-                    val parentIdStr = parent?.id  // 대댓글이면 부모 id
-                    commentsVm.submit(content = t, parentId = parentIdStr) {
-                        // 성공 콜백: 입력/대댓글모드 해제
-                        input = ""
-                        parent = null
-                        vm?.loadPosts()
+                    if (editingTarget != null) {   //수정 모드
+                        val targetId = editingTarget!!.id.toLongOrNull()
+                        val postId = post.id.toLongOrNull()
+                        if (targetId != null && postId != null) {
+                            commentsVm.update(
+                                postId = postId,
+                                commentId = targetId,
+                                content = t
+                            ) {
+                                // 성공 콜백: 입력창/모드 초기화
+                                input = ""
+                                editingTarget = null
+                                parent = null
+                                vm?.loadPosts()
+                            }
+                        }
+                    } else {   //일반 댓글 작성
+                        val parentIdStr = parent?.id
+                        commentsVm.submit(content = t, parentId = parentIdStr) {
+                            input = ""
+                            parent = null
+                            vm?.loadPosts()
+                        }
                     }
                 },
                 modifier = Modifier
@@ -242,25 +259,42 @@ fun FreeBoardDetail (
                     }
                 }
                 Spacer(Modifier.height(16.dp))
-                ContentInput( //내용 입력(텍스트 + 이미지)
-                    items = if (apiPost != null) {
-                        val text = apiPost.content.orEmpty()
-                        val textItem = if (text.isNotBlank()) {
-                            listOf(EditorItem.Paragraph(value = TextFieldValue(text)))
-                        } else emptyList()
-
-                        val photoItems = (apiPost.images ?: emptyList())
-                            .map { url -> EditorItem.Photo(model = url) }
-                        textItem + photoItems   // ← 텍스트 + 이미지 함께 렌더링
+                val domainItems: List<Content> =
+                    if (apiPost != null) {
+                        buildList {
+                            val text = apiPost.content.orEmpty()
+                            if (text.isNotBlank()) add(Content.Text(text))
+                            (apiPost.images ?: emptyList()).forEach { add(Content.Image.Url(it)) }
+                        }
                     } else {
-                        post.contentItems.toUi()
-                    },
-                    onItemsChange = {},
-                    onPickImages = {},
-                    onCheck = {},
-                    onChecklist = {},
-                    readOnly = true
-                )
+                        post.contentItems
+                    }
+
+                val hasImages = hasHttpImage(domainItems)
+                val uiItems = domainItems.toUi()
+                if(hasImages) {
+                    ContentInput( //내용 입력(텍스트 + 이미지)
+                        items = if (apiPost != null) {
+                            val text = apiPost.content.orEmpty()
+                            val textItem = if (text.isNotBlank()) {
+                                listOf(EditorItem.Paragraph(value = TextFieldValue(text)))
+                            } else emptyList()
+
+                            val photoItems = (apiPost.images ?: emptyList())
+                                .map { url -> EditorItem.Photo(model = url) }
+                            textItem + photoItems   // ← 텍스트 + 이미지 함께 렌더링
+                        } else {
+                            post.contentItems.toUi()
+                        },
+                        onItemsChange = {},
+                        onPickImages = {},
+                        onCheck = {},
+                        onChecklist = {},
+                        readOnly = true
+                    )
+                } else {
+                    ReadOnlyParagraphs(uiItems)
+                }
                 Spacer(Modifier.height(16.dp))
 
                 //좋아요 + 댓글바
@@ -308,7 +342,6 @@ fun FreeBoardDetail (
                     },
                     onEdit = { target ->
                         editingTarget = target
-                        input = target.content
                         requestKeyboard = true
                     },
                     liked = LikeState.ids.filter { it.startsWith("freeComment:") }

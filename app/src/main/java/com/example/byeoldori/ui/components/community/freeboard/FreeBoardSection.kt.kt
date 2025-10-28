@@ -12,6 +12,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.byeoldori.BuildConfig
 import com.example.byeoldori.R
 import com.example.byeoldori.data.model.dto.*
 import com.example.byeoldori.ui.components.community.*
@@ -74,6 +75,13 @@ fun FreePost.asReview(): Review =
 
 fun FreePostResponse.toFreePost(): FreePost {
     val formattedDate = formatCreatedAt(createdAt)
+    val validThumbnail = if (!thumbnailUrl.isNullOrBlank() &&
+        (thumbnailUrl.startsWith("http://") || thumbnailUrl.startsWith("https://"))
+    ) {
+        thumbnailUrl
+    } else {
+        "android.resource://${BuildConfig.APPLICATION_ID}/${R.drawable.img_dummy}"
+    }
 
     return FreePost(
         id = id.toString(),
@@ -86,7 +94,7 @@ fun FreePostResponse.toFreePost(): FreePost {
         contentItems = listOf(Content.Text(contentSummary)),
         profile = null,
         liked = liked,
-        thumbnail = thumbnailUrl
+        thumbnail = validThumbnail
     )
 }
 

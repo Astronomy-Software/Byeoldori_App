@@ -105,7 +105,7 @@ fun CommentList(
                     onEdit = { target ->
                         if (isMine(target)) {
                             editingTarget = target
-                            input = target.content
+                            input = target.content.orEmpty()
                             onEdit(target)
                             requestKeyboard = true
                         }
