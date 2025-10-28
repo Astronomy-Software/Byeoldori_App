@@ -18,6 +18,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
 import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
+import com.example.byeoldori.BuildConfig
 import com.example.byeoldori.R
 import com.example.byeoldori.domain.Content
 import com.example.byeoldori.ui.theme.*
@@ -117,6 +118,7 @@ fun ReviewCard(
     review: Review,
     modifier: Modifier = Modifier,
     commentCount: Int = review.commentCount,
+    thumbnailUrl: String? = review.thumbnail,
     onSyncLikeCount: (Int) -> Unit = {},
     onToggleLike: (() -> Unit)? = null,
 ) {
@@ -136,13 +138,12 @@ fun ReviewCard(
     ) {
         Column(Modifier.fillMaxSize()) {
             //대표 이미지
-            val thumbModel: Any =
-                review.thumbnail
-                    ?.takeIf { it.startsWith("http://") || it.startsWith("https://") }
-                    ?: R.drawable.img_dummy
+            val imageUrl = thumbnailUrl
+                ?: review.contentItems.filterIsInstance<Content.Image.Url>()
+                    .firstOrNull()?.url
 
             AsyncImage(
-                model = thumbModel,
+                model = imageUrl ?: R.drawable.img_dummy,
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier

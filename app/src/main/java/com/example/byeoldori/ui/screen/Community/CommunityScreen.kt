@@ -68,14 +68,6 @@ fun CommunityScreen(
     var editReview by remember { mutableStateOf<Review?>(null) } //리뷰 수정 가능하게끔
     var editPost by remember { mutableStateOf<FreePost?>(null) }
 
-    val reviewThumbs by reviewVm.thumbnails.collectAsState()
-    val freeThumbs by vm.thumbnails.collectAsState()
-
-    LaunchedEffect(Unit) {
-        reviewVm.loadLocalThumbnails()
-        vm.loadLocalThumbnails()
-    }
-
     LaunchedEffect(selectedId) {
         val idLong = selectedId?.toLongOrNull()
         if (idLong != null) vm.loadPostDetail(idLong)
@@ -412,30 +404,15 @@ fun CommunityScreen(
 
                     CommunityTab.Home -> {
                         val reviewList = when (val s = reviewVm.postsState.collectAsState().value) {
-                            is UiState.Success -> s.data.map { res ->
-                                val base = res.toReview()
-                                val thumbsUrl = reviewThumbs[res.id.toString()]
-                                if(!thumbsUrl.isNullOrBlank()) {
-                                    base.copy(contentItems = listOf(Content.Image.Url(thumbsUrl)) + base.contentItems)
-                                } else base
-                            }
+                            is UiState.Success -> s.data.map { it.toReview() }
                             else -> emptyList()
                         }
                         val eduList = when (val s = eduVm.postsState.collectAsState().value) {
                             is UiState.Success -> s.data.map { it.toEduProgram() }
                             else -> emptyList()
                         }
-                        LaunchedEffect(freeThumbs) {
-                            Log.d("HomeFreeThumbs", "thumbs size=${freeThumbs.size} firstKeys=${freeThumbs.keys.take(3)}")
-                        }
                         val freeList = when (val s = vm.postsState.collectAsState().value) {
-                            is UiState.Success -> s.data.map { res ->
-                                val base = res.toFreePost()
-                                val thumbsUrl = freeThumbs[res.id.toString()]
-                                if(!thumbsUrl.isNullOrBlank()) {
-                                    base.copy(contentItems = listOf(Content.Image.Url(thumbsUrl)) + base.contentItems)
-                                } else base
-                            }
+                            is UiState.Success -> s.data.map { it.toFreePost() }
                             else -> emptyList()
                         }
 

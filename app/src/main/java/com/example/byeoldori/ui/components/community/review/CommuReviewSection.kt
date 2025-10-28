@@ -45,6 +45,7 @@ fun ReviewResponse.toReview(): Review = Review(
     rating = score ?: 0,
     siteScore = 0,
     liked = liked,
+    thumbnail = thumbnailUrl
 )
 
 fun ReviewDetailResponse.toDomain(author: String? = null): Review = Review(
@@ -67,8 +68,7 @@ fun ReviewDetailResponse.toDomain(author: String? = null): Review = Review(
     date = review?.observationDate.orEmpty(),
     rating = review?.score ?: 0,
     siteScore = 0,
-    liked = liked,
-    thumbnail = images.firstOrNull()
+    liked = liked
 )
 
 @Composable
@@ -98,16 +98,9 @@ fun CommuReviewSection(
         is UiState.Success -> (state as UiState.Success<List<ReviewResponse>>).data.map { it.toReview() }
         else -> emptyList()
     }
-    val thumbs by (vm?.thumbnails?.collectAsState() ?: remember { mutableStateOf<Map<String, String>>(emptyMap()) })
-    val withThumbs = remember(baseList, thumbs) {
-        baseList.map { r ->
-            val url = r.thumbnail ?: thumbs[r.id]
-            val vaildUrl = url?.startsWith("http://") == true || url?.startsWith("https://") == true
-            r.copy(thumbnail = if(vaildUrl) url else null) }
-    }
 
-    val merged = remember(withThumbs, scores) {
-        withThumbs.map { r -> r.copy(rating = scores[r.id] ?: r.rating) }
+    val merged = remember(baseList, scores) {
+        baseList.map { r -> r.copy(rating = scores[r.id] ?: r.rating) }
     }
 
     val commentsVm: CommentsViewModel = hiltViewModel()

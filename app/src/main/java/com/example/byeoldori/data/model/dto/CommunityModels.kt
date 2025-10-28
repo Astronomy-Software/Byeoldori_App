@@ -24,7 +24,8 @@ data class FreePostResponse(
     val likeCount: Int,
     val commentCount: Int,
     val createdAt: String,
-    val liked: Boolean
+    val liked: Boolean,
+    val thumbnailUrl: String? = null
 )
 
 @JsonClass(generateAdapter = true)

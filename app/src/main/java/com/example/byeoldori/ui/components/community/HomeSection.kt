@@ -78,6 +78,7 @@ fun HomeSection(
             itemContent = { post ->
                 ReviewCard(
                     review = post.asReview(),
+                    thumbnailUrl = post.thumbnail,
                     commentCount = post.commentCount,
                     modifier = Modifier
                         .clip(RoundedCornerShape(16.dp))

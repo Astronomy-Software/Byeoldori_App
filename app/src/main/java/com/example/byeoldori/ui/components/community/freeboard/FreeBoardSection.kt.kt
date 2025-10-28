@@ -69,7 +69,7 @@ fun FreePost.asReview(): Review =
         equipment = "",
         siteScore = 0,
         contentItems = contentItems,
-        liked = this.liked,
+        liked = this.liked
     )
 
 fun FreePostResponse.toFreePost(): FreePost {
@@ -85,7 +85,8 @@ fun FreePostResponse.toFreePost(): FreePost {
         createdAt = formattedDate,
         contentItems = listOf(Content.Text(contentSummary)),
         profile = null,
-        liked = liked
+        liked = liked,
+        thumbnail = thumbnailUrl
     )
 }
 
@@ -175,7 +176,6 @@ fun FreeBoardSection(
             ) {
                 items(filtered, key = { it.id }) { post ->
                     val uiCommentCount = commentCounts[post.id] ?: post.commentCount
-                    //val uiLikeCount = likeCounts[post.id] ?: post.likeCount
                     val isLikedFromVm = likedIds.contains(likedKeyFree(post.id))
                     val uiLikeCount = likeCounts[post.id] ?: post.likeCount
 

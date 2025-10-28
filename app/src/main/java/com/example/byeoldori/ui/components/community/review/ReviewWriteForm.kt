@@ -343,7 +343,7 @@ fun ReviewWriteForm(
                     LaunchedEffect(s) {
                         val first = uploadedImageUrls.firstOrNull()
                         val createdId: Long = s.data
-                        vm?.registerLocalThumbnail(createdId.toString(), first)
+                       // vm?.registerLocalThumbnail(createdId.toString(), first)
                         onSubmit()
                     }
                 }

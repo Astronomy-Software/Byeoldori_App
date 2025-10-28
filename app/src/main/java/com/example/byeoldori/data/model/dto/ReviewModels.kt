@@ -36,6 +36,7 @@ data class ReviewResponse(
     val liked: Boolean,
     val score: Int? = null,
     val observationSiteId: Long? = null,
+    val thumbnailUrl: String? = null
 )
 
 @JsonClass(generateAdapter = true)
@@ -63,5 +64,3 @@ data class ReviewDetailResponse(
     val updatedAt: String,
     val liked: Boolean
 )
-
-fun ReviewDetailResponse.thumbnailUrl(): String? = images.firstOrNull()
