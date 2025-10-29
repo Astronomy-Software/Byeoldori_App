@@ -29,4 +29,19 @@ class CommentsRepository @Inject constructor(
     suspend fun toggleCommentLike(postId: Long, commentId: Long): LikeToggleResponse {
         return api.toggleCommentLike(postId, commentId)
     }
+
+    suspend fun deleteComment(
+        postId: Long,
+        commentId: Long
+    ): Result<Unit> = runCatching {
+        api.deleteComment(postId, commentId)
+    }
+
+    suspend fun updateComment(
+        postId: Long,
+        commentId: Long,
+        content: String
+    ): Result<CommentResponse> = runCatching {
+        api.updateComment(postId, commentId, CreateCommentRequest(content = content))
+    }
 }

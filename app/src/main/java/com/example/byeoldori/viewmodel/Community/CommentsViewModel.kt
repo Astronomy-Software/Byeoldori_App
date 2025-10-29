@@ -121,4 +121,65 @@ class CommentsViewModel @Inject constructor(
             onResult(res)
         } catch (_: Exception) { /* 에러 처리 필요시 추가 */ }
     }
+
+    fun delete(
+        commentId: Long,
+        onComplete: (() -> Unit)? = null
+    ) = viewModelScope.launch {
+        val postId = postIdLong ?: return@launch
+        val response = repo.deleteComment(postId, commentId)
+
+        response.onSuccess {
+            val next = when (val s = _comments.value) {
+                //s.data는 List<CommentResponse>
+                is UiState.Success -> {
+                    UiState.Success(
+                       s.data.map { comment ->
+                           if (comment.id.toLongOrNull() == commentId) {
+                               comment.copy(
+                                   deleted = true,
+                                   content = null
+                               )
+                           } else comment
+                       }
+                    )
+                }
+                else -> s
+            }
+            _comments.value = next
+
+            val cur = _commentCounts.value[postIdStr] ?: 0
+            _commentCounts.value = _commentCounts.value + (postIdStr to (cur)) //댓글 수는 그대로
+            onComplete?.invoke()
+        }.onFailure { e->
+            _comments.value = UiState.Error(e.message ?: "댓글 삭제 실패")
+        }
+    }
+
+    fun update(
+        postId: Long,
+        commentId: Long,
+        content: String,
+        onComplete: (() -> Unit)? = null
+    ) = viewModelScope.launch {
+        val response = repo.updateComment(postId, commentId, content)
+
+        response.onSuccess { updated ->
+            val next = when(val s = _comments.value) {
+                is UiState.Success -> UiState.Success(
+                    s.data.map { c ->
+                        if (c.id == commentId.toString()) c.copy(content = updated.content)
+                        else c
+                    }
+                )
+                else -> s
+            }
+            _comments.value = next
+            onComplete?.invoke()
+        }.onFailure { e ->
+            _comments.value = UiState.Error(e.message ?: "댓글 수정 실패")
+        }
+    }
+
+
 }

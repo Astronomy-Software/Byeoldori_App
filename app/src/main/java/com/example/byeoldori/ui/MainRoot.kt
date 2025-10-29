@@ -2,11 +2,14 @@ package com.example.byeoldori.ui
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
+import com.example.byeoldori.data.UserViewModel
 import com.example.byeoldori.skymap.StellariumScreen
 import com.example.byeoldori.ui.components.NavBar
 import com.example.byeoldori.ui.screen.Community.CommunityScreen
@@ -28,6 +31,9 @@ sealed class Root(val route: String, val label: String) {
 @Composable
 fun MainRoot() {
     val nav = rememberNavController()
+    val userVm: UserViewModel = hiltViewModel()
+
+    LaunchedEffect(Unit) { userVm.getMyProfile() }
 
     BackgroundScaffold(
         bottomBar = { NavBar(nav) }
@@ -41,10 +47,10 @@ fun MainRoot() {
             composable(Root.StarMap.route)     { StellariumScreen() }
             composable(Root.Observatory.route) { ObservatoryScreen() }
             navigation(startDestination = "community/home", route = Root.Community.route) {
-                composable("community/home") { CommunityScreen(tab = CommunityTab.Home, onSelectTab = { t -> nav.navigate("community/$t") }) }
-                composable("community/review")  { CommunityScreen(tab = CommunityTab.Review,  onSelectTab = { t -> nav.navigate("community/$t") }) }
-                composable("community/board")   { CommunityScreen(tab = CommunityTab.Board,   onSelectTab = { t -> nav.navigate("community/$t") }) }
-                composable("community/program")   { CommunityScreen(tab = CommunityTab.Program,   onSelectTab = { t -> nav.navigate("community/$t") }) }
+                composable("community/home") { CommunityScreen(tab = CommunityTab.Home, onSelectTab = { t -> nav.navigate("community/$t") }, userVm = userVm) }
+                composable("community/review")  { CommunityScreen(tab = CommunityTab.Review,  onSelectTab = { t -> nav.navigate("community/$t") }, userVm = userVm) }
+                composable("community/board")   { CommunityScreen(tab = CommunityTab.Board,   onSelectTab = { t -> nav.navigate("community/$t") }, userVm = userVm) }
+                composable("community/program")   { CommunityScreen(tab = CommunityTab.Program,   onSelectTab = { t -> nav.navigate("community/$t") }, userVm = userVm) }
             }
             composable(Root.MyPage.route)      { MyPageScreen() }
         }

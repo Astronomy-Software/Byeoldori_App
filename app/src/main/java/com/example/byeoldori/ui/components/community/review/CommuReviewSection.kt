@@ -12,6 +12,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.byeoldori.BuildConfig
 import com.example.byeoldori.R
 import com.example.byeoldori.data.model.dto.*
 import com.example.byeoldori.domain.Content
@@ -19,6 +20,7 @@ import com.example.byeoldori.ui.components.community.SortBar
 import com.example.byeoldori.ui.components.observatory.ReviewCard
 import com.example.byeoldori.ui.theme.*
 import com.example.byeoldori.domain.Observatory.Review
+import com.example.byeoldori.ui.components.community.EditorItem
 import com.example.byeoldori.ui.components.community.freeboard.formatCreatedAt
 import com.example.byeoldori.viewmodel.*
 import com.example.byeoldori.viewmodel.Community.*
@@ -26,26 +28,37 @@ import com.example.byeoldori.viewmodel.Community.*
 // 정렬 타입
 enum class ReviewSort(val label: String) { Latest("최신순"), Like("좋아요순"), View("조회수순") }
 
-fun ReviewResponse.toReview(): Review = Review(
-    id = id.toString(),
-    title = title,
-    author = authorNickname ?: "익명",
-    profile = R.drawable.profile1, // 서버에 프로필 리소스 없으면 null 유지
-    createdAt = formatCreatedAt(createdAt),
-    viewCount = viewCount,
-    likeCount = likeCount,
-    commentCount = commentCount,
-    // 목록에서는 요약만 있으므로 가볍게 파라그래프 하나로 구성
-    contentItems = listOf(Content.Text(contentSummary.orEmpty())),
-    // 아래 필드는 상세 조회 시 채워넣을 수 있음
-    target = "",
-    site = "",
-    equipment = "",
-    date = "",
-    rating = score ?: 0,
-    siteScore = 0,
-    liked = liked,
-)
+fun ReviewResponse.toReview(): Review {
+    val validThumbnail = if (!thumbnailUrl.isNullOrBlank() &&
+        (thumbnailUrl.startsWith("http://") || thumbnailUrl.startsWith("https://"))
+    ) {
+        thumbnailUrl
+    } else {
+        "android.resource://${BuildConfig.APPLICATION_ID}/${R.drawable.img_dummy}"
+    }
+
+    return Review(
+        id = id.toString(),
+        title = title,
+        author = authorNickname ?: "익명",
+        profile = R.drawable.profile1, // 서버에 프로필 리소스 없으면 null 유지
+        createdAt = formatCreatedAt(createdAt),
+        viewCount = viewCount,
+        likeCount = likeCount,
+        commentCount = commentCount,
+        // 목록에서는 요약만 있으므로 가볍게 파라그래프 하나로 구성
+        contentItems = listOf(Content.Text(contentSummary.orEmpty())),
+        // 아래 필드는 상세 조회 시 채워넣을 수 있음
+        target = "",
+        site = "",
+        equipment = "",
+        date = "",
+        rating = score ?: 0,
+        siteScore = 0,
+        liked = liked,
+        thumbnail = validThumbnail
+    )
+}
 
 fun ReviewDetailResponse.toDomain(author: String? = null): Review = Review(
     id = id.toString(),
@@ -67,9 +80,30 @@ fun ReviewDetailResponse.toDomain(author: String? = null): Review = Review(
     date = review?.observationDate.orEmpty(),
     rating = review?.score ?: 0,
     siteScore = 0,
-    liked = liked,
-    thumbnail = images.firstOrNull()
+    liked = liked
 )
+
+fun hasHttpImage(items: List<com.example.byeoldori.domain.Content>): Boolean {
+    return items.filterIsInstance<com.example.byeoldori.domain.Content.Image.Url>()
+        .any { it.url.startsWith("http://") || it.url.startsWith("https://") }
+}
+
+@Composable
+fun ReadOnlyParagraphs(items: List<EditorItem>) {
+    Column(Modifier.fillMaxWidth()) {
+        items.filterIsInstance<EditorItem.Paragraph>()
+            .forEach { p ->
+                val text = p.value.text
+                if (text.isNotBlank()) {
+                    Text(
+                        text = text,
+                        style = MaterialTheme.typography.bodyLarge.copy(color = Color.White),
+                        modifier = Modifier.padding(vertical = 6.dp)
+                    )
+                }
+            }
+    }
+}
 
 @Composable
 fun CommuReviewSection(
@@ -98,16 +132,9 @@ fun CommuReviewSection(
         is UiState.Success -> (state as UiState.Success<List<ReviewResponse>>).data.map { it.toReview() }
         else -> emptyList()
     }
-    val thumbs by (vm?.thumbnails?.collectAsState() ?: remember { mutableStateOf<Map<String, String>>(emptyMap()) })
-    val withThumbs = remember(baseList, thumbs) {
-        baseList.map { r ->
-            val url = r.thumbnail ?: thumbs[r.id]
-            val vaildUrl = url?.startsWith("http://") == true || url?.startsWith("https://") == true
-            r.copy(thumbnail = if(vaildUrl) url else null) }
-    }
 
-    val merged = remember(withThumbs, scores) {
-        withThumbs.map { r -> r.copy(rating = scores[r.id] ?: r.rating) }
+    val merged = remember(baseList, scores) {
+        baseList.map { r -> r.copy(rating = scores[r.id] ?: r.rating) }
     }
 
     val commentsVm: CommentsViewModel = hiltViewModel()

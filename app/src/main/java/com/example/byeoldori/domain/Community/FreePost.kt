@@ -14,5 +14,6 @@ data class FreePost(
     val viewCount: Int,
     val createdAt: String,
     val contentItems: List<Content>,
-    val liked : Boolean
+    val liked : Boolean,
+    val thumbnail: String? = null
 )

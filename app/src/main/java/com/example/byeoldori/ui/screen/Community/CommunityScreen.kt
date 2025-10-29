@@ -9,6 +9,7 @@ import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.*
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.byeoldori.data.UserViewModel
 import com.example.byeoldori.data.model.dto.*
 import com.example.byeoldori.ui.components.community.*
 import com.example.byeoldori.ui.components.community.program.*
@@ -34,8 +35,13 @@ enum class CommunityTab(val label: String, val routeSeg: String) {
 fun CommunityScreen(
     tab: CommunityTab,
     onSelectTab: (CommunityTab) -> Unit,
+    userVm: UserViewModel,
     vm: CommunityViewModel = hiltViewModel()
 ) {
+    val me by userVm.userProfile.collectAsState(initial = null)
+    val currentUserId = me?.id
+    val currentNickname = me?.nickname ?: "익명"
+
     val tabs = CommunityTab.entries
     var showWriteForm by remember { mutableStateOf(false) }
     val reviews = remember { mutableStateListOf<Review>().apply { addAll(dummyReviews) } }
@@ -43,7 +49,6 @@ fun CommunityScreen(
     var selectedReview by remember { mutableStateOf<Review?>(null) }
     var selectedFreePost by remember { mutableStateOf<String?>(null) }
     var selectedProgram by remember { mutableStateOf<EduProgram?>(null) }
-    val currentUser = "헤이헤이"
     var showFreeBoardWriteForm by remember { mutableStateOf(false) }
     var successMessage by remember { mutableStateOf("") }
 
@@ -67,14 +72,6 @@ fun CommunityScreen(
 
     var editReview by remember { mutableStateOf<Review?>(null) } //리뷰 수정 가능하게끔
     var editPost by remember { mutableStateOf<FreePost?>(null) }
-
-    val reviewThumbs by reviewVm.thumbnails.collectAsState()
-    val freeThumbs by vm.thumbnails.collectAsState()
-
-    LaunchedEffect(Unit) {
-        reviewVm.loadLocalThumbnails()
-        vm.loadLocalThumbnails()
-    }
 
     LaunchedEffect(selectedId) {
         val idLong = selectedId?.toLongOrNull()
@@ -101,7 +98,8 @@ fun CommunityScreen(
     when {
         editReview != null -> { //수정 모드일 때
             ReviewWriteForm(
-                author = currentUser,
+                currentUserId = currentUserId,
+                author = currentNickname,
                 vm = reviewVm,
                 initialReview = editReview,            //수정 모드
                 onCancel = {
@@ -138,7 +136,8 @@ fun CommunityScreen(
         showWriteForm -> {
             // 작성 화면만 표시 (탭/목록 숨김)
             ReviewWriteForm(
-                author = currentUser,
+                currentUserId = currentUserId,
+                author = currentNickname,
                 vm = reviewVm,
                 initialReview = null, //작성모드
                 onCancel = {
@@ -186,16 +185,12 @@ fun CommunityScreen(
                 onBack = { selectedReview = null },  // 뒤로가기 누르면 다시 목록으로
                 apiDetail = apiDetail,
                 apiPost = apiSummary,
-                currentUser = currentUser,
+                currentUser = currentNickname,
+                currentUserId = currentUserId,
                 onSyncReviewLikeCount = { id, liked, next ->
                     val idx = reviews.indexOfFirst { it.id == id }
                     if (idx >= 0) {
                         reviews[idx] = reviews[idx].copy(liked = liked, likeCount = next)
-                    }
-                    // (옵션) 더미 리스트도 같이 갱신
-                    val j = dummyReviews.indexOfFirst { it.id == id }
-                    if (j >= 0) {
-                        dummyReviews[j] = dummyReviews[j].copy(liked = liked, likeCount = next)
                     }
                 },
                 vm = reviewVm,
@@ -288,7 +283,7 @@ fun CommunityScreen(
                     selectedProgram = null
                     eduVm.clearSelection()
                 },
-                currentUser = currentUser,
+                currentUser = currentNickname,
                 onStartProgram = { /* 필요 시 구현 */ },
                 vm = eduVm,
                 onEdit = true,
@@ -310,7 +305,7 @@ fun CommunityScreen(
             EduProgramDetail(
                 program = programUi,
                 onBack = { eduVm.clearSelection() },
-                currentUser = currentUser,
+                currentUser = currentNickname,
                 onStartProgram = { /* 필요 시 구현 */ },
                 vm = eduVm,
                 onEdit = true,
@@ -412,30 +407,15 @@ fun CommunityScreen(
 
                     CommunityTab.Home -> {
                         val reviewList = when (val s = reviewVm.postsState.collectAsState().value) {
-                            is UiState.Success -> s.data.map { res ->
-                                val base = res.toReview()
-                                val thumbsUrl = reviewThumbs[res.id.toString()]
-                                if(!thumbsUrl.isNullOrBlank()) {
-                                    base.copy(contentItems = listOf(Content.Image.Url(thumbsUrl)) + base.contentItems)
-                                } else base
-                            }
+                            is UiState.Success -> s.data.map { it.toReview() }
                             else -> emptyList()
                         }
                         val eduList = when (val s = eduVm.postsState.collectAsState().value) {
                             is UiState.Success -> s.data.map { it.toEduProgram() }
                             else -> emptyList()
                         }
-                        LaunchedEffect(freeThumbs) {
-                            Log.d("HomeFreeThumbs", "thumbs size=${freeThumbs.size} firstKeys=${freeThumbs.keys.take(3)}")
-                        }
                         val freeList = when (val s = vm.postsState.collectAsState().value) {
-                            is UiState.Success -> s.data.map { res ->
-                                val base = res.toFreePost()
-                                val thumbsUrl = freeThumbs[res.id.toString()]
-                                if(!thumbsUrl.isNullOrBlank()) {
-                                    base.copy(contentItems = listOf(Content.Image.Url(thumbsUrl)) + base.contentItems)
-                                } else base
-                            }
+                            is UiState.Success -> s.data.map { it.toFreePost() }
                             else -> emptyList()
                         }
 

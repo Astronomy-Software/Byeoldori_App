@@ -43,6 +43,7 @@ fun ReviewDetail(
     onBack: () -> Unit = {},
     onShare: () -> Unit = {},
     currentUser: String,
+    currentUserId: Long? = null,
     onSyncReviewLikeCount: (id: String, liked: Boolean, next: Int) -> Unit,
     apiDetail: ReviewDetailResponse? = null, // 서버에서 가져온 상세(요약/카운트)
     apiPost: ReviewResponse? = null,
@@ -102,6 +103,16 @@ fun ReviewDetail(
 
     var moreMenu by remember { mutableStateOf(false) } //더보기 누르면 수정/삭제 버튼
     var showDeleted by remember { mutableStateOf(false) } //삭제 확인 다이얼로그
+
+    var deleteTarget by remember { mutableStateOf<ReviewComment?>(null) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    val isOwner = remember(currentUserId, myNick, apiPost, reviewForUi) {
+        when {
+            apiPost?.authorId != null && currentUserId != null -> apiPost.authorId == currentUserId
+            myNick != null -> reviewForUi.author == myNick
+            else -> false
+        }
+    }
 
     LaunchedEffect(reviewForUi.id) { commentsViewModel?.start(reviewForUi.id) }
 
@@ -171,7 +182,7 @@ fun ReviewDetail(
                                 expanded = moreMenu,
                                 onDismissRequest = { moreMenu = false }
                             ) {
-                                if(onEdit) {
+                                if(onEdit && isOwner) {
                                     DropdownMenuItem(
                                         text = { Text("수정",color = Color.Black) },
                                         onClick = {
@@ -203,14 +214,29 @@ fun ReviewDetail(
                 onSend = { raw ->
                     val t = raw.trim()
                     if (t.isEmpty()) return@CommentInput
-
-                    val parentIdStr = parent?.id
-
-                    commentsViewModel?.submit(content = t, parentId = parentIdStr) {
-                        // 성공 콜백: 입력/대댓글 모드 해제
-                        input = ""
-                        parent = null
-                        vm?.loadPosts()
+                    if(editingTarget != null) { //수정 모드
+                        val targetId = editingTarget!!.id.toLongOrNull()
+                        val postId = review.id.toLongOrNull()
+                        if(targetId != null && postId != null) {
+                            commentsViewModel?.update(
+                                postId = postId,
+                                commentId = targetId,
+                                content = t
+                            ) {
+                                // 성공 콜백: 입력/대댓글 모드 해제
+                                input = ""
+                                parent = null
+                                vm?.loadPosts()
+                            }
+                        }
+                    } else {
+                        val parentIdStr = parent?.id
+                        commentsViewModel?.submit(content = t, parentId = parentIdStr) {
+                            // 성공 콜백: 입력/대댓글 모드 해제
+                            input = ""
+                            parent = null
+                            vm?.loadPosts()
+                        }
                     }
                 },
                 modifier = Modifier
@@ -229,7 +255,6 @@ fun ReviewDetail(
             item {
                 Spacer(Modifier.height(10.dp))
                 Text( // 제목
-                    //text = apiPost?.title ?: review.title,
                     text = reviewForUi.title,
                     style = MaterialTheme.typography.headlineSmall.copy(
                         fontWeight = FontWeight.Bold,
@@ -249,7 +274,6 @@ fun ReviewDetail(
                     Spacer(Modifier.width(8.dp))
                     Column {
                         Text( //사용자 이름
-                           // text = apiPost?.authorNickname ?: review.author,
                             text = reviewForUi.author,
                             style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                             fontSize = 17.sp,
@@ -280,15 +304,21 @@ fun ReviewDetail(
                     modifier = Modifier.fillMaxWidth(),
                     enabled = false //수정 못하게
                 )
-                ContentInput(
-                    items = reviewForUi.contentItems.toUi(),
-                    onItemsChange = {},
-                    onCheck = {},
-                    onPickImages = {},
-                    onChecklist = {},
-                    readOnly = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
+                val hasImages = hasHttpImage(reviewForUi.contentItems)
+                val uiItems = reviewForUi.contentItems.toUi()
+                if(hasImages) {
+                    ContentInput(
+                        items = reviewForUi.contentItems.toUi(),
+                        onItemsChange = {},
+                        onCheck = {},
+                        onPickImages = {},
+                        onChecklist = {},
+                        readOnly = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                } else {
+                    ReadOnlyParagraphs(uiItems)
+                }
                 Spacer(Modifier.height(16.dp))
                 // 좋아요 + 댓글 바
                 LikeCommentBar(
@@ -332,7 +362,10 @@ fun ReviewDetail(
                         input = ""
                         requestKeyboard = true
                     },
-                    onDelete = {}
+                    onDelete = { target ->
+                        deleteTarget = target
+                        showDeleteDialog = true
+                    }
                 )
             }
         }
@@ -356,6 +389,37 @@ fun ReviewDetail(
                     showDeleted = false
                     moreMenu = false
                 }) { Text("취소") }
+            }
+        )
+    }
+    if (showDeleteDialog && deleteTarget != null) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false; deleteTarget = null },
+            title = { Text("댓글 삭제", color = Color.Black) },
+            text  = { Text("이 댓글을 삭제할까요?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val cid = deleteTarget!!.id.toLongOrNull()
+                        if (cid != null) {
+                            commentsViewModel?.delete(cid) {
+                                // 성공 시 닫기
+                                showDeleteDialog = false
+                                deleteTarget = null
+                                // 필요하면 상단 카운터/목록 갱신 트리거
+                                vm?.loadPosts()
+                            }
+                        } else {
+                            showDeleteDialog = false
+                            deleteTarget = null
+                        }
+                    }
+                ) { Text("삭제") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false; deleteTarget = null }) {
+                    Text("취소")
+                }
             }
         )
     }

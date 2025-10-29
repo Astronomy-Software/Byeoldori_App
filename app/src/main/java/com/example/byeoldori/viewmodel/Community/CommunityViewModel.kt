@@ -51,23 +51,8 @@ class CommunityViewModel @Inject constructor(
     private val _deleteState = MutableStateFlow<UiState<Unit>>(UiState.Idle)
     val deleteState: StateFlow<UiState<Unit>> = _deleteState.asStateFlow()
 
-    private val prefs = context.getSharedPreferences("free_thumbnails", Context.MODE_PRIVATE)
-    private val _thumbnails = MutableStateFlow<Map<String, String>>(emptyMap())
-    val thumbnails: StateFlow<Map<String, String>> = _thumbnails
-
-    fun loadLocalThumbnails() {
-        _thumbnails.value = prefs.all.mapValues { it.value.toString() }
-    }
-
-    fun registerLocalThumbnail(id: String, url: String?) {
-        if (url.isNullOrBlank()) return
-        _thumbnails.value = _thumbnails.value + (id to url)
-        prefs.edit().putString(id, url).apply()
-    }
-
     init {
         restoreLikedFromLocal()
-        loadLocalThumbnails()
         loadPosts()
     }
 
@@ -113,7 +98,6 @@ class CommunityViewModel @Inject constructor(
         try {
             val post: PostDetailResponse = repo.getPostDetail(id)
             _postDetail.value = UiState.Success(post)
-            registerLocalThumbnail(id.toString(), post.images.firstOrNull())
             Log.d("CommunityVM", "게시글 상세 불러오기 성공 id=$id, title=${post.title}")
         } catch (e: Exception) {
             _postDetail.value = UiState.Error(handleException(e))
@@ -127,7 +111,6 @@ class CommunityViewModel @Inject constructor(
                 repo.createFreePost(title, content, imageUrls)
             }.onSuccess { newId ->
                 _createState.value = UiState.Success(newId)
-                registerLocalThumbnail(newId.toString(), imageUrls.firstOrNull())
                 loadPosts()
             }.onFailure { e ->
                 _createState.value = UiState.Error(e.message ?: "게시글 생성 실패")
@@ -243,7 +226,6 @@ class CommunityViewModel @Inject constructor(
                     content = content,
                     imageUrls = imageUrls
                 )
-                registerLocalThumbnail(postId.toString(), imageUrls.firstOrNull())
                 loadPostDetail(postId)
                 loadPosts()
                 onDone()

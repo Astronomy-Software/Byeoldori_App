@@ -39,6 +39,9 @@ fun CommentItem(
         targetValue = if (isLiked) Purple500 else Color.Unspecified,
     )
 
+    val disabled = comment.deleted
+    val bodytext = comment.content ?: "삭제된 댓글입니다."
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -63,19 +66,25 @@ fun CommentItem(
                         color = TextHighlight
                     )
                     Spacer(Modifier.weight(1f))
-                    if(canEditDelete(comment)) {
+
+                    val canEdit = !disabled && canEditDelete(comment)
+                    if(canEdit) {
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             Text(
                                 "수정",
                                 color = TextDisabled,
                                 style = MaterialTheme.typography.bodySmall,
-                                modifier = Modifier.clickable { onEdit(comment) }
+                                modifier = Modifier.clickable(enabled = canEdit) {
+                                    onEdit(comment)
+                                }
                             )
                             Text(
                                 "삭제",
                                 color = TextDisabled,
                                 style = MaterialTheme.typography.bodySmall,
-                                modifier = Modifier.clickable { onDelete(comment) }
+                                modifier = Modifier.clickable(enabled = canEdit) {
+                                    onDelete(comment)
+                                }
                             )
                         }
                     }
@@ -90,7 +99,7 @@ fun CommentItem(
         }
         Spacer(modifier = Modifier.height(2.dp))
         Text( //본문
-            text = comment.content,
+            text =  bodytext,
             style = MaterialTheme.typography.bodyMedium,
             color = TextHighlight,
             fontSize = 17.sp

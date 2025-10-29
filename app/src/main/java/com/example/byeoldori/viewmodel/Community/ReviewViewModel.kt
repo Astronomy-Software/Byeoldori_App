@@ -55,20 +55,6 @@ class ReviewViewModel @Inject constructor(
     private val _authorCache = MutableStateFlow<Map<Long, String>>(emptyMap())
     val authorCache: StateFlow<Map<Long, String>> = _authorCache
 
-    private val prefs = context.getSharedPreferences("thumbnails", Context.MODE_PRIVATE)
-    private val _thumbnails = MutableStateFlow<Map<String, String>>(emptyMap())
-    val thumbnails: StateFlow<Map<String, String>> = _thumbnails
-
-    fun loadLocalThumbnails() {
-        _thumbnails.value = prefs.all.mapValues { it.value.toString() }
-    }
-
-    fun registerLocalThumbnail(id: String, url: String?) {
-        if (url.isNullOrBlank()) return
-        _thumbnails.value = _thumbnails.value + (id to url)
-        prefs.edit().putString(id, url).apply()
-    }
-
     fun onListLoaded(list: List<ReviewResponse>) {
         if (list.isEmpty()) return
         val add = list.associate { it.id to (it.authorNickname ?: "익명") }
@@ -147,8 +133,6 @@ class ReviewViewModel @Inject constructor(
         try {
             val res = repo.getReviewDetail(postId)
             _detail.value = UiState.Success(res)
-            //상세의 첫 이미지를 썸네일 캐시에 저장
-            registerLocalThumbnail(postId.toString(), res.images.firstOrNull())
         } catch (e: Exception) {
             _detail.value = UiState.Error(handleException(e))
         }
@@ -203,7 +187,6 @@ class ReviewViewModel @Inject constructor(
             }.onSuccess { newId ->
                 Log.d("ReviewVM", "작성 성공 id=$newId")
                 _createState.value = UiState.Success(newId)
-                registerLocalThumbnail(newId.toString(), imageUrls.firstOrNull()) //작성 직후 첫 이미지르 썸네일로 등록
                 ensureScoreLoaded(newId)
                 loadPosts()
             }.onFailure { e ->

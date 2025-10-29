@@ -91,6 +91,15 @@ fun FreeBoardDetail (
     var moreMenu by remember { mutableStateOf(false) }
     var showDeleted by remember { mutableStateOf(false) }
 
+    var deleteTarget by remember { mutableStateOf<ReviewComment?>(null) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    val isOwner = remember(currentUserId, currentUserNickname, apiPost, post) {
+        when {
+            apiPost?.authorId != null && currentUserId != null -> apiPost.authorId == currentUserId
+            else -> false
+        }
+    }
+
     LaunchedEffect(requestKeyboard) {
         if (requestKeyboard) {
             focusRequester.requestFocus()
@@ -153,7 +162,7 @@ fun FreeBoardDetail (
                                 expanded = moreMenu,
                                 onDismissRequest = { moreMenu = false }
                             ) {
-                                if(onEdit) {
+                                if(onEdit && isOwner) {
                                     DropdownMenuItem(
                                         text = { Text("수정",color = Color.Black) },
                                         onClick = {
@@ -183,12 +192,29 @@ fun FreeBoardDetail (
                     val t = raw.trim()
                     if (t.isEmpty()) return@CommentInput
 
-                    val parentIdStr = parent?.id  // 대댓글이면 부모 id
-                    commentsVm.submit(content = t, parentId = parentIdStr) {
-                        // 성공 콜백: 입력/대댓글모드 해제
-                        input = ""
-                        parent = null
-                        vm?.loadPosts()
+                    if (editingTarget != null) {   //수정 모드
+                        val targetId = editingTarget!!.id.toLongOrNull()
+                        val postId = post.id.toLongOrNull()
+                        if (targetId != null && postId != null) {
+                            commentsVm.update(
+                                postId = postId,
+                                commentId = targetId,
+                                content = t
+                            ) {
+                                // 성공 콜백: 입력창/모드 초기화
+                                input = ""
+                                editingTarget = null
+                                parent = null
+                                vm?.loadPosts()
+                            }
+                        }
+                    } else {   //일반 댓글 작성
+                        val parentIdStr = parent?.id
+                        commentsVm.submit(content = t, parentId = parentIdStr) {
+                            input = ""
+                            parent = null
+                            vm?.loadPosts()
+                        }
                     }
                 },
                 modifier = Modifier
@@ -239,25 +265,42 @@ fun FreeBoardDetail (
                     }
                 }
                 Spacer(Modifier.height(16.dp))
-                ContentInput( //내용 입력(텍스트 + 이미지)
-                    items = if (apiPost != null) {
-                        val text = apiPost.content.orEmpty()
-                        val textItem = if (text.isNotBlank()) {
-                            listOf(EditorItem.Paragraph(value = TextFieldValue(text)))
-                        } else emptyList()
-
-                        val photoItems = (apiPost.images ?: emptyList())
-                            .map { url -> EditorItem.Photo(model = url) }
-                        textItem + photoItems   // ← 텍스트 + 이미지 함께 렌더링
+                val domainItems: List<Content> =
+                    if (apiPost != null) {
+                        buildList {
+                            val text = apiPost.content.orEmpty()
+                            if (text.isNotBlank()) add(Content.Text(text))
+                            (apiPost.images ?: emptyList()).forEach { add(Content.Image.Url(it)) }
+                        }
                     } else {
-                        post.contentItems.toUi()
-                    },
-                    onItemsChange = {},
-                    onPickImages = {},
-                    onCheck = {},
-                    onChecklist = {},
-                    readOnly = true
-                )
+                        post.contentItems
+                    }
+
+                val hasImages = hasHttpImage(domainItems)
+                val uiItems = domainItems.toUi()
+                if(hasImages) {
+                    ContentInput( //내용 입력(텍스트 + 이미지)
+                        items = if (apiPost != null) {
+                            val text = apiPost.content.orEmpty()
+                            val textItem = if (text.isNotBlank()) {
+                                listOf(EditorItem.Paragraph(value = TextFieldValue(text)))
+                            } else emptyList()
+
+                            val photoItems = (apiPost.images ?: emptyList())
+                                .map { url -> EditorItem.Photo(model = url) }
+                            textItem + photoItems   // ← 텍스트 + 이미지 함께 렌더링
+                        } else {
+                            post.contentItems.toUi()
+                        },
+                        onItemsChange = {},
+                        onPickImages = {},
+                        onCheck = {},
+                        onChecklist = {},
+                        readOnly = true
+                    )
+                } else {
+                    ReadOnlyParagraphs(uiItems)
+                }
                 Spacer(Modifier.height(16.dp))
 
                 //좋아요 + 댓글바
@@ -305,12 +348,13 @@ fun FreeBoardDetail (
                     },
                     onEdit = { target ->
                         editingTarget = target
-                        input = target.content
                         requestKeyboard = true
                     },
                     liked = LikeState.ids.filter { it.startsWith("freeComment:") }
                         .map { it.removePrefix("freeComment:") }.toSet(),
-                    onDelete = {
+                    onDelete = { target ->
+                        deleteTarget = target
+                        showDeleteDialog = true
                     }
                 )
             }
@@ -335,6 +379,37 @@ fun FreeBoardDetail (
                     showDeleted = false
                     moreMenu = false
                 }) { Text("취소") }
+            }
+        )
+    }
+    if (showDeleteDialog && deleteTarget != null) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false; deleteTarget = null },
+            title = { Text("댓글 삭제", color = Color.Black) },
+            text = { Text("이 댓글을 삭제할까요?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val cid = deleteTarget!!.id.toLongOrNull()
+                        if (cid != null) {
+                            commentsVm.delete(cid) {
+                                // 성공 시 닫기
+                                showDeleteDialog = false
+                                deleteTarget = null
+                                // 필요하면 상단 카운터/목록 갱신 트리거
+                                vm?.loadPosts()
+                            }
+                        } else {
+                            showDeleteDialog = false
+                            deleteTarget = null
+                        }
+                    }
+                ) { Text("삭제") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false; deleteTarget = null }) {
+                    Text("취소")
+                }
             }
         )
     }

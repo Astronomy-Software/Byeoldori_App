@@ -16,6 +16,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.byeoldori.R
+import com.example.byeoldori.data.UserViewModel
 import com.example.byeoldori.data.model.dto.*
 import com.example.byeoldori.domain.Community.*
 import com.example.byeoldori.ui.components.community.*
@@ -37,8 +38,13 @@ fun EduProgramDetail(
     vm: EducationViewModel? = null,
     onStartProgram: () -> Unit = {},
     onEdit: Boolean = true,
-    onDelete: (programId: String) -> Unit = {}
+    onDelete: (programId: String) -> Unit = {},
+    onEditProgram: (EduProgram) -> Unit = {}
 ) {
+    val userVm: UserViewModel = hiltViewModel()
+    LaunchedEffect(Unit) { userVm.getMyProfile() }
+    val me = userVm.userProfile.collectAsState().value
+    val myId = me?.id
     var input by rememberSaveable { mutableStateOf("") }
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusRequester = remember { FocusRequester() }
@@ -80,7 +86,6 @@ fun EduProgramDetail(
     val commentList: List<ReviewComment> =
         (commentsState as? UiState.Success)?.data ?: emptyList()
 
-    val myId: Long? = currentUser?.toLongOrNull()         // 숫자로 변환되면 아이디
     val myNick: String? = if (myId == null) currentUser else null
 
     val likedCommentIds by remember(commentList) {
@@ -89,6 +94,12 @@ fun EduProgramDetail(
 
     var moreMenu by remember { mutableStateOf(false) }
     var showDeleted by remember { mutableStateOf(false) }
+    var deleteTarget by remember { mutableStateOf<ReviewComment?>(null) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    val postAuthorId: Long? = apiPost?.authorId ?: apiDetail?.authorId
+    val isOwner = remember(myId, postAuthorId) {
+        myId != null && postAuthorId != null && myId == postAuthorId
+    }
 
     LaunchedEffect(requestKeyboard) {
         if (requestKeyboard) {
@@ -152,10 +163,13 @@ fun EduProgramDetail(
                                 expanded = moreMenu,
                                 onDismissRequest = { moreMenu = false }
                             ) {
-                                if (onEdit) {
+                                if (onEdit && isOwner) {
                                     DropdownMenuItem(
                                         text = { Text("수정", color = Color.Black) },
-                                        onClick = {}
+                                        onClick = {
+                                            moreMenu = false
+                                            onEditProgram(program)
+                                        }
                                     )
                                     Divider(
                                         color = Color.Black.copy(alpha = 0.6f),
@@ -164,7 +178,10 @@ fun EduProgramDetail(
                                     )
                                     DropdownMenuItem(
                                         text = { Text("삭제", color = Color.Black) },
-                                        onClick = { showDeleted = true }
+                                        onClick = {
+                                            moreMenu = false
+                                            showDeleted = true
+                                        }
                                     )
                                 }
                             }
@@ -182,12 +199,29 @@ fun EduProgramDetail(
                     val t = raw.trim()
                     if (t.isEmpty()) return@CommentInput
 
-                    val parentIdStr = parent?.id
-                    commentsVm.submit(content = t, parentId = parentIdStr) {
-                        // 성공 후 입력/대댓글모드 해제
-                        input = ""
-                        parent = null
-                        vm?.loadPosts()
+                    if (editingTarget != null) {   //수정 모드
+                        val targetId = editingTarget!!.id.toLongOrNull()
+                        val postId = program.id.toLongOrNull()
+                        if (targetId != null && postId != null) {
+                            commentsVm.update(
+                                postId = postId,
+                                commentId = targetId,
+                                content = t
+                            ) {
+                                // 성공 콜백: 입력창/모드 초기화
+                                input = ""
+                                editingTarget = null
+                                parent = null
+                                vm?.loadPosts()
+                            }
+                        }
+                    } else {   //일반 댓글 작성
+                        val parentIdStr = parent?.id
+                        commentsVm.submit(content = t, parentId = parentIdStr) {
+                            input = ""
+                            parent = null
+                            vm?.loadPosts()
+                        }
                     }
                 },
                 modifier = Modifier
@@ -333,10 +367,12 @@ fun EduProgramDetail(
                     },
                     onEdit = { target ->
                         editingTarget = target
-                        input = target.content
                         requestKeyboard = true
                     },
-                    onDelete = { }
+                    onDelete = { target ->
+                        deleteTarget = target
+                        showDeleteDialog = true
+                    }
                 )
             }
         }
@@ -360,6 +396,36 @@ fun EduProgramDetail(
                     showDeleted = false
                     moreMenu = false
                 }) { Text("취소") }
+            }
+        )
+    }
+    if (showDeleteDialog && deleteTarget != null) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false; deleteTarget = null },
+            title = { Text("댓글 삭제", color = Color.Black) },
+            text  = { Text("이 댓글을 삭제할까요?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val cid = deleteTarget!!.id.toLongOrNull()
+                        if (cid != null) {
+                            commentsVm.delete(cid) {
+                                // 성공 시 닫고, 목록/카운트 갱신 트리거
+                                showDeleteDialog = false
+                                deleteTarget = null
+                                vm?.loadPosts()
+                            }
+                        } else {
+                            showDeleteDialog = false
+                            deleteTarget = null
+                        }
+                    }
+                ) { Text("삭제") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false; deleteTarget = null }) {
+                    Text("취소")
+                }
             }
         )
     }

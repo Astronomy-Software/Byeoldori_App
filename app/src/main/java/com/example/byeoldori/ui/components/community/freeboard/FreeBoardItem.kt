@@ -7,7 +7,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
@@ -26,8 +25,6 @@ fun FreeBoardItem( //게시글 UI
     onClick: () -> Unit = {},
     onLikeClick: () -> Unit
 ) {
-   // val isLiked by remember { derivedStateOf { likedKeyFree(post.id) in FreeBoardState.likedPostIds } }
-   // val isLiked by remember { derivedStateOf { likedKeyFree(post.id) in LikeState.ids } }
     val likeKey = remember(post.id) { likedKeyFree(post.id) }
 
     Card(
