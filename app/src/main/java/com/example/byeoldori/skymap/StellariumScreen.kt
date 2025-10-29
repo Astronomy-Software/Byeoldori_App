@@ -1,6 +1,6 @@
 package com.example.byeoldori.skymap
 
-import android.content.Context
+import android.app.Activity
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,28 +13,36 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
-import fi.iki.elonen.NanoHTTPD
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import kotlinx.coroutines.launch
-import java.io.InputStream
-import java.time.Instant
-import java.time.ZoneOffset
-import java.time.format.DateTimeFormatter
-
-/**
- * ✅ 완전 통합 단일 파일 버전
- * - /assets/StellariumServer/ → http://localhost:14204/ 로 매핑
- * - HTML, CSS, JS, 이미지 전부 로컬에서 서빙
- * - JS 라우팅, fetch(), router-link 등 완전 지원
- */
 
 @Composable
 fun StellariumScreen() {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
+    // ✅ 상태바 컨트롤러 준비
+    val window = (context as Activity).window
+    val insetsController = remember {
+        WindowInsetsControllerCompat(window, window.decorView)
+    }
+    // ✅ 진입 시 상태바 숨기기 & 나갈 때 복원
+    DisposableEffect(Unit) {
+        // 상단 상태바만 숨김
+        insetsController.hide(WindowInsetsCompat.Type.statusBars())
+        insetsController.systemBarsBehavior =
+            WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+
+        onDispose {
+            // 상태바 다시 보이게
+            insetsController.show(WindowInsetsCompat.Type.statusBars())
+        }
+    }
+
     // 1) 로컬 서버 시작/정지
     val server = remember {
-        LocalWebServer(context).apply { start() }
+        StellariumServer(context).apply { start() }
     }
     DisposableEffect(Unit) {
         onDispose { server.stop() }
@@ -55,8 +63,10 @@ fun StellariumScreen() {
                 settings.javaScriptEnabled = true
                 settings.domStorageEnabled = true
                 settings.allowFileAccess = true
+                // 브릿지 등록
+                addJavascriptInterface(AppBridge(context,gyroController), "AndroidBridge")
                 webViewClient = WebViewClient()
-                loadUrl("http://localhost:14204/")
+                loadUrl("http://localhost:8080/")
                 webViewState.value = this
             }
         }
@@ -76,14 +86,13 @@ fun StellariumScreen() {
     DisposableEffect(controller) {
         if (controller != null) {
             val job = scope.launch {
-                kotlinx.coroutines.delay(10000L)  // 3초 지연
-                controller.setLocation(37.5665, 126.9780, 38.0)
-                // ✅ 현재 시각 ISO 8601 UTC 포맷
-                val nowIso = DateTimeFormatter.ISO_INSTANT
-                    .withZone(ZoneOffset.UTC)
-                    .format(Instant.now())
-                controller.setTime(nowIso)   // 여기서 바로 전달 👈
-                gyroController.start()
+//                kotlinx.coroutines.delay(10000L)  // 10초 지연
+//                controller.setLocation(37.5665, 126.9780, 38.0)
+//                // ✅ 현재 시각 ISO 8601 UTC 포맷
+//                val nowIso = DateTimeFormatter.ISO_INSTANT
+//                    .withZone(ZoneOffset.UTC)
+//                    .format(Instant.now())
+//                controller.setTime(nowIso)   // 여기서 바로 전달 👈
             }
 
             onDispose {
@@ -91,50 +100,5 @@ fun StellariumScreen() {
                 gyroController.stop()
             }
         } else onDispose { }
-    }
-}
-
-/**
- * NanoHTTPD 기반 로컬 서버
- * assets/StellariumServer 폴더를 http://localhost:14204/ 로 서빙
- */
-class LocalWebServer(
-    private val appContext: Context,
-    port: Int = 14204
-) : NanoHTTPD(port) {
-
-    override fun serve(session: IHTTPSession): Response {
-        val uri = session.uri.trimStart('/')
-        val assetPath = if (uri.isEmpty() || uri == "/") {
-            "StellariumServer/index.html"
-        } else {
-            "StellariumServer/$uri"
-        }
-
-        return try {
-            val inputStream: InputStream = appContext.assets.open(assetPath)
-            val mimeType = getMimeType(assetPath)
-            newChunkedResponse(Response.Status.OK, mimeType, inputStream)
-        } catch (e: Exception) {
-            newFixedLengthResponse(
-                Response.Status.NOT_FOUND,
-                "text/plain",
-                "404 Not Found: $assetPath"
-            )
-        }
-    }
-
-    private fun getMimeType(path: String): String {
-        return when {
-            path.endsWith(".html") -> "text/html"
-            path.endsWith(".js") -> "application/javascript"
-            path.endsWith(".css") -> "text/css"
-            path.endsWith(".png") -> "image/png"
-            path.endsWith(".jpg") || path.endsWith(".jpeg") -> "image/jpeg"
-            path.endsWith(".ico") -> "image/x-icon"
-            path.endsWith(".json") -> "application/json"
-            path.endsWith(".svg") -> "image/svg+xml"
-            else -> "text/plain"
-        }
     }
 }
