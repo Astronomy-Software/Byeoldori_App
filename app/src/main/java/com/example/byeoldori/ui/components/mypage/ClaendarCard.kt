@@ -28,12 +28,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.byeoldori.R
 import com.example.byeoldori.ui.theme.ErrorRed
 import com.example.byeoldori.ui.theme.Purple100
 import com.example.byeoldori.ui.theme.Purple900
@@ -93,7 +91,7 @@ fun CalendarCard(
                 )
                 IconButton(onClick = { /* 자리만 */ }) {
                     Icon(Icons.Rounded.Edit,
-                        contentDescription = stringResource(R.string.edit),
+                        contentDescription = "편집",
                         tint = textColor.copy(alpha = 0.9f))
                 }
             }
@@ -109,7 +107,7 @@ fun CalendarCard(
             ) {
                 IconButton(onClick = onPrev, modifier = Modifier.size(36.dp)) {
                     Icon(Icons.Rounded.ArrowBackIosNew,
-                        contentDescription = stringResource(R.string.prev_month),
+                        contentDescription = "이전 달",
                         tint = textColor)
                 }
                 Text(
@@ -118,7 +116,7 @@ fun CalendarCard(
                 )
                 IconButton(onClick = onNext, modifier = Modifier.size(36.dp)) {
                     Icon(Icons.Rounded.ArrowForwardIos,
-                        contentDescription = stringResource(R.string.next_month),
+                        contentDescription = "다음 달",
                         tint = textColor)
                 }
             }

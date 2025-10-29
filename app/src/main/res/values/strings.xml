@@ -1,7 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="naver_client_id">mmbdhc8cpd</string>
-    <string name="edit">편집</string>
-    <string name="prev_month">이전 달</string>
-    <string name="next_month">다음 달</string>
 </resources>
