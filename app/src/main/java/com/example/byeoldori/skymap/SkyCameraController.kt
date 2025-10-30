@@ -50,6 +50,7 @@ class SkyCameraController(
         isRunning = true
         val sensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR) ?: return
         sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_GAME)
+//        sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_UI) // TODO: UI일경우 전력소모 적은대신 체감큼 이쁘게 이동하기만되면 바꿔야함
     }
 
     fun stop() {
@@ -69,10 +70,6 @@ class SkyCameraController(
 
     override fun onSensorChanged(event: SensorEvent) {
         if (event.sensor.type != Sensor.TYPE_ROTATION_VECTOR) return
-
-        val now = System.currentTimeMillis()
-        if (now - lastUpdate < 16) return // 60fps 제한
-        lastUpdate = now
 
         SensorManager.getRotationMatrixFromVector(rotationMatrix, event.values)
         SensorManager.remapCoordinateSystem(
