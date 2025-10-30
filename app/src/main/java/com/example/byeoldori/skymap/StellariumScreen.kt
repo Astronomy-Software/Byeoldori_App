@@ -18,12 +18,12 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.byeoldori.skymap.viewmodel.SkyObjectViewModel
+import com.example.byeoldori.skymap.viewmodel.ObjectDetailViewModel
 
 @Composable
 fun StellariumScreen() {
     val context = LocalContext.current
-    val viewModel: SkyObjectViewModel = hiltViewModel()
+    val viewModel: ObjectDetailViewModel = hiltViewModel()
     val window = (context as Activity).window
 
     LaunchedEffect(Unit) {
@@ -40,8 +40,6 @@ fun StellariumScreen() {
     }
 
     val webViewState = remember { mutableStateOf<WebView?>(null) }
-//    val cameraTracker = remember { SkyCameraTracker() }
-//    val gyroController = remember { GyroCameraController(context, cameraTracker) }
     val skyCameraController = remember { SkyCameraController(context) }
     Box(modifier = Modifier.fillMaxSize()) {
         AndroidView(
@@ -52,7 +50,7 @@ fun StellariumScreen() {
                 }
             }
         )
-        SkymapDetailScreen(viewModel)
+        ObjectDetailScreen(viewModel)
     }
 
     // ✅ Controller 바인딩
@@ -70,7 +68,7 @@ fun StellariumScreen() {
 
 private fun createStellariumWebView(
     context: Context,
-    viewModel: SkyObjectViewModel,
+    viewModel: ObjectDetailViewModel,
     skyCameraController: SkyCameraController
 ): WebView {
     return WebView(context).apply {

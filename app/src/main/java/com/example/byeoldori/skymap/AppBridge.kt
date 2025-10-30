@@ -3,15 +3,15 @@ import android.content.Context
 import android.util.Log
 import android.webkit.JavascriptInterface
 import com.example.byeoldori.skymap.SkyCameraController
+import com.example.byeoldori.skymap.viewmodel.ObjectDetailViewModel
 import com.example.byeoldori.skymap.viewmodel.ObjectItem
 import com.example.byeoldori.skymap.viewmodel.SkyObjectDetail
-import com.example.byeoldori.skymap.viewmodel.SkyObjectViewModel
 import org.json.JSONObject
 
 class AppBridge(
     private val context: Context,
     private val gyroController: SkyCameraController,
-    private val viewModel: SkyObjectViewModel
+    private val viewModel: ObjectDetailViewModel
 ) {
     @JavascriptInterface
     fun postMessage(data: String) {
