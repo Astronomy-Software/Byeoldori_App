@@ -5,7 +5,7 @@ import com.example.byeoldori.domain.Content
 data class FreePost(
     val id: String,
     val title: String,
-    val author: String,
+    val author: String? = null,
     val profile: Int?,
     val likeCount: Int,
     //val content: String,

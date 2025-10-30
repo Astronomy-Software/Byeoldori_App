@@ -40,7 +40,22 @@ fun CommentItem(
     )
 
     val disabled = comment.deleted
-    val bodytext = comment.content ?: "삭제된 댓글입니다."
+
+    if(disabled) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 20.dp)
+        ){
+            Text(
+                text = "삭제된 댓글입니다.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = TextDisabled,
+                fontSize = 17.sp
+            )
+        }
+        return //나머지 UI 렌더링 차단
+    }
 
     Column(
         modifier = Modifier
@@ -99,7 +114,7 @@ fun CommentItem(
         }
         Spacer(modifier = Modifier.height(2.dp))
         Text( //본문
-            text =  bodytext,
+            text =  comment.content ?: "-",
             style = MaterialTheme.typography.bodyMedium,
             color = TextHighlight,
             fontSize = 17.sp
@@ -110,7 +125,7 @@ fun CommentItem(
         ) {
             Row(verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
-                    .clickable(enabled = !isLiked) { onLike(comment) }
+                    //.clickable(enabled = !isLiked) { onLike(comment) }
                     .clickable { onLike(comment) }
             ) {
                 Icon(
@@ -175,16 +190,32 @@ fun CommentReplyItem(
                 .offset(y=10.dp)
         )
         Spacer(Modifier.width(8.dp))
-        CommentItem(
-            comment = comment,
-            onLike = onLike,
-            onReply = onReply,
-            onEdit = onEdit,
-            onDelete = onDelete,
-            canEditDelete = canEditDelete,
-            isLiked = isLiked,
-            showCommentCount = true
-        )
+
+        if(comment.deleted) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp, vertical = 20.dp)
+            ) {
+                Text(
+                    text = "삭제된 댓글입니다.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = TextDisabled,
+                    fontSize = 17.sp
+                )
+            }
+        } else {
+            CommentItem(
+                comment = comment,
+                onLike = onLike,
+                onReply = onReply,
+                onEdit = onEdit,
+                onDelete = onDelete,
+                canEditDelete = canEditDelete,
+                isLiked = isLiked,
+                showCommentCount = false
+            )
+        }
     }
 }
 

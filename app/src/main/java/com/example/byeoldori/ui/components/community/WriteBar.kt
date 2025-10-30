@@ -21,7 +21,6 @@ fun WriteBar (
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 4.dp, vertical = 12.dp),
-            //.offset(y = (10).dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         IconButton(

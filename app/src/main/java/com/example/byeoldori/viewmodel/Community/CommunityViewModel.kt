@@ -188,9 +188,10 @@ class CommunityViewModel @Inject constructor(
         }
     }
 
-    fun findNicknameByAuthorId(authorId: Long): String? {
-        val currentPosts = (_postsState.value as? UiState.Success)?.data ?: return null
-        return currentPosts.firstOrNull { it.authorId == authorId }?.authorNickname
+    fun findNicknameByAuthorId(authorId: Long): String {
+        val currentPosts = (_postsState.value as? UiState.Success)?.data.orEmpty()
+        val nickname = currentPosts.firstOrNull() { it.authorId == authorId}?.authorNickname
+        return if(!nickname.isNullOrBlank()) nickname else "익명"
     }
 
     fun deletePost(postId: Long, onSuccess: (() -> Unit)? = null) {

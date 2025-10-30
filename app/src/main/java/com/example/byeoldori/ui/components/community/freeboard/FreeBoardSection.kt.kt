@@ -57,7 +57,7 @@ fun FreePost.asReview(): Review =
     Review(
         id = likedKeyFree(this.id),
         title = title,
-        author = author,
+        author = author ?: "익명",
         rating = 0,              // 자유게시판엔 별점이 없으니 0으로
         likeCount = likeCount,
         commentCount = commentCount,
@@ -86,7 +86,7 @@ fun FreePostResponse.toFreePost(): FreePost {
     return FreePost(
         id = id.toString(),
         title = title,
-        author = authorNickname.toString(),
+        author = authorNickname ?: "익명",
         likeCount = likeCount,
         commentCount = commentCount,
         viewCount = viewCount,
@@ -126,8 +126,8 @@ fun FreeBoardSection(
         if (q.isEmpty()) freeBoardsAll else {
             freeBoardsAll.filter { r ->
                 val k = q.lowercase()
-                r.title.lowercase().contains(k) ||
-                        r.author.lowercase().contains(k) ||
+                r.title.contains(q, ignoreCase = true) ||
+                        (r.author?.contains(q, ignoreCase = true) == true) ||
                         r.contentItems.filterIsInstance<EditorItem.Paragraph>()
                             .any { it.value.text.lowercase().contains(k) }
             }

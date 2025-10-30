@@ -250,12 +250,8 @@ fun FreeBoardDetail (
                     )
                     Spacer(Modifier.width(8.dp))
                     Column { //작성자
-                        val authorName = remember(apiPost?.authorId,post.author) {
-                            apiPost?.authorId?.let { id ->
-                                vm?.findNicknameByAuthorId(id)
-                            } ?: post.author
-                        }
-                        Text(text = authorName ?: "??", fontSize = 17.sp, color = TextHighlight)
+                        val authorName = vm?.findNicknameByAuthorId(apiPost?.authorId ?: -1L) ?: "익명"
+                        Text(text = authorName, fontSize = 17.sp, color = TextHighlight)
                         Spacer(Modifier.height(4.dp))
                         Text( //작성일
                             text = apiPost?.createdAt?.toShortDate() ?: post.createdAt.toShortDate(),
