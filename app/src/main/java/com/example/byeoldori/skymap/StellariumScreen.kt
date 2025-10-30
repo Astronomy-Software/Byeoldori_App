@@ -38,10 +38,6 @@ fun StellariumScreen() {
         onDispose { insetsController.show(WindowInsetsCompat.Type.statusBars()) }
     }
 
-    // ✅ Stellarium 로컬 서버
-    val server = remember { StellariumServer(context).apply { start() } }
-    DisposableEffect(Unit) { onDispose { server.stop() } }
-
     // ✅ WebView 상태
     val webViewState = remember { mutableStateOf<WebView?>(null) }
 
