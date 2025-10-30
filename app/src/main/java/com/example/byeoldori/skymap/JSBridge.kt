@@ -1,7 +1,8 @@
+
 import android.content.Context
 import android.util.Log
 import android.webkit.JavascriptInterface
-import com.example.byeoldori.skymap.GyroCameraController
+import com.example.byeoldori.skymap.SkyCameraController
 import com.example.byeoldori.skymap.viewmodel.ObjectItem
 import com.example.byeoldori.skymap.viewmodel.SkyObjectDetail
 import com.example.byeoldori.skymap.viewmodel.SkyObjectViewModel
@@ -9,7 +10,7 @@ import org.json.JSONObject
 
 class AppBridge(
     private val context: Context,
-    private val gyroController: GyroCameraController,
+    private val gyroController: SkyCameraController,
     private val viewModel: SkyObjectViewModel
 ) {
     @JavascriptInterface
