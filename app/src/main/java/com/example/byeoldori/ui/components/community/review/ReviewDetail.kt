@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.relocation.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -28,6 +29,7 @@ import com.example.byeoldori.ui.mapper.toUi
 import com.example.byeoldori.viewmodel.*
 import com.example.byeoldori.viewmodel.Community.CommentsViewModel
 import com.example.byeoldori.viewmodel.Community.ReviewViewModel
+import kotlinx.coroutines.launch
 
 @Composable
 fun rememberIsImeVisible(): Boolean {
@@ -134,8 +136,22 @@ fun ReviewDetail(
             requestKeyboard = false  // 한 번만 실행
         }
     }
+    val snackbar = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
     Scaffold(
+        snackbarHost = {
+            SnackbarHost(hostState = snackbar) { data ->
+                Snackbar(
+                    containerColor = Purple600,
+                    contentColor = Color.White,
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                ) {
+                    Text(data.visuals.message)
+                }
+            }
+        },
         contentWindowInsets = WindowInsets(0),
         containerColor = Color.Transparent,
         topBar = {
@@ -160,7 +176,14 @@ fun ReviewDetail(
                     },
                     title = {},
                     actions = {
-                        IconButton(onClick = onShare) {
+                        IconButton(onClick = {
+                            scope.launch {
+                                snackbar.showSnackbar(
+                                    message = "아직 준비중인 기능입니다",
+                                    duration = SnackbarDuration.Short
+                                )
+                            }
+                        }) {
                             Icon(
                                 painter = painterResource(R.drawable.ic_constellation),
                                 contentDescription = "공유",

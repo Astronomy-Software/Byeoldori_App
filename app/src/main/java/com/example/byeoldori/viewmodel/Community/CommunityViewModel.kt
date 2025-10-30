@@ -51,10 +51,15 @@ class CommunityViewModel @Inject constructor(
     private val _deleteState = MutableStateFlow<UiState<Unit>>(UiState.Idle)
     val deleteState: StateFlow<UiState<Unit>> = _deleteState.asStateFlow()
 
+    private val _updateState = MutableStateFlow<UiState<Unit>>(UiState.Idle)
+    val updateState: StateFlow<UiState<Unit>> = _updateState.asStateFlow()
+
     init {
         restoreLikedFromLocal()
         loadPosts()
     }
+
+    fun resetUpdateState() { _updateState.value = UiState.Idle }
 
     fun loadPosts() = viewModelScope.launch {
         _postsState.value = UiState.Loading
@@ -210,6 +215,14 @@ class CommunityViewModel @Inject constructor(
                     _deleteState.value = UiState.Error(e.message ?: "게시글이 삭제되지 않았습니다.")
                 }
         }
+    }
+
+    fun resetFreeWriteStates() {
+        // 새 글 만들기/수정 등에서 남아있을 수 있는 성공/에러 상태들 초기화
+        clearCreateState()              // _createState -> Idle
+        resetUpdateState()              // _updateState -> Idle
+        _deleteState.value = UiState.Idle
+        _postDetail.value = UiState.Idle
     }
 
     fun updatePost(

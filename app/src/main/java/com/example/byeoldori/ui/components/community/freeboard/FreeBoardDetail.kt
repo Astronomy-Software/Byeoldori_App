@@ -3,6 +3,7 @@ package com.example.byeoldori.ui.components.community.freeboard
 import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.*
@@ -26,6 +27,7 @@ import com.example.byeoldori.ui.mapper.toUi
 import com.example.byeoldori.ui.theme.*
 import com.example.byeoldori.viewmodel.*
 import com.example.byeoldori.viewmodel.Community.*
+import kotlinx.coroutines.launch
 
 private fun mergeApiIntoFree(api: PostDetailResponse, base: FreePost): FreePost {
     val textItem = Content.Text(api.content)
@@ -97,6 +99,8 @@ fun FreeBoardDetail (
             else -> false
         }
     }
+    val snackbar = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(requestKeyboard) {
         if (requestKeyboard) {
@@ -110,6 +114,18 @@ fun FreeBoardDetail (
     LaunchedEffect(currentUserId, currentUserNickname) { Log.d("CommentCheck", "FreeBoardDetail 진입: meId=$currentUserId, meNick=$currentUserNickname") }
 
     Scaffold(
+        snackbarHost = {
+            SnackbarHost(hostState = snackbar) { data ->
+                Snackbar(
+                    containerColor = Purple600,
+                    contentColor = Color.White,
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                ) {
+                    Text(data.visuals.message)
+                }
+            }
+        },
         contentWindowInsets = ScaffoldDefaults.contentWindowInsets,
         containerColor = Color.Transparent,
         topBar = {
@@ -134,7 +150,14 @@ fun FreeBoardDetail (
                     },
                     title = {},
                     actions = {
-                        IconButton(onClick = onShare) {
+                        IconButton(onClick = {
+                            scope.launch {
+                                snackbar.showSnackbar(
+                                    message = "아직 준비중인 기능입니다",
+                                    duration = SnackbarDuration.Short
+                                )
+                            }
+                        }) {
                             Icon(
                                 painter = painterResource(R.drawable.ic_constellation),
                                 contentDescription = "수정",
@@ -160,6 +183,7 @@ fun FreeBoardDetail (
                                         text = { Text("수정",color = Color.Black) },
                                         onClick = {
                                             moreMenu = false
+                                            vm?.resetFreeWriteStates()
                                             val editable = apiPost?.let { mergeApiIntoFree(it, post) } ?: post
                                             onEditPost(editable)
                                         }

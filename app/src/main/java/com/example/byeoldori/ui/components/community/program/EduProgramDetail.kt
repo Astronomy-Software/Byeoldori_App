@@ -27,6 +27,7 @@ import com.example.byeoldori.ui.theme.*
 import com.example.byeoldori.viewmodel.*
 import com.example.byeoldori.viewmodel.Community.CommentsViewModel
 import com.example.byeoldori.viewmodel.Community.EducationViewModel
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -116,8 +117,22 @@ fun EduProgramDetail(
     LaunchedEffect(program.id) {
         commentsVm.start(program.id)
     }
+    val snackbar = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
     Scaffold(
+        snackbarHost = {
+            SnackbarHost(hostState = snackbar) { data ->
+                Snackbar(
+                    containerColor = Purple600,
+                    contentColor = Color.White,
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                ) {
+                    Text(data.visuals.message)
+                }
+            }
+        },
         contentWindowInsets = WindowInsets(0),
         containerColor = Color.Transparent,
         topBar = {
@@ -142,7 +157,14 @@ fun EduProgramDetail(
                     },
                     title = {},
                     actions = {
-                        IconButton(onClick = onShare) {
+                        IconButton(onClick = {
+                            scope.launch {
+                                snackbar.showSnackbar(
+                                    message = "아직 준비중인 기능입니다",
+                                    duration = SnackbarDuration.Short
+                                )
+                            }
+                        }) {
                             Icon(
                                 painter = painterResource(R.drawable.ic_constellation),
                                 contentDescription = "수정",
