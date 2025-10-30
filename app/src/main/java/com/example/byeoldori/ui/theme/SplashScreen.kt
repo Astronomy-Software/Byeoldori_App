@@ -10,13 +10,18 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.example.byeoldori.R
+import com.example.byeoldori.utils.SweObjUtils
 
 @Composable
 fun SplashScreen(onSplashFinished: () -> Unit) {
+    val context = LocalContext.current
     LaunchedEffect(Unit) {
+        // ✅ 앱 초기화 구간
+        SweObjUtils.initialize(context = context)
         // 실제 초기화 로직 추가 지점
         // TODO : 앱 초기화 내용들 들어가야함
         // TODO : Stellrarium 서버 띄우기
