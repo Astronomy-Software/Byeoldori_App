@@ -29,15 +29,13 @@ fun CommentList(
     var editingTarget by remember { mutableStateOf<ReviewComment?>(null) }
     var requestKeyboard by remember { mutableStateOf(false) }
 
-    val isMine: (ReviewComment) -> Boolean = remember {
+    val isMine: (ReviewComment) -> Boolean = remember(currentUserId, currentUserNickname) {
         { c ->
-            //임시로 모든 댓글을 "내 댓글"로 처리
-            // return true
-
-            // 또는 authorId==2인 경우만 내 댓글로 처리 (테스트용)
-            val result = (c.authorId == 2L)
-            Log.d("CommentCheck", "comment(${c.id}) ▶ authorId=${c.authorId}, isMine=$result (임시)")
-            result
+            val byId = currentUserId != null && c.authorId == currentUserId
+            val byNick = !c.authorNickname.isNullOrBlank() &&
+                    !currentUserNickname.isNullOrBlank() &&
+                    c.authorNickname!!.trim().equals(currentUserNickname!!.trim(), ignoreCase = true)
+            byId || byNick
         }
     }
 
