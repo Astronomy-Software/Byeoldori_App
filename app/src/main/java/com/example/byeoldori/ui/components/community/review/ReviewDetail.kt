@@ -208,42 +208,44 @@ fun ReviewDetail(
             }
         },
         bottomBar = {
-            CommentInput(
-                text = input,
-                onTextChange = { input = it },
-                onSend = { raw ->
-                    val t = raw.trim()
-                    if (t.isEmpty()) return@CommentInput
-                    if(editingTarget != null) { //수정 모드
-                        val targetId = editingTarget!!.id.toLongOrNull()
-                        val postId = review.id.toLongOrNull()
-                        if(targetId != null && postId != null) {
-                            commentsViewModel?.update(
-                                postId = postId,
-                                commentId = targetId,
-                                content = t
-                            ) {
+            if (editingTarget == null) {
+                CommentInput(
+                    text = input,
+                    onTextChange = { input = it },
+                    onSend = { raw ->
+                        val t = raw.trim()
+                        if (t.isEmpty()) return@CommentInput
+                        if (editingTarget != null) { //수정 모드
+                            val targetId = editingTarget!!.id.toLongOrNull()
+                            val postId = review.id.toLongOrNull()
+                            if (targetId != null && postId != null) {
+                                commentsViewModel?.update(
+                                    postId = postId,
+                                    commentId = targetId,
+                                    content = t
+                                ) {
+                                    // 성공 콜백: 입력/대댓글 모드 해제
+                                    input = ""
+                                    parent = null
+                                    vm?.loadPosts()
+                                }
+                            }
+                        } else {
+                            val parentIdStr = parent?.id
+                            commentsViewModel?.submit(content = t, parentId = parentIdStr) {
                                 // 성공 콜백: 입력/대댓글 모드 해제
                                 input = ""
                                 parent = null
                                 vm?.loadPosts()
                             }
                         }
-                    } else {
-                        val parentIdStr = parent?.id
-                        commentsViewModel?.submit(content = t, parentId = parentIdStr) {
-                            // 성공 콜백: 입력/대댓글 모드 해제
-                            input = ""
-                            parent = null
-                            vm?.loadPosts()
-                        }
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .focusRequester(focusRequester)
-                    .advancedImePadding()
-            )
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .focusRequester(focusRequester)
+                        .advancedImePadding()
+                )
+            }
         }
     ) { innerPadding ->
         LazyColumn(
@@ -251,6 +253,9 @@ fun ReviewDetail(
                 .fillMaxSize()
                 .padding(innerPadding)
                 .padding(horizontal = 12.dp)
+                .consumeWindowInsets(innerPadding)
+                .advancedImePadding()
+                .padding(bottom = 30.dp)
         ) {
             item {
                 Spacer(Modifier.height(10.dp))
@@ -360,12 +365,27 @@ fun ReviewDetail(
                     onEdit = { target ->
                         editingTarget = target
                         input = ""
-                        requestKeyboard = true
                     },
                     onDelete = { target ->
                         deleteTarget = target
                         showDeleteDialog = true
-                    }
+                    },
+                    editingId = editingTarget?.id,
+                    onSubmitEditInline = { target, newText ->
+                        val postId = review.id.toLongOrNull()
+                        val cid = target.id.toLongOrNull()
+                        if (postId != null && cid != null && newText.isNotBlank()) {
+                            commentsViewModel?.update(
+                                postId = postId,
+                                commentId = cid,
+                                content = newText
+                            ) {
+                                editingTarget = null   // 저장 후 편집 종료
+                                parent = null
+                            }
+                        }
+                    },
+                    onCancelEditInline = { editingTarget = null }
                 )
             }
         }
