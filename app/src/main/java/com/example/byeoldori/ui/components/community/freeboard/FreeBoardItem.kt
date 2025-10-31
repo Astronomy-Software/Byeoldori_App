@@ -64,7 +64,7 @@ fun FreeBoardItem( //게시글 UI
                     modifier = Modifier.size(25.dp)
                 )
                 Spacer(Modifier.width(4.dp))
-                Text(post.author, fontSize = 15.sp, color = TextHighlight)
+                Text(post.author ?: "익명", fontSize = 15.sp, color = TextHighlight)
 
                 Spacer(Modifier.weight(1f)) //빈공간을 늘림
 

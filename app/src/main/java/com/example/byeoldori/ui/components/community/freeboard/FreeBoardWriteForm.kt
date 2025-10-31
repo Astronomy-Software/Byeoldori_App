@@ -7,6 +7,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.*
@@ -21,6 +22,7 @@ import com.example.byeoldori.domain.Content
 import com.example.byeoldori.ui.components.community.*
 import com.example.byeoldori.ui.components.community.review.*
 import com.example.byeoldori.ui.mapper.toUi
+import com.example.byeoldori.ui.theme.Purple600
 import com.example.byeoldori.viewmodel.*
 import com.example.byeoldori.viewmodel.Community.*
 import kotlinx.coroutines.launch
@@ -176,7 +178,16 @@ fun FreeBoardWriteForm (
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(16.dp)
-        )
+        ) { data ->
+            Snackbar(
+                containerColor = Purple600,
+                contentColor = Color.White,
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.padding(horizontal = 16.dp)
+            ) {
+                Text(data.visuals.message)
+            }
+        }
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -190,6 +201,7 @@ fun FreeBoardWriteForm (
                         val body = buildContentText(items).trim()
                         if (title.isBlank() || body.isBlank()) {
                             // 유효성 경고 다이얼로그 띄우기 등
+                            showValidationDialog = true
                             return@WriteBar
                         }
 
@@ -211,9 +223,9 @@ fun FreeBoardWriteForm (
                             onSubmit()
                         }
                     },
-                    onTempSave = onTempSave,
+                    onTempSave = { scope.launch { snackbar.showSnackbar("아직 준비중인 기능입니다",duration = SnackbarDuration.Short)} },
                     onCancel = { showCancelDialog = true },
-                    onMore = onMore
+                    onMore = { scope.launch { snackbar.showSnackbar("아직 준비중인 기능입니다",duration = SnackbarDuration.Short)} },
                 )
             }
             item {
@@ -242,8 +254,8 @@ fun FreeBoardWriteForm (
                             )
                         )
                     },
-                    onCheck = {},
-                    onChecklist = { /* 자유게시판이면 생략 or 원하는 동작 */ },
+                    onCheck = { scope.launch { snackbar.showSnackbar("아직 준비중인 기능입니다",duration = SnackbarDuration.Short)} },
+                    onChecklist = { scope.launch { snackbar.showSnackbar("아직 준비중인 기능입니다",duration = SnackbarDuration.Short)} },
                     readOnly = false
                 )
             }
@@ -290,8 +302,16 @@ fun FreeBoardWriteForm (
         }
         else -> Unit
     }
+    if (showValidationDialog) {
+        AlertDialog(
+            onDismissRequest = { showValidationDialog = false },
+            text = { Text("필수 항목을 모두 입력해주세요.") },
+            confirmButton = {
+                TextButton(onClick = { showValidationDialog = false }) { Text("확인") }
+            }
+        )
+    }
 }
-
 
 @Preview(showBackground = true, widthDp = 360, heightDp = 720, backgroundColor = 0xFF241860)
 @Composable

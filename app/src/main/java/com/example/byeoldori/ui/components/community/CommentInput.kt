@@ -30,7 +30,7 @@ fun CommentInput(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .background(Purple900),
+            .background(Purple800),
         verticalAlignment = Alignment.CenterVertically
     ) {
         TextField(
