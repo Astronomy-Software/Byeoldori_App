@@ -262,6 +262,35 @@ fun CommuReviewSection(
     }
 }
 
+@Composable
+fun ReviewGrid(
+    reviews: List<Review>,
+    onClickReview: (Review) -> Unit,
+    onToggleLike: (String) -> Unit
+) {
+    val gridState = rememberLazyGridState()
+
+    LazyVerticalGrid(
+        state = gridState,
+        columns = GridCells.Fixed(2),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(12.dp)
+    ) {
+        items(reviews, key = { it.id }) { review ->
+            ReviewCard(
+                review = review,
+                modifier = Modifier.clickable { onClickReview(review) },
+                onToggleLike = { onToggleLike(review.id) },
+                onSyncLikeCount = {}
+            )
+        }
+        item { Spacer(Modifier.height(60.dp)) }
+    }
+}
+
 @Preview(showBackground = true, widthDp = 360, heightDp = 840)
 @Composable
 private fun Preview_ScreenWithWriteButton() {

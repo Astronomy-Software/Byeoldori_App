@@ -64,7 +64,8 @@ fun MyPageScreen(
             onNextMonth = { baseMonth = baseMonth.plusMonths(1) },
             onSelectDate = { selectedDate = it },
             profileName = profileName,
-            observationCount = observeCount
+            observationCount = observeCount,
+            onOpenLikes = onOpenLikes
         )
     }
 }
@@ -78,7 +79,8 @@ private fun MyPageContent(
     onEditProfile: () -> Unit = {},
     onOpenSettings: () -> Unit = {},
     profileName: String,
-    observationCount: Int
+    observationCount: Int,
+    onOpenLikes: () -> Unit = {}
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -122,7 +124,7 @@ private fun MyPageContent(
                 items = listOf(
                     MenuItem(title = "관측 일정 및 나의 관측 후기", onClick = {}), // onOpenSchedule
                     MenuItem(title = "찜", onClick = {}), // onOpenBookmarks
-                    MenuItem(title = "좋아요", onClick = {}), // onOpenLikes
+                    MenuItem(title = "좋아요", onClick = onOpenLikes), // onOpenLikes
                     MenuItem(title = "내가 작성한 자유게시글", onClick = {}), // onOpenMyBoards
                     MenuItem(title = "내가 작성한 교육 프로그램", onClick = {}), // onOpenMyPrograms
                     MenuItem(title = "내가 작성한 댓글", onClick = {}), // onOpenMyComments
@@ -153,7 +155,8 @@ private fun PreviewMyPageContent() {
             onNextMonth = {},
             onSelectDate = {},
             profileName = "별도리",
-            observationCount = 123
+            observationCount = 123,
+            onOpenLikes = {}
         )
     }
 }

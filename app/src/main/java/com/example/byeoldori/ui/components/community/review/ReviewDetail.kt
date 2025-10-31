@@ -317,13 +317,13 @@ fun ReviewDetail(
                 }
                 Spacer(Modifier.height(16.dp))
                 ReviewInput(
-                    target = apiDetail?.review?.target ?: review.target?.takeIf { it.isNotBlank() } ?: "—",
+                    target = reviewForUi.target.ifBlank { "—" },
                     onTargetChange = {},
-                    site = apiDetail?.review?.location ?: review.site?.takeIf { it.isNotBlank() } ?: "—",
+                    site = reviewForUi.target.ifBlank { "—" },
                     onSiteChange = {},
-                    equipment = apiDetail?.review?.equipment ?: review.equipment?.takeIf { it.isNotBlank() } ?: "—",
+                    equipment = reviewForUi.target.ifBlank { "—" },
                     onEquipmentChange = {},
-                    date = apiDetail?.review?.observationDate ?: review.date?.takeIf { it.isNotBlank() } ?: "—",
+                    date = reviewForUi.target.ifBlank { "—" },
                     onTimeChange = { _, _ -> },
                     rating = apiDetail?.review?.score?.let { "$it/5" }
                         ?: if (review.rating > 0) { "${review.rating}/5" } else { "미입력" },

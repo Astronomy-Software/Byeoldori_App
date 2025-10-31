@@ -224,6 +224,37 @@ fun FreeBoardSection(
     }
 }
 
+@Composable
+fun FreeGrid(
+    posts: List<FreePost>,
+    onClick: (FreePost) -> Unit,
+    onToggle: (String) -> Unit
+) {
+    val listState = rememberLazyListState()
+    LazyColumn(
+        state = listState,
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(12.dp)
+    ) {
+        items(posts, key = { it.id }) { post ->
+            Column {
+                FreeBoardItem(
+                    post = post,
+                    commentCount = post.commentCount,
+                    likeCount = post.likeCount,
+                    isLiked = true, // 좋아요 탭이므로 무조건 true
+                    onClick = { onClick(post) },
+                    onLikeClick = { onToggle(post.id) }
+                )
+                Divider(color = Color.White.copy(alpha = 0.8f), thickness = 1.dp)
+            }
+        }
+        item { Spacer(Modifier.height(60.dp)) }
+    }
+}
+
 @Preview(showBackground = true, backgroundColor = 0xFF241860, widthDp = 420, heightDp = 840)
 @Composable
 private fun Preview_FreeBoardSection_Empty() {
