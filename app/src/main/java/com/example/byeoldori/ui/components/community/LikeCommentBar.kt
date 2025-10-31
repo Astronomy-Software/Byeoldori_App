@@ -12,22 +12,8 @@ import androidx.compose.ui.unit.*
 import com.example.byeoldori.R
 import com.example.byeoldori.ui.theme.*
 
-object LikeState {
-    // key 규칙: "free:<postId>", "review:<reviewId>" 처럼 prefix로 구분
-    var ids by mutableStateOf(setOf<String>()) //사용자가 좋아요를 누른 항목들의 집합
-}
-
-//키 생성 함수들
-fun likedKeyFree(postId: String) = "free:$postId"
-fun likedKeyFreeComment(commentId: String) = "freeComment:$commentId"
-fun likedKeyReview(reviewId: String) = "review:$reviewId"
-fun likedKeyReviewComment(commentId: String) = "reviewComment:$commentId"
-fun likedKeyProgram(programId: String) = "program:$programId"
-fun likedKeyProgramComment(commentId: String) = "programComment:$commentId"
-
 @Composable
 fun LikeCommentBar (
-    key: String,
     likeCount: Int,
     liked: Boolean, //외부에서 주입
     onToggle: () -> Unit,
@@ -82,7 +68,6 @@ fun LikeCommentBar (
 fun Preview_LikeCommentBar() {
     MaterialTheme {
         LikeCommentBar(
-            key = likedKeyFree("post1"),
             likeCount = 21,
             liked = true,
             onToggle = {},

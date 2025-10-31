@@ -350,7 +350,6 @@ fun ReviewDetail(
                 Spacer(Modifier.height(16.dp))
                 // 좋아요 + 댓글 바
                 LikeCommentBar(
-                    key = likedKeyReview(review.id),
                     likeCount = reviewLikeCount,
                     liked = liked,
                     onToggle = {

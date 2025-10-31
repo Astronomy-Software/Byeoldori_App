@@ -66,9 +66,7 @@ fun LikeSection(
             .data.map { it.toFreePost() }
         else -> emptyList()
     }
-    val likedFreePosts = remember(allFreePosts) {
-        mutableStateListOf<FreePost>().apply { addAll(allFreePosts.filter { it.liked }) }
-    }
+    val likedFreePosts = allFreePosts.filter { it.liked }
 
     Background(modifier = Modifier.fillMaxSize()) {
         when {
