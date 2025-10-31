@@ -9,7 +9,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class SkyObjectViewModel @Inject constructor() : ViewModel() {
+class ObjectDetailViewModel @Inject constructor() : ViewModel() {
 
     /** 🪐 천체 기본/상세 정보 */
     private val _selectedObject = MutableStateFlow<SkyObjectDetail?>(null)
