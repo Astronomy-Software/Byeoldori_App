@@ -53,12 +53,19 @@ class CommunityViewModel @Inject constructor(
     private val _updateState = MutableStateFlow<UiState<Unit>>(UiState.Idle)
     val updateState: StateFlow<UiState<Unit>> = _updateState.asStateFlow()
 
+    private val _freeCommentOverrides = MutableStateFlow<Map<String, Int>>(emptyMap())
+    val freeCommentOverrides: StateFlow<Map<String, Int>> = _freeCommentOverrides
+
     init {
         restoreLikedFromLocal()
         loadPosts()
     }
 
     fun resetUpdateState() { _updateState.value = UiState.Idle }
+
+    fun overrideFreeCommentCount(postId: String, count: Int) {
+        _freeCommentOverrides.value = _freeCommentOverrides.value + (postId to count)
+    }
 
     fun loadPosts() = viewModelScope.launch {
         _postsState.value = UiState.Loading

@@ -84,17 +84,18 @@ fun ReviewDetail(
         remember { mutableStateOf(emptyMap<String, Int>()) }
     }
 
-    val commentCountUi = commentCounts[review.id] ?: when (val s = commentsState) {
-        is UiState.Success -> s.data.size
-        else -> 0
-    }
     val commentList: List<ReviewComment> = when (val s = commentsState) {
         is UiState.Success -> s.data
         else -> emptyList()
     }
 
-    val detailUi: UiState<Review> by (vm?.detailUi?.collectAsState() ?: remember { mutableStateOf<UiState<Review>>(UiState.Idle) })
+    val nonDeletedCount = remember(commentList) { commentList.count { !it.deleted } }
+    val commentCountUi = when {
+        nonDeletedCount > 0 -> nonDeletedCount
+        else -> commentCounts[review.id] ?: 0
+    }
 
+    val detailUi: UiState<Review> by (vm?.detailUi?.collectAsState() ?: remember { mutableStateOf<UiState<Review>>(UiState.Idle) })
     val reviewForUi: Review = when(val s = detailUi) {
         is UiState.Success -> s.data //서버에서 받은 최신 상세 리뷰
         else -> review

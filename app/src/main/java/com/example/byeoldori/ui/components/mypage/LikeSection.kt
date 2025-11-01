@@ -11,6 +11,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.byeoldori.R
+import com.example.byeoldori.data.UserViewModel
 import com.example.byeoldori.data.model.dto.*
 import com.example.byeoldori.domain.Community.*
 import com.example.byeoldori.domain.Observatory.Review
@@ -35,6 +36,15 @@ fun LikeSection(
     var selectedProgram by remember { mutableStateOf<EduProgram?>(null) }
     var selectedReview by remember { mutableStateOf<Review?>(null) }
     var selectedFree by remember { mutableStateOf<FreePost?>(null) }
+
+    var editingProgram by remember { mutableStateOf<EduProgram?>(null) }
+    var editingReview  by remember { mutableStateOf<Review?>(null) }
+    var editingFree    by remember { mutableStateOf<FreePost?>(null) }
+
+    val userVm: UserViewModel = hiltViewModel()
+    LaunchedEffect(Unit) { userVm.getMyProfile() }
+    val me = userVm.userProfile.collectAsState().value
+    val myId = me?.id
 
     LaunchedEffect(Unit) {
         eduVm.loadPosts()
@@ -70,6 +80,42 @@ fun LikeSection(
 
     Background(modifier = Modifier.fillMaxSize()) {
         when {
+            editingProgram != null -> {
+                /** 추후 추가 **/
+            }
+            editingReview != null -> {
+                val draft = editingReview!!
+                ReviewWriteForm(
+                    author = me?.nickname ?: "익명",
+                    onCancel = { editingReview = null; selectedReview = null  },
+                    vm = reviewVm,
+                    onMore = {},
+                    onSubmit = {
+                        editingReview = null
+                        selectedReview = null
+                        reviewVm.loadPosts()
+                    },
+                    onTempSave = {},
+                    initialReview = draft //수정 데이터 그대로 전달
+                )
+            }
+            editingFree != null -> {
+                val draft = editingFree!!
+                FreeBoardWriteForm(
+                    onCancel = { editingFree = null; selectedFree = null },
+                    onSubmit = {
+                        editingFree = null
+                        selectedFree = null
+                        vm.loadPosts()
+                    },
+                    onTempSave = {},
+                    onMore = {},
+                    onSubmitPost = {},
+                    initialPost = draft,
+                    onClose = {},
+                    vm = vm
+                )
+            }
             selectedProgram != null -> {
                 EduProgramDetail(
                     program = selectedProgram!!,
@@ -79,9 +125,15 @@ fun LikeSection(
             }
             selectedReview != null -> {
                 val review = selectedReview!!
+                val apiReview = when (val s = reviewState) {
+                    is UiState.Success -> s.data.firstOrNull { it.id.toString() == review.id }
+                    else -> null
+                }
                 ReviewDetail(
                     review = selectedReview!!,
-                    currentUser = "me",
+                    currentUser = me?.nickname ?: "익명",
+                    currentUserId = myId,
+                    apiPost = apiReview,
                     onBack = { selectedReview = null },
                     vm = reviewVm,
                     onSyncReviewLikeCount = { id, liked, next ->
@@ -89,7 +141,9 @@ fun LikeSection(
                         if (idx >= 0) {
                             likedReviews[idx] = likedReviews[idx].copy(liked = liked, likeCount = next)
                         }
-                    }
+                    },
+                    onEditReview = { editable ->
+                        editingReview = editable }
                 )
                 LaunchedEffect(review.id) {
                     review.id.toLongOrNull()?.let { reviewVm.loadReviewDetail(it) }
@@ -104,7 +158,10 @@ fun LikeSection(
                     post = free,
                     apiPost = apiPost,
                     vm = vm,
-                    onBack = { selectedFree = null }
+                    onBack = { selectedFree = null },
+                    onEditPost = { editable ->
+                        editingFree = editable
+                    }
                 )
                 LaunchedEffect(free.id) { free.id.toLongOrNull()?.let { vm.loadPostDetail(it) } }
             }

@@ -65,7 +65,6 @@ fun FreeBoardDetail (
     var parent by remember { mutableStateOf<ReviewComment?>(null) }
     val commentsVm: CommentsViewModel = hiltViewModel() //화면에 연결된 CommentsViewModel 인스턴스 주입
     val commentsState by commentsVm.comments.collectAsState()
-    val commentCounts by commentsVm.commentCounts.collectAsState()
 
     val userVm: UserViewModel = hiltViewModel()
     LaunchedEffect(Unit) { userVm.getMyProfile() }
@@ -73,13 +72,15 @@ fun FreeBoardDetail (
     val currentUserId = me?.id
     val currentUserNickname = me?.nickname
 
-    //댓글 개수 계산
-    val commentCountUi = commentCounts[post.id] ?: when (val s = commentsState) {
-        is UiState.Success -> s.data.size
-        else -> 0
-    }
     //상태 변화 즉시 리스트 갱신
     val commentList: List<ReviewComment> = (commentsState as? UiState.Success)?.data ?: emptyList()
+    val nonDeletedCount = remember(commentList) { commentList.count { !it.deleted } }
+
+    LaunchedEffect(post.id, nonDeletedCount) {
+        vm?.overrideFreeCommentCount(post.id, nonDeletedCount)
+    }
+    val commentCountUi = nonDeletedCount.takeIf { it > 0 }
+        ?: (apiPost?.commentCount ?: post.commentCount)
 
     var moreMenu by remember { mutableStateOf(false) }
     var showDeleted by remember { mutableStateOf(false) }
@@ -96,22 +97,11 @@ fun FreeBoardDetail (
     val scope = rememberCoroutineScope()
 
     var likedCommentIds by remember { mutableStateOf<Set<String>>(emptySet()) }
-
-    val detailState by (vm?.postDetail?.collectAsState()
-        ?: remember { mutableStateOf<UiState<PostDetailResponse>>(UiState.Idle) })
-    val listState by (vm?.postsState?.collectAsState()
-        ?: remember { mutableStateOf<UiState<List<FreePostResponse>>>(UiState.Idle) })
-
-    val apiDetail = (detailState as? UiState.Success)?.data ?: apiPost
-
     val currentDetail = (vm?.postDetail?.collectAsState()?.value as? UiState.Success)?.data
     val likeCount = currentDetail?.likeCount ?: post.likeCount
     val liked = currentDetail?.liked ?: post.liked
 
-
-    LaunchedEffect(commentList) {
-        likedCommentIds = commentList.filter { it.liked }.map { it.id }.toSet()
-    }
+    LaunchedEffect(commentList) { likedCommentIds = commentList.filter { it.liked }.map { it.id }.toSet() }
 
     LaunchedEffect(requestKeyboard) {
         if (requestKeyboard) {
@@ -334,11 +324,7 @@ fun FreeBoardDetail (
                 LikeCommentBar(
                     likeCount = likeCount,
                     liked = liked,
-                    onToggle = {
-                        post.id.toLongOrNull()?.let { id ->
-                            vm?.toggleLike(id)
-                        }
-                    },
+                    onToggle = { post.id.toLongOrNull()?.let { id -> vm?.toggleLike(id) } },
                     onSyncLikeCount = {},
                     commentCount = commentCountUi
                 )

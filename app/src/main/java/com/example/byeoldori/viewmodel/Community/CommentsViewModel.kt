@@ -35,10 +35,15 @@ class CommentsViewModel @Inject constructor(
 
     private val buffer = mutableListOf<ReviewComment>()
 
+    private var loadSession: Long = 0L //현재 세션
+    private var loadJob: kotlinx.coroutines.Job? = null
+
     /** 상세 진입 시 호출 */
     fun start(postId: String) {
         postIdStr = postId
         postIdLong = postId.toLongOrNull()
+        loadSession++
+        loadJob?.cancel() //새로운 글을 열면 이전 게시글 요청 중단
         page = 1
         lastPage = Int.MAX_VALUE
         buffer.clear() //이전 게시글의 댓글 초기화
@@ -56,11 +61,16 @@ class CommentsViewModel @Inject constructor(
         }
         if (page > lastPage) return //끝까지 다 불러왔으니까 중단
 
+        val mySession = loadSession
+
         viewModelScope.launch {
             val res = repo.getComments(pid, page = page, size = 15)
             res.onSuccess { pageRes ->
+                if (mySession != loadSession || pid != postIdLong) return@onSuccess //이전 댓글들은 버려짐
                 applyPage(pageRes)
-                _commentCounts.value = _commentCounts.value + (postIdStr to pageRes.totalElements)
+
+                val visible = buffer.count { !it.deleted }
+                _commentCounts.value = _commentCounts.value + (postIdStr to visible)
             }.onFailure { e ->
                 _comments.value = UiState.Error(e.message ?: "댓글 목록 로드 실패")
             }
@@ -102,7 +112,6 @@ class CommentsViewModel @Inject constructor(
         val postId = postIdLong ?: return@launch
         try {
             val res = repo.toggleCommentLike(postId, commentId)
-
             val next = when (val s = _comments.value) {
                 is UiState.Success -> {
                     val updated = s.data.map { c ->
@@ -128,7 +137,6 @@ class CommentsViewModel @Inject constructor(
     ) = viewModelScope.launch {
         val postId = postIdLong ?: return@launch
         val response = repo.deleteComment(postId, commentId)
-
         response.onSuccess {
             val next = when (val s = _comments.value) {
                 //s.data는 List<CommentResponse>
@@ -149,7 +157,8 @@ class CommentsViewModel @Inject constructor(
             _comments.value = next
 
             val cur = _commentCounts.value[postIdStr] ?: 0
-            _commentCounts.value = _commentCounts.value + (postIdStr to (cur)) //댓글 수는 그대로
+            val newCount = (cur -1).coerceAtLeast(0)
+            _commentCounts.value = _commentCounts.value + (postIdStr to newCount) //댓글 수는 그대로
             onComplete?.invoke()
         }.onFailure { e->
             _comments.value = UiState.Error(e.message ?: "댓글 삭제 실패")
@@ -163,7 +172,6 @@ class CommentsViewModel @Inject constructor(
         onComplete: (() -> Unit)? = null
     ) = viewModelScope.launch {
         val response = repo.updateComment(postId, commentId, content)
-
         response.onSuccess { updated ->
             val next = when(val s = _comments.value) {
                 is UiState.Success -> UiState.Success(
@@ -180,6 +188,4 @@ class CommentsViewModel @Inject constructor(
             _comments.value = UiState.Error(e.message ?: "댓글 수정 실패")
         }
     }
-
-
 }

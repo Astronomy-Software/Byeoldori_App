@@ -18,6 +18,7 @@ import com.example.byeoldori.data.model.dto.*
 import com.example.byeoldori.ui.components.community.*
 import com.example.byeoldori.ui.theme.*
 import com.example.byeoldori.domain.Community.FreePost
+import com.example.byeoldori.domain.Community.ReviewComment
 import com.example.byeoldori.domain.Content
 import com.example.byeoldori.domain.Observatory.Review
 import com.example.byeoldori.viewmodel.*
@@ -105,7 +106,7 @@ fun FreeBoardSection(
     onClickPost: (String) -> Unit = {},
     currentSort: SortBy,
     onChangeSort: (SortBy) -> Unit = {},
-    vm: CommunityViewModel? = null
+    vm: CommunityViewModel = hiltViewModel()
 ){
     var searchText by remember { mutableStateOf("") } //초기값이 빈 문자열인 변할 수 있는 상태 객체
     var sort by remember { mutableStateOf(FreeBoardSort.Latest) }
@@ -116,11 +117,10 @@ fun FreeBoardSection(
 
     val posts: List<FreePost> = when (val s = vmPostsState) {
         is UiState.Success -> s.data.map { it.toFreePost() }   // <-- 최신 값
-        else -> freeBoardsAll                                   // <-- fallback
+        else -> emptyList()
     }
 
-    val commentsVm: CommentsViewModel = hiltViewModel()
-    val commentCounts by commentsVm.commentCounts.collectAsState()
+    val commentCountsByVm by vm.commentCounts.collectAsState()
 
     // 검색만
     val filtered = run {
@@ -152,7 +152,7 @@ fun FreeBoardSection(
                 .fillMaxSize()
                 .padding(horizontal = 12.dp, vertical = 10.dp)
         ) {
-            com.example.byeoldori.ui.components.community.SearchBar(
+            SearchBar(
                 searchQuery = searchText,
                 onSearch = { searchText = it }
             )
@@ -185,8 +185,7 @@ fun FreeBoardSection(
                 modifier = Modifier.fillMaxSize()
             ) {
                 items(filtered, key = { it.id }) { post ->
-                    val uiCommentCount = commentCounts[post.id] ?: post.commentCount
-
+                    val uiCommentCount = commentCountsByVm[post.id] ?: post.commentCount
                     Column {
                         FreeBoardItem(
                             post = post,
@@ -194,11 +193,9 @@ fun FreeBoardSection(
                             likeCount = post.likeCount,
                             isLiked = post.liked,
                             onClick = { onClickPost(post.id) },
-                            onLikeClick = { vm?.toggleLike(post.id.toLong()) }
+                            onLikeClick = { vm.toggleLike(post.id.toLong()) }
                         )
-                        Divider(
-                            color = Color.White.copy(alpha = 0.8f),
-                            thickness = 1.dp)
+                        Divider(color = Color.White.copy(alpha = 0.8f), thickness = 1.dp)
                     }
                 }
             }
@@ -264,8 +261,7 @@ private fun Preview_FreeBoardSection_Empty() {
             onWriteClick = {},
             onClickPost = {},
             currentSort = SortBy.LATEST,
-            onChangeSort = {},
-            vm = null
+            onChangeSort = {}
         )
     }
 }

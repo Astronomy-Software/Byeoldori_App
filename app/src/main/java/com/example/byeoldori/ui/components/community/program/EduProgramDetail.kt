@@ -79,13 +79,13 @@ fun EduProgramDetail(
     val commentsState by commentsVm.comments.collectAsState()
     val commentCounts by commentsVm.commentCounts.collectAsState()
 
-    val commentCountUi = commentCounts[program.id] ?: when (val s = commentsState) {
-        is UiState.Success -> s.data.size
-        else -> 0
-    }
-
     val commentList: List<ReviewComment> =
         (commentsState as? UiState.Success)?.data ?: emptyList()
+    val nonDeletedCount = remember(commentList) { commentList.count { !it.deleted } }
+    val commentCountUi = when {
+        nonDeletedCount > 0 -> nonDeletedCount
+        else -> commentCounts[program.id] ?: 0
+    }
 
     val myNick: String? = if (myId == null) currentUser else null
 
@@ -193,7 +193,7 @@ fun EduProgramDetail(
                                             onEditProgram(program)
                                         }
                                     )
-                                    Divider(
+                                    HorizontalDivider(
                                         color = Color.Black.copy(alpha = 0.6f),
                                         thickness = 1.dp,
                                         modifier = Modifier.fillMaxWidth()
@@ -210,7 +210,7 @@ fun EduProgramDetail(
                         }
                     }
                 )
-                Divider(color = Color.LightGray.copy(alpha = 0.4f), thickness = 1.dp)
+                HorizontalDivider(color = Color.LightGray.copy(alpha = 0.4f), thickness = 1.dp)
             }
         },
         bottomBar = {

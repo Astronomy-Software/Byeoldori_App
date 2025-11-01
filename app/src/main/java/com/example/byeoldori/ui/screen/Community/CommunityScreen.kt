@@ -371,9 +371,6 @@ fun CommunityScreen(
                             onSyncReviewLike = { id, liked, next ->
                                 val i = reviews.indexOfFirst { it.id == id }
                                 if (i >= 0) reviews[i] = reviews[i].copy(likeCount = next, liked = liked)
-
-                                val j = dummyReviews.indexOfFirst { it.id == id }
-                                if (j >= 0) dummyReviews[j] = dummyReviews[j].copy(likeCount = next, liked = liked)
                             },
                         )
                     }
