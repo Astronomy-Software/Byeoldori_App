@@ -11,7 +11,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
 import com.example.byeoldori.R
-import com.example.byeoldori.ui.components.community.*
 import com.example.byeoldori.ui.theme.*
 import com.example.byeoldori.domain.Community.FreePost
 import com.example.byeoldori.domain.Content
@@ -25,8 +24,6 @@ fun FreeBoardItem( //게시글 UI
     onClick: () -> Unit = {},
     onLikeClick: () -> Unit
 ) {
-    val likeKey = remember(post.id) { likedKeyFree(post.id) }
-
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -70,16 +67,7 @@ fun FreeBoardItem( //게시글 UI
 
                 Row(
                     modifier = Modifier
-                        .clickable {
-                            //로컬(전역) 좋아요 상태를 먼저 토글 (아이콘 색 즉시 반응)
-                            LikeState.ids = if (isLiked) {
-                                LikeState.ids - likeKey
-                            } else {
-                                LikeState.ids + likeKey
-                            }
-                            //서버 갱신 호출
-                            onLikeClick()
-                        }
+                        .clickable { onLikeClick() }  //서버 갱신 호출
                         .padding(horizontal = 4.dp, vertical = 2.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {

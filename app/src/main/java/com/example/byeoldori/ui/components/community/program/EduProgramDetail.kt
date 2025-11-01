@@ -355,7 +355,6 @@ fun EduProgramDetail(
                 Spacer(Modifier.height(16.dp))
                 //좋아요 + 댓글바
                 LikeCommentBar(
-                    key = likedKeyProgram(program.id),
                     likeCount = likeCount,
                     liked = liked,
                     onToggle = {
@@ -366,11 +365,7 @@ fun EduProgramDetail(
                             }
                         }
                     },
-                    onSyncLikeCount = { next ->
-                        // 목록 원본 동기화(정렬/표시 일치)
-                        val idx = dummyPrograms.indexOfFirst { it.id == program.id }
-                        if (idx >= 0) dummyPrograms[idx] = dummyPrograms[idx].copy(likeCount = next)
-                    },
+                    onSyncLikeCount = {},
                     commentCount = commentCountUi
                 )
                 //댓글 + 대댓글

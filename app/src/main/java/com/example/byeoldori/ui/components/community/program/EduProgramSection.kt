@@ -261,3 +261,34 @@ private fun Preview_EduProgramSection_Default() {
         )
     }
 }
+
+@Composable
+fun EduProgramGrid(
+    programs: List<EduProgram>,
+    onClickProgram: (String) -> Unit = {},
+    onToggleLike: (String) -> Unit = {}
+) {
+    val gridState = rememberLazyGridState()
+
+    LazyVerticalGrid(
+        state = gridState,
+        columns = GridCells.Fixed(2),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(12.dp)
+    ) {
+        items(programs, key = { it.id }) { program ->
+            Box(
+                Modifier.clickable { onClickProgram(program.id) }
+            ) {
+                ReviewCard(
+                    review = program.asReview(),
+                    onToggleLike = { onToggleLike(program.id) }
+                )
+            }
+        }
+        item { Spacer(Modifier.height(60.dp)) }
+    }
+}

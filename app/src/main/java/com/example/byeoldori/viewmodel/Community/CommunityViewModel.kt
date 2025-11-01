@@ -7,7 +7,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import androidx.lifecycle.viewModelScope
 import com.example.byeoldori.data.model.dto.*
 import com.example.byeoldori.data.repository.FreeRepository
-import com.example.byeoldori.ui.components.community.likedKeyFree
 import com.example.byeoldori.viewmodel.*
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -66,13 +65,6 @@ class CommunityViewModel @Inject constructor(
         try {
             val posts = repo.getAllPosts(sort.value)
             _postsState.value = UiState.Success(posts)
-            //리스트 받아올 때 현재 개수 반영
-            _likedIds.update { ids ->
-                val serverLiked = posts.filter { it.liked }
-                    .map { likedKeyFree(it.id.toString()) }
-                    .toSet()
-                ids + serverLiked
-            }
         } catch (e: Exception) {
             _postsState.value = UiState.Error(handleException(e))
         }
@@ -129,15 +121,13 @@ class CommunityViewModel @Inject constructor(
         postId: Long,
         onResult: ((LikeToggleResponse) -> Unit)? = null
     ) = viewModelScope.launch {
-        val key = likedKeyFree(postId.toString())
         _likeState.value = UiState.Loading
 
         runCatching { repo.toggleLike(postId) }
             .onSuccess { res ->
                 _likeState.value = UiState.Success(res)
-                _likeCounts.update { it + (postId.toString() to res.likes.toInt()) }
-                _likedIds.update { ids -> if (res.liked) ids + key else ids - key }
-                saveLikedToLocal()
+                //_likeCounts.update { it + (postId.toString() to res.likes.toInt()) }
+                //saveLikedToLocal()
 
                 //목록/상세 동기화
                 (_postsState.value as? UiState.Success)?.let { cur ->

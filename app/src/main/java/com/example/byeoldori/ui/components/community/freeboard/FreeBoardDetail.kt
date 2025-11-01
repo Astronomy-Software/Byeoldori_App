@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.*
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.byeoldori.R
 import com.example.byeoldori.data.UserViewModel
+import com.example.byeoldori.data.model.dto.FreePostResponse
 import com.example.byeoldori.data.model.dto.PostDetailResponse
 import com.example.byeoldori.domain.Community.*
 import com.example.byeoldori.domain.Content
@@ -60,16 +61,8 @@ fun FreeBoardDetail (
     val focusRequester = remember { FocusRequester() }
     var editingTarget by remember { mutableStateOf<ReviewComment?>(null) }
     var requestKeyboard by remember { mutableStateOf(false) }
+
     var parent by remember { mutableStateOf<ReviewComment?>(null) }
-
-    val likeCounts by (vm?.likeCounts?.collectAsState()
-        ?: remember { mutableStateOf<Map<String, Int>>(emptyMap()) })
-    val initialCount = likeCounts[post.id] ?: apiPost?.likeCount ?: post.likeCount
-    val initialLiked = apiPost?.liked ?: post.liked
-
-    var likeCount by rememberSaveable(post.id) { mutableStateOf(initialCount) } //로컬 카운트
-    var liked by rememberSaveable(post.id) { mutableStateOf(initialLiked) }
-
     val commentsVm: CommentsViewModel = hiltViewModel() //화면에 연결된 CommentsViewModel 인스턴스 주입
     val commentsState by commentsVm.comments.collectAsState()
     val commentCounts by commentsVm.commentCounts.collectAsState()
@@ -101,6 +94,24 @@ fun FreeBoardDetail (
     }
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+
+    var likedCommentIds by remember { mutableStateOf<Set<String>>(emptySet()) }
+
+    val detailState by (vm?.postDetail?.collectAsState()
+        ?: remember { mutableStateOf<UiState<PostDetailResponse>>(UiState.Idle) })
+    val listState by (vm?.postsState?.collectAsState()
+        ?: remember { mutableStateOf<UiState<List<FreePostResponse>>>(UiState.Idle) })
+
+    val apiDetail = (detailState as? UiState.Success)?.data ?: apiPost
+
+    val currentDetail = (vm?.postDetail?.collectAsState()?.value as? UiState.Success)?.data
+    val likeCount = currentDetail?.likeCount ?: post.likeCount
+    val liked = currentDetail?.liked ?: post.liked
+
+
+    LaunchedEffect(commentList) {
+        likedCommentIds = commentList.filter { it.liked }.map { it.id }.toSet()
+    }
 
     LaunchedEffect(requestKeyboard) {
         if (requestKeyboard) {
@@ -321,21 +332,11 @@ fun FreeBoardDetail (
 
                 //좋아요 + 댓글바
                 LikeCommentBar(
-                    key = likedKeyFree(post.id),
                     likeCount = likeCount,
                     liked = liked,
                     onToggle = {
-                        post.id.toLongOrNull()?.let { idLong ->
-                            //클릭 즉시 변경 (즉각 반응)
-                            liked = !liked
-                            likeCount = if (liked) likeCount + 1 else likeCount - 1
-
-                            vm?.toggleLike(idLong) { res ->
-                                //서버 응답으로 최종값 보정
-                                liked = res.liked
-                                likeCount = res.likes.toInt()
-                                onSyncFreeLikeCount(post.id, res.liked, res.likes.toInt())
-                            }
+                        post.id.toLongOrNull()?.let { id ->
+                            vm?.toggleLike(id)
                         }
                     },
                     onSyncLikeCount = {},
@@ -353,11 +354,7 @@ fun FreeBoardDetail (
                             commentsVm.toggleLike(cid)
                         }
                     },
-                    onLikedChange = { newLocal ->
-                        // 로컬 댓글ID set을 전역 키 set으로 반영
-                        val base = LikeState.ids.filterNot { it.startsWith("freeComment:") }.toSet()
-                        LikeState.ids = base + newLocal.map { likedKeyFreeComment(it) }
-                    },
+                    onLikedChange = {},
                     onReply = { target ->
                         parent = target
                         requestKeyboard = true
@@ -367,8 +364,7 @@ fun FreeBoardDetail (
                         input = ""
                         parent = null
                     },
-                    liked = LikeState.ids.filter { it.startsWith("freeComment:") }
-                        .map { it.removePrefix("freeComment:") }.toSet(),
+                    liked = likedCommentIds,
                     onDelete = { target ->
                         deleteTarget = target
                         showDeleteDialog = true
