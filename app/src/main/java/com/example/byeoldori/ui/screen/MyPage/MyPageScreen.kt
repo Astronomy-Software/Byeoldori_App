@@ -1,37 +1,21 @@
 package com.example.byeoldori.ui.screen.MyPage
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import com.example.byeoldori.ui.components.mypage.CalendarCard
-import com.example.byeoldori.ui.components.mypage.ColoredRange
-import com.example.byeoldori.ui.components.mypage.MenuGroupCard
-import com.example.byeoldori.ui.components.mypage.MenuItem
-import com.example.byeoldori.ui.theme.Background
-import com.example.byeoldori.ui.theme.ErrorRed
-import com.example.byeoldori.ui.theme.SuccessGreen
-import com.example.byeoldori.ui.theme.WarningYellow
-import java.time.LocalDate
-import java.time.YearMonth
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.*
+import com.example.byeoldori.data.UserViewModel
+import com.example.byeoldori.ui.components.mypage.*
+import com.example.byeoldori.ui.theme.*
+import java.time.*
 
 @Composable
 fun MyPageScreen(
@@ -62,13 +46,26 @@ fun MyPageScreen(
         }
     }
 
+    val userVm: UserViewModel = hiltViewModel()
+    LaunchedEffect(Unit) {
+        userVm.getMyProfile()
+    }
+
+    val me = userVm.userProfile.collectAsState().value
+    val profileName = me?.nickname?.takeIf { it.isNotBlank() } ?: "익명"
+    val observeCount = 0 //이건 추후 수정
+
     Background(modifier = Modifier.fillMaxSize()) {
+        Spacer(Modifier.height(20.dp))
         MyPageContent(
             baseMonth = baseMonth,
             selectedDate = selectedDate,
             onPrevMonth = { baseMonth = baseMonth.minusMonths(1) },
             onNextMonth = { baseMonth = baseMonth.plusMonths(1) },
-            onSelectDate = { selectedDate = it }
+            onSelectDate = { selectedDate = it },
+            profileName = profileName,
+            observationCount = observeCount,
+            onOpenLikes = onOpenLikes
         )
     }
 }
@@ -79,12 +76,28 @@ private fun MyPageContent(
     onPrevMonth: () -> Unit,
     onNextMonth: () -> Unit,
     onSelectDate: (LocalDate) -> Unit,
+    onEditProfile: () -> Unit = {},
+    onOpenSettings: () -> Unit = {},
+    profileName: String,
+    observationCount: Int,
+    onOpenLikes: () -> Unit = {}
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(14.dp),
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)
     ) {
+        item { Spacer(Modifier.height(20.dp)) }
+        item{
+            ProfileCard(
+                name = profileName,
+                observationCount = observationCount,
+                onEditProfile = onEditProfile,
+                onOpenSettings = onOpenSettings
+            )
+            Spacer(Modifier.height(12.dp))
+        }
+
         item {
             Text(
                 text = "관측 캘린더",
@@ -111,7 +124,7 @@ private fun MyPageContent(
                 items = listOf(
                     MenuItem(title = "관측 일정 및 나의 관측 후기", onClick = {}), // onOpenSchedule
                     MenuItem(title = "찜", onClick = {}), // onOpenBookmarks
-                    MenuItem(title = "좋아요", onClick = {}), // onOpenLikes
+                    MenuItem(title = "좋아요", onClick = onOpenLikes), // onOpenLikes
                     MenuItem(title = "내가 작성한 자유게시글", onClick = {}), // onOpenMyBoards
                     MenuItem(title = "내가 작성한 교육 프로그램", onClick = {}), // onOpenMyPrograms
                     MenuItem(title = "내가 작성한 댓글", onClick = {}), // onOpenMyComments
@@ -140,7 +153,10 @@ private fun PreviewMyPageContent() {
             selectedDate = LocalDate.of(2025, 10, 22),
             onPrevMonth = {},
             onNextMonth = {},
-            onSelectDate = {}
+            onSelectDate = {},
+            profileName = "별도리",
+            observationCount = 123,
+            onOpenLikes = {}
         )
     }
 }

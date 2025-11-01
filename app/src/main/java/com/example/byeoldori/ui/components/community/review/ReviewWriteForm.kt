@@ -6,6 +6,7 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -22,6 +23,8 @@ import com.example.byeoldori.domain.Content
 import com.example.byeoldori.ui.components.community.*
 import com.example.byeoldori.domain.Observatory.Review
 import com.example.byeoldori.ui.mapper.toUi
+import com.example.byeoldori.ui.theme.Purple500
+import com.example.byeoldori.ui.theme.Purple600
 import com.example.byeoldori.viewmodel.Community.FileUploadViewModel
 import com.example.byeoldori.viewmodel.Community.ReviewViewModel
 import com.example.byeoldori.viewmodel.Observatory.ObservatoryMapViewModel
@@ -234,7 +237,16 @@ fun ReviewWriteForm(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(16.dp)
-        )
+        ) { data ->
+            Snackbar(
+                containerColor = Purple600,
+                contentColor = Color.White,
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.padding(horizontal = 16.dp)
+            ) {
+                Text(data.visuals.message)
+            }
+        }
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -283,9 +295,9 @@ fun ReviewWriteForm(
                             showValidationDialog = true
                         }
                     },
-                    onTempSave = onTempSave,
+                    onTempSave = { scope.launch { snackbar.showSnackbar("아직 준비중인 기능입니다",duration = SnackbarDuration.Short)} },
                     onCancel = { showCancelDialog = true },
-                    onMore = onMore
+                    onMore = { scope.launch { snackbar.showSnackbar("아직 준비중인 기능입니다",duration = SnackbarDuration.Short)} }
                 )
             }
             item {
@@ -329,10 +341,8 @@ fun ReviewWriteForm(
                             PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
                         )
                     },
-                    onCheck = {},
-                    onChecklist = {
-                        // TODO: 체크리스트 열기 등 원하는 동작
-                    }
+                    onCheck = { scope.launch { snackbar.showSnackbar("아직 준비중인 기능입니다",duration = SnackbarDuration.Short)} },
+                    onChecklist = { scope.launch { snackbar.showSnackbar("아직 준비중인 기능입니다",duration = SnackbarDuration.Short)} },
                 )
             }
         }
@@ -342,9 +352,6 @@ fun ReviewWriteForm(
                 is UiState.Loading -> { LinearProgressIndicator(Modifier.fillMaxWidth()) }
                 is UiState.Success -> {
                     LaunchedEffect(s) {
-                        val first = uploadedImageUrls.firstOrNull()
-                        val createdId: Long = s.data
-                       // vm?.registerLocalThumbnail(createdId.toString(), first)
                         onSubmit()
                     }
                 }

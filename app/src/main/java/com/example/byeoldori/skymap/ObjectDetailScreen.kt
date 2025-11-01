@@ -33,16 +33,17 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.byeoldori.skymap.viewmodel.ObjectDetailViewModel
 import com.example.byeoldori.skymap.viewmodel.ObjectItem
-import com.example.byeoldori.skymap.viewmodel.SkyObjectViewModel
 import com.example.byeoldori.ui.components.TopBar
 import com.example.byeoldori.ui.theme.Background
 import com.example.byeoldori.ui.theme.Purple800
 import com.example.byeoldori.ui.theme.TextHighlight
+import com.example.byeoldori.utils.SweObjUtils
 
 @Composable
-fun SkymapDetailScreen(
-    viewModel: SkyObjectViewModel = hiltViewModel()
+fun ObjectDetailScreen(
+    viewModel: ObjectDetailViewModel = hiltViewModel()
 ) {
     val detail by viewModel.selectedObject.collectAsState()
     val realtimeItems by viewModel.realtimeItems.collectAsState()
@@ -71,7 +72,7 @@ fun SkymapDetailScreen(
                 if (detail != null) {
                     // 상단 기본 정보
                     CelestialInfoCard(
-                        name = detail!!.name,
+                        name = SweObjUtils.toKorean(detail!!.name),
                         type = detail!!.type,
                         otherNames = detail!!.otherNames
                     )
@@ -88,6 +89,7 @@ fun SkymapDetailScreen(
                         style = MaterialTheme.typography.bodyLarge
                     )
                 }
+                TestSweScreen()
             }
         }
     }

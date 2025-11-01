@@ -2,6 +2,7 @@ package com.example.byeoldori.skymap
 
 import AppBridge
 import android.app.Activity
+import android.content.Context
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.compose.foundation.layout.Box
@@ -11,84 +12,71 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.byeoldori.skymap.viewmodel.SkyObjectViewModel
-import kotlinx.coroutines.launch
+import com.example.byeoldori.skymap.viewmodel.ObjectDetailViewModel
 
 @Composable
 fun StellariumScreen() {
     val context = LocalContext.current
-    val viewModel: SkyObjectViewModel = hiltViewModel()
-    val scope = rememberCoroutineScope()
-
-    // ✅ 상태바 제어
+    val viewModel: ObjectDetailViewModel = hiltViewModel()
     val window = (context as Activity).window
-    val insetsController = remember { WindowInsetsControllerCompat(window, window.decorView) }
 
-    DisposableEffect(Unit) {
-        insetsController.hide(WindowInsetsCompat.Type.statusBars())
-        insetsController.systemBarsBehavior =
+    LaunchedEffect(Unit) {
+        val controller = WindowInsetsControllerCompat(window, window.decorView)
+        controller.hide(WindowInsetsCompat.Type.statusBars())
+        controller.systemBarsBehavior =
             WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-        onDispose { insetsController.show(WindowInsetsCompat.Type.statusBars()) }
+    }
+    DisposableEffect(Unit) {
+        onDispose {
+            WindowInsetsControllerCompat(window, window.decorView)
+                .show(WindowInsetsCompat.Type.statusBars())
+        }
     }
 
-    // ✅ Stellarium 로컬 서버
-    val server = remember { StellariumServer(context).apply { start() } }
-    DisposableEffect(Unit) { onDispose { server.stop() } }
-
-    // ✅ WebView 상태
     val webViewState = remember { mutableStateOf<WebView?>(null) }
-
-    // ✅ 자이로 및 카메라 제어
-    val cameraTracker = remember { SkyCameraTracker() }
-    val gyroController = remember { GyroCameraController(context, cameraTracker) }
-
-    // ✅ WebView + DetailScreen Overlay
+    val skyCameraController = remember { SkyCameraController(context) }
     Box(modifier = Modifier.fillMaxSize()) {
-        // 🌌 Stellarium Web Engine
         AndroidView(
             modifier = Modifier.fillMaxSize(),
             factory = { ctx ->
-                WebView(ctx).apply {
-                    settings.javaScriptEnabled = true
-                    settings.domStorageEnabled = true
-                    settings.allowFileAccess = true
-                    addJavascriptInterface(AppBridge(context, gyroController, viewModel), "AndroidBridge")
-                    webViewClient = WebViewClient()
-                    loadUrl("http://localhost:8080/")
-                    webViewState.value = this
+                createStellariumWebView(ctx, viewModel, skyCameraController).also {
+                    webViewState.value = it
                 }
             }
         )
-
-        // 🌟 천체 상세정보 패널 (AnimatedVisibility)
-        SkymapDetailScreen(viewModel)
+        ObjectDetailScreen(viewModel)
     }
 
-    // ✅ Controller 세팅
-    val controller = remember(webViewState.value) {
-        webViewState.value?.let { StellariumWebController(it) }
+    // ✅ Controller 바인딩
+    LaunchedEffect(webViewState.value) {
+        webViewState.value?.let {
+            val controller = StellariumWebController(it)
+            skyCameraController.bindToStellarium(controller)
+        }
     }
 
-    // ✅ Tracker 바인딩
-    LaunchedEffect(controller) {
-        controller?.let { cameraTracker.bindToStellarium(it) }
+    DisposableEffect(Unit) {
+        onDispose { skyCameraController.stop() }
     }
+}
 
-    // ✅ 종료 처리
-    DisposableEffect(controller) {
-        if (controller != null) {
-            val job = scope.launch { }
-            onDispose {
-                job.cancel()
-                gyroController.stop()
-            }
-        } else onDispose { }
+private fun createStellariumWebView(
+    context: Context,
+    viewModel: ObjectDetailViewModel,
+    skyCameraController: SkyCameraController
+): WebView {
+    return WebView(context).apply {
+        settings.javaScriptEnabled = true
+        settings.domStorageEnabled = true
+        settings.allowFileAccess = true
+        addJavascriptInterface(AppBridge(context, skyCameraController, viewModel), "AndroidBridge")
+        webViewClient = WebViewClient()
+        loadUrl("http://localhost:8080/")
     }
 }

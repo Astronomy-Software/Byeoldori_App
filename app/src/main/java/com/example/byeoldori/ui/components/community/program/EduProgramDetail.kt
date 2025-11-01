@@ -27,6 +27,7 @@ import com.example.byeoldori.ui.theme.*
 import com.example.byeoldori.viewmodel.*
 import com.example.byeoldori.viewmodel.Community.CommentsViewModel
 import com.example.byeoldori.viewmodel.Community.EducationViewModel
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -116,8 +117,22 @@ fun EduProgramDetail(
     LaunchedEffect(program.id) {
         commentsVm.start(program.id)
     }
+    val snackbar = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
     Scaffold(
+        snackbarHost = {
+            SnackbarHost(hostState = snackbar) { data ->
+                Snackbar(
+                    containerColor = Purple600,
+                    contentColor = Color.White,
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                ) {
+                    Text(data.visuals.message)
+                }
+            }
+        },
         contentWindowInsets = WindowInsets(0),
         containerColor = Color.Transparent,
         topBar = {
@@ -142,7 +157,14 @@ fun EduProgramDetail(
                     },
                     title = {},
                     actions = {
-                        IconButton(onClick = onShare) {
+                        IconButton(onClick = {
+                            scope.launch {
+                                snackbar.showSnackbar(
+                                    message = "아직 준비중인 기능입니다",
+                                    duration = SnackbarDuration.Short
+                                )
+                            }
+                        }) {
                             Icon(
                                 painter = painterResource(R.drawable.ic_constellation),
                                 contentDescription = "수정",
@@ -192,43 +214,43 @@ fun EduProgramDetail(
             }
         },
         bottomBar = {
-            CommentInput(
-                text = input,
-                onTextChange = { input = it },
-                onSend = { raw ->
-                    val t = raw.trim()
-                    if (t.isEmpty()) return@CommentInput
+            if (editingTarget == null) {
+                CommentInput(
+                    text = input,
+                    onTextChange = { input = it },
+                    onSend = { raw ->
+                        val t = raw.trim()
+                        if (t.isEmpty()) return@CommentInput
 
-                    if (editingTarget != null) {   //수정 모드
-                        val targetId = editingTarget!!.id.toLongOrNull()
-                        val postId = program.id.toLongOrNull()
-                        if (targetId != null && postId != null) {
-                            commentsVm.update(
-                                postId = postId,
-                                commentId = targetId,
-                                content = t
-                            ) {
-                                // 성공 콜백: 입력창/모드 초기화
+                        if (editingTarget != null) {   //수정 모드
+                            val targetId = editingTarget!!.id.toLongOrNull()
+                            val postId = program.id.toLongOrNull()
+                            if (targetId != null && postId != null) {
+                                commentsVm.update(
+                                    postId = postId,
+                                    commentId = targetId,
+                                    content = t
+                                ) {
+                                    // 성공 콜백: 입력창/모드 초기화
+                                    input = ""
+                                    editingTarget = null
+                                    parent = null
+                                }
+                            }
+                        } else {   //일반 댓글 작성
+                            val parentIdStr = parent?.id
+                            commentsVm.submit(content = t, parentId = parentIdStr) {
                                 input = ""
-                                editingTarget = null
                                 parent = null
-                                vm?.loadPosts()
                             }
                         }
-                    } else {   //일반 댓글 작성
-                        val parentIdStr = parent?.id
-                        commentsVm.submit(content = t, parentId = parentIdStr) {
-                            input = ""
-                            parent = null
-                            vm?.loadPosts()
-                        }
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .focusRequester(focusRequester)
-                    .advancedImePadding() // 키보드 위에 바가 딱 붙도록
-            )
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .focusRequester(focusRequester)
+                        .advancedImePadding() // 키보드 위에 바가 딱 붙도록
+                )
+            }
         }
     ) { innerPadding ->
         LazyColumn(
@@ -236,6 +258,9 @@ fun EduProgramDetail(
                 .fillMaxSize()
                 .padding(innerPadding)
                 .padding(horizontal = 12.dp)
+                .consumeWindowInsets(innerPadding)
+                .advancedImePadding()
+                .padding(bottom = 30.dp)
         ) {
             item {
                 Spacer(Modifier.height(10.dp))
@@ -330,7 +355,6 @@ fun EduProgramDetail(
                 Spacer(Modifier.height(16.dp))
                 //좋아요 + 댓글바
                 LikeCommentBar(
-                    key = likedKeyProgram(program.id),
                     likeCount = likeCount,
                     liked = liked,
                     onToggle = {
@@ -341,11 +365,7 @@ fun EduProgramDetail(
                             }
                         }
                     },
-                    onSyncLikeCount = { next ->
-                        // 목록 원본 동기화(정렬/표시 일치)
-                        val idx = dummyPrograms.indexOfFirst { it.id == program.id }
-                        if (idx >= 0) dummyPrograms[idx] = dummyPrograms[idx].copy(likeCount = next)
-                    },
+                    onSyncLikeCount = {},
                     commentCount = commentCountUi
                 )
                 //댓글 + 대댓글
@@ -372,7 +392,23 @@ fun EduProgramDetail(
                     onDelete = { target ->
                         deleteTarget = target
                         showDeleteDialog = true
-                    }
+                    },
+                    editingId = editingTarget?.id,
+                    onSubmitEditInline = { target, newText ->
+                        val postId = program.id.toLongOrNull()
+                        val cid = target.id.toLongOrNull()
+                        if (postId != null && cid != null && newText.isNotBlank()) {
+                            commentsVm.update(
+                                postId = postId,
+                                commentId = cid,
+                                content = newText
+                            ) {
+                                editingTarget = null   // 저장 후 편집 종료
+                                parent = null
+                            }
+                        }
+                    },
+                    onCancelEditInline = { editingTarget = null }
                 )
             }
         }
@@ -413,7 +449,7 @@ fun EduProgramDetail(
                                 // 성공 시 닫고, 목록/카운트 갱신 트리거
                                 showDeleteDialog = false
                                 deleteTarget = null
-                                vm?.loadPosts()
+                               // vm?.loadPosts()
                             }
                         } else {
                             showDeleteDialog = false

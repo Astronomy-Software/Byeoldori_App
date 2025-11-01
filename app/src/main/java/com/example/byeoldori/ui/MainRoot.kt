@@ -12,6 +12,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.byeoldori.data.UserViewModel
 import com.example.byeoldori.skymap.StellariumScreen
 import com.example.byeoldori.ui.components.NavBar
+import com.example.byeoldori.ui.components.mypage.LikeSection
 import com.example.byeoldori.ui.screen.Community.CommunityScreen
 import com.example.byeoldori.ui.screen.Community.CommunityTab
 import com.example.byeoldori.ui.screen.MyPage.MyPageScreen
@@ -52,7 +53,10 @@ fun MainRoot() {
                 composable("community/board")   { CommunityScreen(tab = CommunityTab.Board,   onSelectTab = { t -> nav.navigate("community/$t") }, userVm = userVm) }
                 composable("community/program")   { CommunityScreen(tab = CommunityTab.Program,   onSelectTab = { t -> nav.navigate("community/$t") }, userVm = userVm) }
             }
-            composable(Root.MyPage.route)      { MyPageScreen() }
+            navigation(startDestination = "mypage/home", route = Root.MyPage.route) {
+                composable("mypage/home") { MyPageScreen(onOpenLikes = { nav.navigate("mypage/likes") }) }
+                composable("mypage/likes") { LikeSection(onBack = { nav.popBackStack() }) }
+            }
         }
     }
 }

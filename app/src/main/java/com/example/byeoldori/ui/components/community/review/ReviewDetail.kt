@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.relocation.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -28,6 +29,7 @@ import com.example.byeoldori.ui.mapper.toUi
 import com.example.byeoldori.viewmodel.*
 import com.example.byeoldori.viewmodel.Community.CommentsViewModel
 import com.example.byeoldori.viewmodel.Community.ReviewViewModel
+import kotlinx.coroutines.launch
 
 @Composable
 fun rememberIsImeVisible(): Boolean {
@@ -134,8 +136,22 @@ fun ReviewDetail(
             requestKeyboard = false  // 한 번만 실행
         }
     }
+    val snackbar = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
     Scaffold(
+        snackbarHost = {
+            SnackbarHost(hostState = snackbar) { data ->
+                Snackbar(
+                    containerColor = Purple600,
+                    contentColor = Color.White,
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                ) {
+                    Text(data.visuals.message)
+                }
+            }
+        },
         contentWindowInsets = WindowInsets(0),
         containerColor = Color.Transparent,
         topBar = {
@@ -160,7 +176,14 @@ fun ReviewDetail(
                     },
                     title = {},
                     actions = {
-                        IconButton(onClick = onShare) {
+                        IconButton(onClick = {
+                            scope.launch {
+                                snackbar.showSnackbar(
+                                    message = "아직 준비중인 기능입니다",
+                                    duration = SnackbarDuration.Short
+                                )
+                            }
+                        }) {
                             Icon(
                                 painter = painterResource(R.drawable.ic_constellation),
                                 contentDescription = "공유",
@@ -208,42 +231,44 @@ fun ReviewDetail(
             }
         },
         bottomBar = {
-            CommentInput(
-                text = input,
-                onTextChange = { input = it },
-                onSend = { raw ->
-                    val t = raw.trim()
-                    if (t.isEmpty()) return@CommentInput
-                    if(editingTarget != null) { //수정 모드
-                        val targetId = editingTarget!!.id.toLongOrNull()
-                        val postId = review.id.toLongOrNull()
-                        if(targetId != null && postId != null) {
-                            commentsViewModel?.update(
-                                postId = postId,
-                                commentId = targetId,
-                                content = t
-                            ) {
+            if (editingTarget == null) {
+                CommentInput(
+                    text = input,
+                    onTextChange = { input = it },
+                    onSend = { raw ->
+                        val t = raw.trim()
+                        if (t.isEmpty()) return@CommentInput
+                        if (editingTarget != null) { //수정 모드
+                            val targetId = editingTarget!!.id.toLongOrNull()
+                            val postId = review.id.toLongOrNull()
+                            if (targetId != null && postId != null) {
+                                commentsViewModel?.update(
+                                    postId = postId,
+                                    commentId = targetId,
+                                    content = t
+                                ) {
+                                    // 성공 콜백: 입력/대댓글 모드 해제
+                                    input = ""
+                                    parent = null
+                                    vm?.loadPosts()
+                                }
+                            }
+                        } else {
+                            val parentIdStr = parent?.id
+                            commentsViewModel?.submit(content = t, parentId = parentIdStr) {
                                 // 성공 콜백: 입력/대댓글 모드 해제
                                 input = ""
                                 parent = null
                                 vm?.loadPosts()
                             }
                         }
-                    } else {
-                        val parentIdStr = parent?.id
-                        commentsViewModel?.submit(content = t, parentId = parentIdStr) {
-                            // 성공 콜백: 입력/대댓글 모드 해제
-                            input = ""
-                            parent = null
-                            vm?.loadPosts()
-                        }
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .focusRequester(focusRequester)
-                    .advancedImePadding()
-            )
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .focusRequester(focusRequester)
+                        .advancedImePadding()
+                )
+            }
         }
     ) { innerPadding ->
         LazyColumn(
@@ -251,6 +276,9 @@ fun ReviewDetail(
                 .fillMaxSize()
                 .padding(innerPadding)
                 .padding(horizontal = 12.dp)
+                .consumeWindowInsets(innerPadding)
+                .advancedImePadding()
+                .padding(bottom = 30.dp)
         ) {
             item {
                 Spacer(Modifier.height(10.dp))
@@ -289,13 +317,13 @@ fun ReviewDetail(
                 }
                 Spacer(Modifier.height(16.dp))
                 ReviewInput(
-                    target = apiDetail?.review?.target ?: review.target?.takeIf { it.isNotBlank() } ?: "—",
+                    target = reviewForUi.target.ifBlank { "—" },
                     onTargetChange = {},
-                    site = apiDetail?.review?.location ?: review.site?.takeIf { it.isNotBlank() } ?: "—",
+                    site = reviewForUi.target.ifBlank { "—" },
                     onSiteChange = {},
-                    equipment = apiDetail?.review?.equipment ?: review.equipment?.takeIf { it.isNotBlank() } ?: "—",
+                    equipment = reviewForUi.target.ifBlank { "—" },
                     onEquipmentChange = {},
-                    date = apiDetail?.review?.observationDate ?: review.date?.takeIf { it.isNotBlank() } ?: "—",
+                    date = reviewForUi.target.ifBlank { "—" },
                     onTimeChange = { _, _ -> },
                     rating = apiDetail?.review?.score?.let { "$it/5" }
                         ?: if (review.rating > 0) { "${review.rating}/5" } else { "미입력" },
@@ -322,7 +350,6 @@ fun ReviewDetail(
                 Spacer(Modifier.height(16.dp))
                 // 좋아요 + 댓글 바
                 LikeCommentBar(
-                    key = likedKeyReview(review.id),
                     likeCount = reviewLikeCount,
                     liked = liked,
                     onToggle = {
@@ -360,12 +387,27 @@ fun ReviewDetail(
                     onEdit = { target ->
                         editingTarget = target
                         input = ""
-                        requestKeyboard = true
                     },
                     onDelete = { target ->
                         deleteTarget = target
                         showDeleteDialog = true
-                    }
+                    },
+                    editingId = editingTarget?.id,
+                    onSubmitEditInline = { target, newText ->
+                        val postId = review.id.toLongOrNull()
+                        val cid = target.id.toLongOrNull()
+                        if (postId != null && cid != null && newText.isNotBlank()) {
+                            commentsViewModel?.update(
+                                postId = postId,
+                                commentId = cid,
+                                content = newText
+                            ) {
+                                editingTarget = null   // 저장 후 편집 종료
+                                parent = null
+                            }
+                        }
+                    },
+                    onCancelEditInline = { editingTarget = null }
                 )
             }
         }

@@ -7,7 +7,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import androidx.lifecycle.viewModelScope
 import com.example.byeoldori.data.model.dto.*
 import com.example.byeoldori.data.repository.FreeRepository
-import com.example.byeoldori.ui.components.community.likedKeyFree
 import com.example.byeoldori.viewmodel.*
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -51,23 +50,21 @@ class CommunityViewModel @Inject constructor(
     private val _deleteState = MutableStateFlow<UiState<Unit>>(UiState.Idle)
     val deleteState: StateFlow<UiState<Unit>> = _deleteState.asStateFlow()
 
+    private val _updateState = MutableStateFlow<UiState<Unit>>(UiState.Idle)
+    val updateState: StateFlow<UiState<Unit>> = _updateState.asStateFlow()
+
     init {
         restoreLikedFromLocal()
         loadPosts()
     }
+
+    fun resetUpdateState() { _updateState.value = UiState.Idle }
 
     fun loadPosts() = viewModelScope.launch {
         _postsState.value = UiState.Loading
         try {
             val posts = repo.getAllPosts(sort.value)
             _postsState.value = UiState.Success(posts)
-            //리스트 받아올 때 현재 개수 반영
-            _likedIds.update { ids ->
-                val serverLiked = posts.filter { it.liked }
-                    .map { likedKeyFree(it.id.toString()) }
-                    .toSet()
-                ids + serverLiked
-            }
         } catch (e: Exception) {
             _postsState.value = UiState.Error(handleException(e))
         }
@@ -124,15 +121,13 @@ class CommunityViewModel @Inject constructor(
         postId: Long,
         onResult: ((LikeToggleResponse) -> Unit)? = null
     ) = viewModelScope.launch {
-        val key = likedKeyFree(postId.toString())
         _likeState.value = UiState.Loading
 
         runCatching { repo.toggleLike(postId) }
             .onSuccess { res ->
                 _likeState.value = UiState.Success(res)
-                _likeCounts.update { it + (postId.toString() to res.likes.toInt()) }
-                _likedIds.update { ids -> if (res.liked) ids + key else ids - key }
-                saveLikedToLocal()
+                //_likeCounts.update { it + (postId.toString() to res.likes.toInt()) }
+                //saveLikedToLocal()
 
                 //목록/상세 동기화
                 (_postsState.value as? UiState.Success)?.let { cur ->
@@ -188,9 +183,10 @@ class CommunityViewModel @Inject constructor(
         }
     }
 
-    fun findNicknameByAuthorId(authorId: Long): String? {
-        val currentPosts = (_postsState.value as? UiState.Success)?.data ?: return null
-        return currentPosts.firstOrNull { it.authorId == authorId }?.authorNickname
+    fun findNicknameByAuthorId(authorId: Long): String {
+        val currentPosts = (_postsState.value as? UiState.Success)?.data.orEmpty()
+        val nickname = currentPosts.firstOrNull() { it.authorId == authorId}?.authorNickname
+        return if(!nickname.isNullOrBlank()) nickname else "익명"
     }
 
     fun deletePost(postId: Long, onSuccess: (() -> Unit)? = null) {
@@ -209,6 +205,14 @@ class CommunityViewModel @Inject constructor(
                     _deleteState.value = UiState.Error(e.message ?: "게시글이 삭제되지 않았습니다.")
                 }
         }
+    }
+
+    fun resetFreeWriteStates() {
+        // 새 글 만들기/수정 등에서 남아있을 수 있는 성공/에러 상태들 초기화
+        clearCreateState()              // _createState -> Idle
+        resetUpdateState()              // _updateState -> Idle
+        _deleteState.value = UiState.Idle
+        _postDetail.value = UiState.Idle
     }
 
     fun updatePost(

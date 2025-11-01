@@ -10,16 +10,22 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.example.byeoldori.R
+import com.example.byeoldori.skymap.StellariumServer
+import com.example.byeoldori.utils.SweObjUtils
 
 @Composable
 fun SplashScreen(onSplashFinished: () -> Unit) {
+    val context = LocalContext.current
     LaunchedEffect(Unit) {
-        // 실제 초기화 로직 추가 지점
-        // TODO : 앱 초기화 내용들 들어가야함
-        // TODO : Stellrarium 서버 띄우기
+        // 미리 초기화 시킬 내용이 있으면 여기로
+        // SweObjUtils 초기화
+        SweObjUtils.initialize(context = context)
+        // 스텔라리움 서버 시작
+        StellariumServer.startIfNeeded(context)
         // TODO : Live2D 캐릭터 렌더링 추가
         onSplashFinished()
     }

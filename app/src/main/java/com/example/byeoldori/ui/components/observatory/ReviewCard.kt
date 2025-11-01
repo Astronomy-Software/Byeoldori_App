@@ -122,9 +122,10 @@ fun ReviewCard(
     onSyncLikeCount: (Int) -> Unit = {},
     onToggleLike: (() -> Unit)? = null,
 ) {
-    val likeKey = if (':' in review.id) review.id else likedKeyReview(review.id)
-    val isLiked = review.liked || (likeKey in LikeState.ids)
+    //val likeKey = if (':' in review.id) review.id else likedKeyReview(review.id)
+    //val isLiked = review.liked || (likeKey in LikeState.ids)
     var likeCount by remember { mutableStateOf(review.likeCount) }
+    var isLiked by remember { mutableStateOf(review.liked) }
 
     LaunchedEffect(review.likeCount) { likeCount = review.likeCount }
 
@@ -183,12 +184,10 @@ fun ReviewCard(
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.clickable {
-                            val newCount =
-                                if (likeKey in LikeState.ids) likeCount - 1 else likeCount + 1
-                            LikeState.ids =
-                                if (likeKey in LikeState.ids) LikeState.ids - likeKey else LikeState.ids + likeKey
-                            likeCount = newCount
-                            onSyncLikeCount(newCount)  //상위 reviews 동기화 → 탭 전환해도 유지
+                            isLiked = !isLiked
+                            likeCount = if (isLiked) likeCount + 1 else (likeCount - 1).coerceAtLeast(0)
+                            onToggleLike?.invoke()
+                            onSyncLikeCount(likeCount)
                         }
                     ) {
                         Icon(

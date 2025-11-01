@@ -55,9 +55,9 @@ fun formatCreatedAt(createdAt: String?): String {
 
 fun FreePost.asReview(): Review =
     Review(
-        id = likedKeyFree(this.id),
+        id = this.id,
         title = title,
-        author = author,
+        author = author ?: "익명",
         rating = 0,              // 자유게시판엔 별점이 없으니 0으로
         likeCount = likeCount,
         commentCount = commentCount,
@@ -86,7 +86,7 @@ fun FreePostResponse.toFreePost(): FreePost {
     return FreePost(
         id = id.toString(),
         title = title,
-        author = authorNickname.toString(),
+        author = authorNickname ?: "익명",
         likeCount = likeCount,
         commentCount = commentCount,
         viewCount = viewCount,
@@ -111,11 +111,13 @@ fun FreeBoardSection(
     var sort by remember { mutableStateOf(FreeBoardSort.Latest) }
     val listState = rememberLazyListState()
 
-    val likedIds by (vm?.likedIds?.collectAsState()
-        ?: remember { mutableStateOf<Set<String>>(emptySet()) })
+    val vmPostsState by (vm?.postsState?.collectAsState()
+        ?: remember { mutableStateOf<UiState<List<FreePostResponse>>>(UiState.Idle) })
 
-    val likeCounts by (vm?.likeCounts?.collectAsState()
-        ?: remember { mutableStateOf<Map<String, Int>>(emptyMap()) })
+    val posts: List<FreePost> = when (val s = vmPostsState) {
+        is UiState.Success -> s.data.map { it.toFreePost() }   // <-- 최신 값
+        else -> freeBoardsAll                                   // <-- fallback
+    }
 
     val commentsVm: CommentsViewModel = hiltViewModel()
     val commentCounts by commentsVm.commentCounts.collectAsState()
@@ -123,11 +125,11 @@ fun FreeBoardSection(
     // 검색만
     val filtered = run {
         val q = searchText.trim()
-        if (q.isEmpty()) freeBoardsAll else {
-            freeBoardsAll.filter { r ->
+        if (q.isEmpty()) posts else {
+            posts.filter { r ->
                 val k = q.lowercase()
-                r.title.lowercase().contains(k) ||
-                        r.author.lowercase().contains(k) ||
+                r.title.contains(q, ignoreCase = true) ||
+                        (r.author?.contains(q, ignoreCase = true) == true) ||
                         r.contentItems.filterIsInstance<EditorItem.Paragraph>()
                             .any { it.value.text.lowercase().contains(k) }
             }
@@ -184,15 +186,13 @@ fun FreeBoardSection(
             ) {
                 items(filtered, key = { it.id }) { post ->
                     val uiCommentCount = commentCounts[post.id] ?: post.commentCount
-                    val isLikedFromVm = likedIds.contains(likedKeyFree(post.id))
-                    val uiLikeCount = likeCounts[post.id] ?: post.likeCount
 
                     Column {
                         FreeBoardItem(
                             post = post,
                             commentCount = uiCommentCount,
-                            likeCount = uiLikeCount,
-                            isLiked = isLikedFromVm,
+                            likeCount = post.likeCount,
+                            isLiked = post.liked,
                             onClick = { onClickPost(post.id) },
                             onLikeClick = { vm?.toggleLike(post.id.toLong()) }
                         )
@@ -221,6 +221,37 @@ fun FreeBoardSection(
                 modifier = Modifier.size(20.dp)
             )
         }
+    }
+}
+
+@Composable
+fun FreeGrid(
+    posts: List<FreePost>,
+    onClick: (FreePost) -> Unit,
+    onToggle: (String) -> Unit
+) {
+    val listState = rememberLazyListState()
+    LazyColumn(
+        state = listState,
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(12.dp)
+    ) {
+        items(posts, key = { it.id }) { post ->
+            Column {
+                FreeBoardItem(
+                    post = post,
+                    commentCount = post.commentCount,
+                    likeCount = post.likeCount,
+                    isLiked = post.liked,
+                    onClick = { onClick(post) },
+                    onLikeClick = { onToggle(post.id) }
+                )
+                Divider(color = Color.White.copy(alpha = 0.8f), thickness = 1.dp)
+            }
+        }
+        item { Spacer(Modifier.height(60.dp)) }
     }
 }
 

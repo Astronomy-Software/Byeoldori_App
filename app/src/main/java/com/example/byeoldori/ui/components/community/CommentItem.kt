@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -33,14 +35,39 @@ fun CommentItem(
     onDelete: (ReviewComment) -> Unit = {},
     canEditDelete: (ReviewComment) -> Boolean = { false },
     isLiked: Boolean = false,
-    showCommentCount: Boolean = true
+    showCommentCount: Boolean = true,
+    editingId: String? = null,
+    onSubmitEdit: (String) -> Unit = {},
+    onCancelEdit: () -> Unit = {}
 ) {
     val likeTint by animateColorAsState(
         targetValue = if (isLiked) Purple500 else Color.Unspecified,
     )
-
     val disabled = comment.deleted
-    val bodytext = comment.content ?: "삭제된 댓글입니다."
+
+    val isEditing = editingId == comment.id
+    val focusRequester = remember { FocusRequester() }
+    var editText by remember(comment.id) { mutableStateOf(comment.content.orEmpty())}
+
+    LaunchedEffect(isEditing) {
+        if(isEditing) { focusRequester.requestFocus() }
+    }
+
+    if(disabled) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 20.dp)
+        ){
+            Text(
+                text = "삭제된 댓글입니다.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = TextDisabled,
+                fontSize = 17.sp
+            )
+        }
+        return //나머지 UI 렌더링 차단
+    }
 
     Column(
         modifier = Modifier
@@ -67,8 +94,8 @@ fun CommentItem(
                     )
                     Spacer(Modifier.weight(1f))
 
-                    val canEdit = !disabled && canEditDelete(comment)
-                    if(canEdit) {
+                    val canEdit = canEditDelete(comment)
+                    if(canEdit && !isEditing) {
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             Text(
                                 "수정",
@@ -98,53 +125,73 @@ fun CommentItem(
             }
         }
         Spacer(modifier = Modifier.height(2.dp))
-        Text( //본문
-            text =  bodytext,
-            style = MaterialTheme.typography.bodyMedium,
-            color = TextHighlight,
-            fontSize = 17.sp
-        )
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(top=8.dp)
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .clickable(enabled = !isLiked) { onLike(comment) }
-                    .clickable { onLike(comment) }
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_thumbs_up),
-                    contentDescription = "좋아요",
-                    tint = likeTint,
-                    modifier = Modifier.size(17.dp)
-                )
-                Spacer(Modifier.width(8.dp))
-                Text(
-                    "${comment.likeCount}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = TextHighlight,
-                    modifier = Modifier.alignByBaseline() //베이스라인 맞추기
-                )
-            }
-            Spacer(Modifier.width(12.dp))
 
-            if(showCommentCount) { //대댓글에 댓글 수를 표시할 필요가 없으니까
-                Icon(
-                    painter = painterResource(R.drawable.ic_comment),
-                    contentDescription = "대댓글",
-                    tint = Color.Unspecified,
+        if(isEditing) {
+            OutlinedTextField(
+                value = editText,
+                onValueChange = { editText = it },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .focusRequester(focusRequester),
+                textStyle = MaterialTheme.typography.bodyMedium.copy(fontSize = 17.sp, color = TextHighlight),
+                placeholder = { Text("내용을 입력해주세요", color = TextDisabled.copy(alpha = 0.4f)) }
+            )
+            Spacer(Modifier.height(8.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                TextButton(onClick = { onCancelEdit() }) { Text("취소") }
+                Button(onClick = { onSubmitEdit(editText.trim()) }, enabled = editText.isNotBlank()) {
+                    Text("저장")
+                }
+            }
+        } else {
+            Text( //본문
+                text = comment.content ?: "-",
+                style = MaterialTheme.typography.bodyMedium,
+                color = TextHighlight,
+                fontSize = 17.sp
+            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(top = 8.dp)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
-                        .size(17.dp)
-                        .clickable { onReply(comment) }
-                )
-                Spacer(Modifier.width(8.dp))
-                val replyCount = dummyFreeComments.count { it.parentId == comment.id }
-                Text(
-                    "$replyCount",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color.White
-                )
+                        //.clickable(enabled = !isLiked) { onLike(comment) }
+                        .clickable { onLike(comment) }
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_thumbs_up),
+                        contentDescription = "좋아요",
+                        tint = likeTint,
+                        modifier = Modifier.size(17.dp)
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        "${comment.likeCount}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = TextHighlight,
+                        modifier = Modifier.alignByBaseline() //베이스라인 맞추기
+                    )
+                }
+                Spacer(Modifier.width(12.dp))
+
+                if (showCommentCount) { //대댓글에 댓글 수를 표시할 필요가 없으니까
+                    Icon(
+                        painter = painterResource(R.drawable.ic_comment),
+                        contentDescription = "대댓글",
+                        tint = Color.Unspecified,
+                        modifier = Modifier
+                            .size(17.dp)
+                            .clickable { onReply(comment) }
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    val replyCount = dummyFreeComments.count { it.parentId == comment.id }
+                    Text(
+                        "$replyCount",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.White
+                    )
+                }
             }
         }
     }
@@ -158,7 +205,11 @@ fun CommentReplyItem(
     onEdit: (ReviewComment) -> Unit = {},
     onDelete: (ReviewComment) -> Unit = {},
     canEditDelete: (ReviewComment) -> Boolean = { false },
-    isLiked: Boolean = false
+    isLiked: Boolean = false,
+    editingId: String? = null,
+    onSubmitEdit: (String) -> Unit = {},
+    onCancelEdit: () -> Unit = {}
+
 ) {
     Row(
         modifier = Modifier
@@ -175,16 +226,35 @@ fun CommentReplyItem(
                 .offset(y=10.dp)
         )
         Spacer(Modifier.width(8.dp))
-        CommentItem(
-            comment = comment,
-            onLike = onLike,
-            onReply = onReply,
-            onEdit = onEdit,
-            onDelete = onDelete,
-            canEditDelete = canEditDelete,
-            isLiked = isLiked,
-            showCommentCount = true
-        )
+
+        if(comment.deleted) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp, vertical = 20.dp)
+            ) {
+                Text(
+                    text = "삭제된 댓글입니다.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = TextDisabled,
+                    fontSize = 17.sp
+                )
+            }
+        } else {
+            CommentItem(
+                comment = comment,
+                onLike = onLike,
+                onReply = onReply,
+                onEdit = onEdit,
+                onDelete = onDelete,
+                canEditDelete = canEditDelete,
+                isLiked = isLiked,
+                showCommentCount = false,
+                editingId = editingId,
+                onSubmitEdit = onSubmitEdit,
+                onCancelEdit = onCancelEdit
+            )
+        }
     }
 }
 
