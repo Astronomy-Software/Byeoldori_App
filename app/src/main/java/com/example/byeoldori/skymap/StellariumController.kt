@@ -71,4 +71,6 @@ class StellariumController(private val webView: WebView?) {
     fun setViewDirection(yawDeg: Double, pitchDeg: Double) {
         runJS("\$stelController.setViewDirection($yawDeg, $pitchDeg);")
     }
+
+    fun setEducationMode() { runJS("\$stelController.setEducationMode()") }
 }

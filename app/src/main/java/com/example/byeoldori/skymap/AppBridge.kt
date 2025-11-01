@@ -21,6 +21,12 @@ class AppBridge(
 
             when (type) {
 
+                // ✅ 초기화 완료 이벤트
+                "stel_ready" -> {
+                    Log.i("AppBridge", "✅ Stellarium Web Engine 초기화 완료 신호 수신")
+                    viewModel.onSweEngineReady()
+                }
+
                 // 👁️ Eye Tracking
                 "eye_tracking_toggle" -> {
                     val enabled = json.getJSONObject("payload").optBoolean("enabled", false)

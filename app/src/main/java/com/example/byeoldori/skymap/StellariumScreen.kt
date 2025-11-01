@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -52,12 +53,21 @@ fun StellariumScreen( mode : SkyMode ) {
         ObjectDetailScreen(viewModel)
     }
 
-    // ✅ Controller 바인딩
-    LaunchedEffect(webViewState.value) {
-        webViewState.value?.let {
-            val controller = StellariumController(it)
-            skyCameraController.bindToStellarium(controller)
+    // ✅ Controller 바인딩 TODO : 바인딩이 두번일어나는데 이유를 못찾음.
+    LaunchedEffect(
+        viewModel.sweEngineReady.collectAsState().value && (webViewState.value != null)
+    ) {
+        viewModel.resetSweEngineReady()
+
+        val controller = StellariumController(webViewState.value)
+        skyCameraController.bindToStellarium(controller)
+
+        when (mode) {
+            SkyMode.EDUCATION -> controller.setEducationMode()
+            SkyMode.OBSERVATION -> controller.toggleConstellations(false)
         }
+
+        println("SWE 엔진 & WebView 모두 준비 완료 — Controller 바인딩 완료")
     }
 
     DisposableEffect(Unit) {

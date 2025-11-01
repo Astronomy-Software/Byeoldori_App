@@ -1,10 +1,12 @@
 package com.example.byeoldori.skymap
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -22,6 +24,19 @@ class ObjectDetailViewModel @Inject constructor() : ViewModel() {
     /** 👁️ 상세 패널 표시 여부 */
     private val _isDetailVisible = MutableStateFlow(false)
     val isDetailVisible: StateFlow<Boolean> = _isDetailVisible
+
+    /** 🌌 Stellarium Web Engine 초기화 여부 */
+    private val _sweEngineReady = MutableStateFlow(false)
+    val sweEngineReady = _sweEngineReady.asStateFlow()
+
+    fun onSweEngineReady() {
+        _sweEngineReady.value = true
+        Log.i("ObjectDetailVM", "✅ Stellarium Web Engine 초기화 완료 신호 수신됨")
+    }
+
+    fun resetSweEngineReady() {
+        _sweEngineReady.value = false
+    }
 
     /** 상세 정보 업데이트 */
     fun updateSelectedObject(detail: SkyObjectDetail) {
