@@ -9,6 +9,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.byeoldori.character.Live2DScreen
+import com.example.byeoldori.eduprogram.EduProgramScreen
+import com.example.byeoldori.eduprogram.EduViewModel
 import com.example.byeoldori.ui.theme.SplashScreen
 import com.example.byeoldori.viewmodel.AuthViewModel
 
@@ -27,12 +29,18 @@ fun AppEntry() {
 
     val authVm: AuthViewModel = hiltViewModel() // ✅ Hilt ViewModelFactory 사용
     val signedIn by authVm.isSignedIn.collectAsState()
+    val eduVm: EduViewModel = hiltViewModel()
+    val viewEduProgram by eduVm.viewEduProgram.collectAsState()
 
     Box {
         if (signedIn) {
             MainRoot()
         } else {
             AuthRoot()
+        }
+//        if (viewEduProgram){
+        if (true){
+            EduProgramScreen()
         }
         Live2DScreen()
     }
