@@ -1,11 +1,8 @@
 package com.example.byeoldori.viewmodel
 
 import com.example.byeoldori.R
-import com.example.byeoldori.domain.Community.EduProgram
-import com.example.byeoldori.domain.Community.FreePost
+import com.example.byeoldori.domain.Community.*
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.ui.text.input.TextFieldValue
-import com.example.byeoldori.ui.components.community.EditorItem
 import com.example.byeoldori.domain.Community.ReviewComment
 import com.example.byeoldori.domain.Content
 import com.example.byeoldori.domain.Observatory.Review
@@ -138,7 +135,7 @@ val dummyReviews = mutableStateListOf(
 //댓글 더미 데이터(관측 리뷰)
 val dummyReviewComments = mutableStateListOf(
     ReviewComment(
-        id = "c1", reviewId = "r1",
+        id = 1, reviewId = 2,
         authorId = 123, profile = R.drawable.profile1,
         content = "색다른 곳 있으면 알려주세요~",
         likeCount = 3, commentCount = 1, createdAt = "202510291750",
@@ -147,7 +144,7 @@ val dummyReviewComments = mutableStateListOf(
         liked = false
     ),
     ReviewComment(
-        id = "c2", reviewId = "r1",
+        id = 2, reviewId = 2,
         authorId = 123, profile = R.drawable.profile1,
         content = "충북대 대운동장 좋아요!",
         likeCount = 1, commentCount = 0, createdAt = "202510291755",
@@ -156,7 +153,7 @@ val dummyReviewComments = mutableStateListOf(
         liked = false
     ),
     ReviewComment(
-        id = "c3", reviewId = "r2",
+        id = 3, reviewId = 2,
         authorId = 123, profile = R.drawable.profile1,
         content = "오늘 투명도 좋았습니다 🙌",
         likeCount = 2, commentCount = 0, createdAt = "202510291820",
@@ -165,7 +162,7 @@ val dummyReviewComments = mutableStateListOf(
         liked = false
     ),
     ReviewComment(
-        id = "c4", reviewId = "r2",
+        id = 4, reviewId = 3,
         authorId = 123, profile = R.drawable.profile1,
         content = "광해만 조금만 덜하면 최고!",
         likeCount = 0, commentCount = 0, createdAt = "202510291825",
@@ -174,7 +171,7 @@ val dummyReviewComments = mutableStateListOf(
         liked = false
     ),
     ReviewComment(
-        id = "c5", reviewId = "r3",
+        id = 5, reviewId = 3,
         authorId = 123, profile = R.drawable.profile1,
         content = "내일도 관측 예정이에요",
         likeCount = 5, commentCount = 2, createdAt = "202510281930",
@@ -183,7 +180,7 @@ val dummyReviewComments = mutableStateListOf(
         liked = true
     ),
     ReviewComment(
-        id = "c6", reviewId = "r4",
+        id = 6, reviewId = 4,
         authorId = 123, profile = R.drawable.profile1,
         content = "유성 두 개 봤습니다!",
         likeCount = 4, commentCount = 1, createdAt = "202510271145",
@@ -196,7 +193,7 @@ val dummyReviewComments = mutableStateListOf(
 // 댓글 더미 데이터(자유게시판)
 val dummyFreeComments = mutableStateListOf(
     ReviewComment(
-        id = "fc1", reviewId = "f1",
+        id = 10, reviewId = 11,
         authorId = 123,
         profile = R.drawable.profile1,
         content = "환영합니다! 저는 주로 교외에서 관측해요 🌌",
@@ -207,7 +204,7 @@ val dummyFreeComments = mutableStateListOf(
         liked = true
     ),
     ReviewComment(
-        id = "fc2", reviewId = "f1",
+        id = 11, reviewId = 12,
         authorId = 123,
         profile = R.drawable.profile1,
         content = "오산천도 괜찮아요. 접근성이 좋아요!",
@@ -218,7 +215,7 @@ val dummyFreeComments = mutableStateListOf(
         liked = true
     ),
     ReviewComment(
-        id = "fc3", reviewId = "f2",
+        id = 12, reviewId = 13,
         authorId = 123,
         profile = R.drawable.profile1,
         content = "저는 충북대 대운동장에서 자주 봅니다.",
@@ -229,7 +226,7 @@ val dummyFreeComments = mutableStateListOf(
         liked = true
     ),
     ReviewComment(
-        id = "fc4", reviewId = "f3",
+        id = 14, reviewId = 13,
         authorId = 123,
         profile = R.drawable.profile1,
         content = "요즘 투명도가 좋아서 별이 잘 보여요!",
@@ -240,7 +237,7 @@ val dummyFreeComments = mutableStateListOf(
         liked = true
     ),
     ReviewComment(
-        id = "fc5", reviewId = "f4",
+        id = 15, reviewId = 14,
         authorId = 123,
         profile = R.drawable.profile1,
         content = "저도 같은 생각이에요. 좋은 장소 공유해요~",
@@ -386,7 +383,7 @@ val dummyPrograms = mutableStateListOf(
 // (ReviewComment 재사용)
 val dummyProgramComments = mutableStateListOf(
     ReviewComment(
-        id = "pc1", reviewId = "p1",
+        id = 20, reviewId = 2,
         authorId = 123, profile = R.drawable.profile1,
         content = "실습 파트가 특히 유용했어요!",
         likeCount = 3, commentCount = 1, createdAt = "202510291230",
@@ -395,7 +392,7 @@ val dummyProgramComments = mutableStateListOf(
         liked = true
     ),
     ReviewComment(
-        id = "pc2", reviewId = "p1",
+        id = 21, reviewId = 2,
         authorId = 123, profile = R.drawable.profile1,
         content = "다음 기수는 언제 열리나요?",
         likeCount = 1, commentCount = 0, createdAt = "202510291245",
@@ -404,7 +401,7 @@ val dummyProgramComments = mutableStateListOf(
         liked = true
     ),
     ReviewComment(
-        id = "pc3", reviewId = "p2",
+        id = 22, reviewId = 2,
         authorId = 123, profile = R.drawable.profile1,
         content = "체크리스트 덕분에 첫 관측 잘했습니다 🙌",
         likeCount = 5, commentCount = 0, createdAt = "202510291500",

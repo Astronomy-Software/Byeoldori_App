@@ -67,7 +67,7 @@ class CommentsViewModel @Inject constructor(
             val res = repo.getComments(pid, page = page, size = 15)
             res.onSuccess { pageRes ->
                 if (mySession != loadSession || pid != postIdLong) return@onSuccess //이전 댓글들은 버려짐
-                applyPage(pageRes)
+                applyPage(pageRes,pid)
 
                 val visible = buffer.count { !it.deleted }
                 _commentCounts.value = _commentCounts.value + (postIdStr to visible)
@@ -78,8 +78,8 @@ class CommentsViewModel @Inject constructor(
     }
 
     /** 댓글을 버퍼에 누적하고 즉시 업데이트*/
-    private fun applyPage(pageRes: CommentsPageResponse) {
-        val newItems = pageRes.content.map { it.toUi(postIdStr) }
+    private fun applyPage(pageRes: CommentsPageResponse, postId: Long) {
+        val newItems = pageRes.content.map { it.toUi(postId) }
         buffer += newItems
         page = pageRes.page + 1 //다음 로드때 가져올 페이지 번호
         lastPage = pageRes.totalPages.coerceAtLeast(1)
@@ -92,7 +92,7 @@ class CommentsViewModel @Inject constructor(
             val res = repo.createComment(pid, content, parentId = parentId?.toLongOrNull())
             res.onSuccess { created ->
                 // 가장 마지막에 추가
-                buffer.add(created.toUi(postIdStr))
+                buffer.add(created.toUi(pid))
                 _comments.value = UiState.Success(buffer.toList())
 
                 //기존 댓글 수 가져와서 +1
@@ -115,7 +115,7 @@ class CommentsViewModel @Inject constructor(
             val next = when (val s = _comments.value) {
                 is UiState.Success -> {
                     val updated = s.data.map { c ->
-                        if (c.id.toLongOrNull() == commentId) {
+                        if (c.id == commentId) {
                             c.copy(
                                 liked = res.liked,
                                 likeCount = res.likes.toInt()
@@ -143,7 +143,7 @@ class CommentsViewModel @Inject constructor(
                 is UiState.Success -> {
                     UiState.Success(
                        s.data.map { comment ->
-                           if (comment.id.toLongOrNull() == commentId) {
+                           if (comment.id == commentId) {
                                comment.copy(
                                    deleted = true,
                                    content = null
@@ -176,7 +176,7 @@ class CommentsViewModel @Inject constructor(
             val next = when(val s = _comments.value) {
                 is UiState.Success -> UiState.Success(
                     s.data.map { c ->
-                        if (c.id == commentId.toString()) c.copy(content = updated.content)
+                        if (c.id == commentId) c.copy(content = updated.content)
                         else c
                     }
                 )
@@ -187,5 +187,28 @@ class CommentsViewModel @Inject constructor(
         }.onFailure { e ->
             _comments.value = UiState.Error(e.message ?: "댓글 수정 실패")
         }
+    }
+
+    //관측 후기에서 내가 쓴 댓글들
+    suspend fun AllMyReviewComments(
+        postId: Long,
+        pageSize: Int = 30,
+        maxPages: Int = 20
+    ): List<ReviewComment> {
+        val acc = mutableListOf<ReviewComment>()
+        var page = 1
+        var totalPages = Int.MAX_VALUE
+
+        while (page <= totalPages && page <= maxPages) {
+            val response = repo.getComments(postId, page, pageSize)
+                .getOrElse { throw it }
+            val items = response.content.map { it.toUi(postId) }
+            acc += items
+
+            totalPages = response.totalPages.coerceAtLeast(1)
+            page = response.page + 1
+            if(items.isEmpty()) break
+        }
+        return acc
     }
 }

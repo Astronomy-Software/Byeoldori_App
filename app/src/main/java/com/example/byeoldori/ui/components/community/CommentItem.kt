@@ -36,9 +36,10 @@ fun CommentItem(
     canEditDelete: (ReviewComment) -> Boolean = { false },
     isLiked: Boolean = false,
     showCommentCount: Boolean = true,
-    editingId: String? = null,
+    editingId: Long? = null,
     onSubmitEdit: (String) -> Unit = {},
-    onCancelEdit: () -> Unit = {}
+    onCancelEdit: () -> Unit = {},
+    showActions: Boolean = true
 ) {
     val likeTint by animateColorAsState(
         targetValue = if (isLiked) Purple500 else Color.Unspecified,
@@ -150,47 +151,48 @@ fun CommentItem(
                 color = TextHighlight,
                 fontSize = 17.sp
             )
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(top = 8.dp)
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        //.clickable(enabled = !isLiked) { onLike(comment) }
-                        .clickable { onLike(comment) }
+            if(showActions) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(top = 8.dp)
                 ) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_thumbs_up),
-                        contentDescription = "좋아요",
-                        tint = likeTint,
-                        modifier = Modifier.size(17.dp)
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Text(
-                        "${comment.likeCount}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = TextHighlight,
-                        modifier = Modifier.alignByBaseline() //베이스라인 맞추기
-                    )
-                }
-                Spacer(Modifier.width(12.dp))
-
-                if (showCommentCount) { //대댓글에 댓글 수를 표시할 필요가 없으니까
-                    Icon(
-                        painter = painterResource(R.drawable.ic_comment),
-                        contentDescription = "대댓글",
-                        tint = Color.Unspecified,
+                    Row(verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
-                            .size(17.dp)
-                            .clickable { onReply(comment) }
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    val replyCount = dummyFreeComments.count { it.parentId == comment.id }
-                    Text(
-                        "$replyCount",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color.White
-                    )
+                            .clickable { onLike(comment) }
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_thumbs_up),
+                            contentDescription = "좋아요",
+                            tint = likeTint,
+                            modifier = Modifier.size(17.dp)
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            "${comment.likeCount}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = TextHighlight,
+                            modifier = Modifier.alignByBaseline() //베이스라인 맞추기
+                        )
+                    }
+                    Spacer(Modifier.width(12.dp))
+
+                    if (showCommentCount) { //대댓글에 댓글 수를 표시할 필요가 없으니까
+                        Icon(
+                            painter = painterResource(R.drawable.ic_comment),
+                            contentDescription = "대댓글",
+                            tint = Color.Unspecified,
+                            modifier = Modifier
+                                .size(17.dp)
+                                .clickable { onReply(comment) }
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        val replyCount = dummyFreeComments.count { it.parentId == comment.id }
+                        Text(
+                            "$replyCount",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color.White
+                        )
+                    }
                 }
             }
         }
@@ -206,7 +208,7 @@ fun CommentReplyItem(
     onDelete: (ReviewComment) -> Unit = {},
     canEditDelete: (ReviewComment) -> Boolean = { false },
     isLiked: Boolean = false,
-    editingId: String? = null,
+    editingId: Long? = null,
     onSubmitEdit: (String) -> Unit = {},
     onCancelEdit: () -> Unit = {}
 
@@ -263,8 +265,8 @@ fun CommentReplyItem(
 private fun Preview_CommentItem() {
     MaterialTheme {
         val sample = ReviewComment(
-            id = "c1",
-            reviewId = "r1",
+            id = 1,
+            reviewId = 2,
             authorId = 123,
             profile = R.drawable.profile1,
             content = "색다른 곳 있으면 알려주세요~",
@@ -284,15 +286,15 @@ private fun Preview_CommentItem() {
 private fun Preview_ReplyItem() {
     MaterialTheme {
         val reply = ReviewComment(
-            id = "c2",
-            reviewId = "r1",
+            id = 2,
+            reviewId = 1,
             authorId = 123,
             profile = R.drawable.profile1,
             content = "저도 궁금합니다!",
             likeCount = 1,
             commentCount = 0,
             createdAt = "202510251145",
-            parentId = "c1", // 부모 댓글 id
+            parentId = 1, // 부모 댓글 id
             authorNickname = "astro_user",
             liked = false
         )

@@ -214,7 +214,7 @@ fun ReviewDetail(
                                             onEditReview(reviewForUi) //현재 리뷰 데이터를 넘김
                                         }
                                     )
-                                    Divider(color = Color.Black.copy(alpha = 0.6f), thickness = 1.dp, modifier = Modifier.fillMaxWidth())
+                                    HorizontalDivider(color = Color.Black.copy(alpha = 0.6f), thickness = 1.dp, modifier = Modifier.fillMaxWidth())
                                     DropdownMenuItem(
                                         text = { Text("삭제",color = Color.Black) },
                                         onClick = { showDeleted = true }
@@ -224,7 +224,7 @@ fun ReviewDetail(
                         }
                     }
                 )
-                Divider(
+                HorizontalDivider(
                     color = Color.White.copy(alpha = 0.6f),
                     thickness = 2.dp,
                     modifier = Modifier.padding(top = 6.dp, bottom = 12.dp)
@@ -240,7 +240,7 @@ fun ReviewDetail(
                         val t = raw.trim()
                         if (t.isEmpty()) return@CommentInput
                         if (editingTarget != null) { //수정 모드
-                            val targetId = editingTarget!!.id.toLongOrNull()
+                            val targetId = editingTarget!!.id
                             val postId = review.id.toLongOrNull()
                             if (targetId != null && postId != null) {
                                 commentsViewModel?.update(
@@ -255,7 +255,7 @@ fun ReviewDetail(
                                 }
                             }
                         } else {
-                            val parentIdStr = parent?.id
+                            val parentIdStr = parent?.id.toString()
                             commentsViewModel?.submit(content = t, parentId = parentIdStr) {
                                 // 성공 콜백: 입력/대댓글 모드 해제
                                 input = ""
@@ -358,7 +358,7 @@ fun ReviewDetail(
                             vm?.toggleLike(pid) { res ->
                                 liked = res.liked
                                 reviewLikeCount = res.likes.toInt()
-                                onSyncReviewLikeCount(review.id, res.liked, res.likes.toInt()) // ★ 상위 동기화
+                                onSyncReviewLikeCount(review.id, res.liked, res.likes.toInt()) //상위 동기화
                             }
                         }
                     },
@@ -369,16 +369,14 @@ fun ReviewDetail(
 
                 // 댓글 리스트
                 CommentList(
-                    postId = review.id,
+                    postId = review.id.toLong(),
                     currentUserId = myId,
                     currentUserNickname = myNick,
                     comments = commentList,
                     //현재 사용자가 좋아요를 누른 댓글들의 id 집합
                     liked = commentList.filter { it.liked }.map { it.id }.toSet(),
                     onLike = { tapped ->
-                        tapped.id.toLongOrNull()?.let { cid ->
-                            commentsViewModel?.toggleLike(cid)
-                        }
+                        commentsViewModel?.toggleLike(tapped.id)
                     },
                     onLikedChange = {},
                     onReply = { target ->
@@ -396,8 +394,8 @@ fun ReviewDetail(
                     editingId = editingTarget?.id,
                     onSubmitEditInline = { target, newText ->
                         val postId = review.id.toLongOrNull()
-                        val cid = target.id.toLongOrNull()
-                        if (postId != null && cid != null && newText.isNotBlank()) {
+                        val cid = target.id
+                        if (postId != null && newText.isNotBlank()) {
                             commentsViewModel?.update(
                                 postId = postId,
                                 commentId = cid,
@@ -443,18 +441,13 @@ fun ReviewDetail(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        val cid = deleteTarget!!.id.toLongOrNull()
-                        if (cid != null) {
-                            commentsViewModel?.delete(cid) {
-                                // 성공 시 닫기
-                                showDeleteDialog = false
-                                deleteTarget = null
-                                // 필요하면 상단 카운터/목록 갱신 트리거
-                                vm?.loadPosts()
-                            }
-                        } else {
+                        val cid = deleteTarget!!.id
+                        commentsViewModel?.delete(cid) {
+                            // 성공 시 닫기
                             showDeleteDialog = false
                             deleteTarget = null
+                            // 필요하면 상단 카운터/목록 갱신 트리거
+                            vm?.loadPosts()
                         }
                     }
                 ) { Text("삭제") }

@@ -55,12 +55,14 @@ fun MainRoot() {
                     MyPageScreen(
                         onOpenLikes = { nav.navigate("mypage/likes") },
                         onOpenMyBoards = { nav.navigate("mypage/myboards") },
-                        onOpenMyPrograms = { nav.navigate("mypage/myprograms") }
+                        onOpenMyPrograms = { nav.navigate("mypage/myprograms") },
+                        onOpenMyComments = { nav.navigate("mypage/mycomments") }
                     )
                 }
                 composable("mypage/likes") { LikeSection(onBack = { nav.popBackStack() }) }
                 composable("mypage/myboards") { MyBoardList(onBack = { nav.popBackStack() }) }
                 composable("mypage/myprograms") { MyProgramList(onBack = { nav.popBackStack() }) }
+                composable("mypage/mycomments") { MyCommentList(onBack = { nav.popBackStack() }) }
             }
         }
     }
