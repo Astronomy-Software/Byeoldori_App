@@ -18,10 +18,9 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.byeoldori.skymap.viewmodel.ObjectDetailViewModel
 
 @Composable
-fun StellariumScreen() {
+fun StellariumScreen( mode : SkyMode ) {
     val context = LocalContext.current
     val viewModel: ObjectDetailViewModel = hiltViewModel()
     val window = (context as Activity).window
@@ -56,7 +55,7 @@ fun StellariumScreen() {
     // ✅ Controller 바인딩
     LaunchedEffect(webViewState.value) {
         webViewState.value?.let {
-            val controller = StellariumWebController(it)
+            val controller = StellariumController(it)
             skyCameraController.bindToStellarium(controller)
         }
     }
@@ -79,4 +78,9 @@ private fun createStellariumWebView(
         webViewClient = WebViewClient()
         loadUrl("http://localhost:8080/")
     }
+}
+
+enum class SkyMode {
+    OBSERVATION,  // 일반 관측 모드
+    EDUCATION     // 교육 모드 (별도리 학습용)
 }

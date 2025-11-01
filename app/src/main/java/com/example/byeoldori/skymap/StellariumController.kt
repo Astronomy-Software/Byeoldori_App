@@ -7,7 +7,7 @@ import android.webkit.WebView
  * - WebView에 JS 명령어를 안전하게 전달
  * - window.$stelController 래핑
  */
-class StellariumWebController(private val webView: WebView?) {
+class StellariumController(private val webView: WebView?) {
 
     /** JS 명령 실행 래퍼 */
     private fun runJS(jsCommand: String) {

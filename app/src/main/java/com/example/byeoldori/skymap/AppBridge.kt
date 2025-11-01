@@ -2,10 +2,10 @@
 import android.content.Context
 import android.util.Log
 import android.webkit.JavascriptInterface
+import com.example.byeoldori.skymap.ObjectDetailViewModel
+import com.example.byeoldori.skymap.ObjectItem
 import com.example.byeoldori.skymap.SkyCameraController
-import com.example.byeoldori.skymap.viewmodel.ObjectDetailViewModel
-import com.example.byeoldori.skymap.viewmodel.ObjectItem
-import com.example.byeoldori.skymap.viewmodel.SkyObjectDetail
+import com.example.byeoldori.skymap.SkyObjectDetail
 import org.json.JSONObject
 
 class AppBridge(

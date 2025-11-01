@@ -19,7 +19,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.byeoldori.skymap.components.ObjectInfoCard
 import com.example.byeoldori.skymap.components.RealtimeInfoList
 import com.example.byeoldori.skymap.components.WikipediaCard
-import com.example.byeoldori.skymap.viewmodel.ObjectDetailViewModel
 import com.example.byeoldori.ui.components.TopBar
 import com.example.byeoldori.ui.theme.Background
 import com.example.byeoldori.utils.SweObjUtils

@@ -1,4 +1,4 @@
-package com.example.byeoldori.skymap.viewmodel
+package com.example.byeoldori.skymap
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

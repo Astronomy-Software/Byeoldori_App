@@ -94,7 +94,7 @@ class SkyCameraController(
     // =========================
     // Stellarium 동기화
     // =========================
-    fun bindToStellarium(controller: StellariumWebController) {
+    fun bindToStellarium(controller: StellariumController) {
         scope.launch(Dispatchers.Main) {
             combine(yaw, pitch) { y, p -> y to p }
                 .collect { (y, p) -> controller.setViewDirection(y.toDouble(), p.toDouble()) }
