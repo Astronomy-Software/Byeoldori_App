@@ -55,6 +55,7 @@ fun EducationResponse.toEduProgram(): EduProgram {
         id = id.toString(),
         title = title,
         author = authorNickname ?: "익명",
+        authorId = authorId,
         rating = 0f, // 교육에는 별점이 없으므로 0 기본값
         likeCount = likeCount,
         commentCount = commentCount,
@@ -239,6 +240,7 @@ private fun Preview_EduProgramSection_Default() {
                     id = "p$i",
                     title = "천체 관측 교육 $i",
                     author = "astro$i",
+                    authorId = 1,
                     rating = 3.5f + (i % 3) * 0.5f, // 3.5~4.5
                     likeCount = 40 + i * 3,
                     commentCount = 8 + i,
@@ -265,7 +267,7 @@ private fun Preview_EduProgramSection_Default() {
 @Composable
 fun EduProgramGrid(
     programs: List<EduProgram>,
-    onClickProgram: (String) -> Unit = {},
+    onClickProgram: (EduProgram) -> Unit = {},
     onToggleLike: (String) -> Unit = {}
 ) {
     val gridState = rememberLazyGridState()
@@ -281,7 +283,7 @@ fun EduProgramGrid(
     ) {
         items(programs, key = { it.id }) { program ->
             Box(
-                Modifier.clickable { onClickProgram(program.id) }
+                Modifier.clickable { onClickProgram(program) }
             ) {
                 ReviewCard(
                     review = program.asReview(),

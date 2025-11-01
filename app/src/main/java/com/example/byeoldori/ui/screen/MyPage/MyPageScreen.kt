@@ -66,7 +66,8 @@ fun MyPageScreen(
             profileName = profileName,
             observationCount = observeCount,
             onOpenLikes = onOpenLikes,
-            onOpenMyBoards = onOpenMyBoards
+            onOpenMyBoards = onOpenMyBoards,
+            onOpenMyPrograms = onOpenMyPrograms
         )
     }
 }
@@ -82,7 +83,8 @@ private fun MyPageContent(
     profileName: String,
     observationCount: Int,
     onOpenLikes: () -> Unit = {},
-    onOpenMyBoards: () -> Unit = {}
+    onOpenMyBoards: () -> Unit = {},
+    onOpenMyPrograms: () -> Unit = {}
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -125,10 +127,10 @@ private fun MyPageContent(
                 containerColor = Color(0xFF3D2A79),
                 items = listOf(
                     MenuItem(title = "관측 일정 및 나의 관측 후기", onClick = {}), // onOpenSchedule
-                    MenuItem(title = "찜", onClick = {}), // onOpenBookmarks
+                    //MenuItem(title = "찜", onClick = {}), // onOpenBookmarks
                     MenuItem(title = "좋아요", onClick = onOpenLikes),
                     MenuItem(title = "내가 작성한 자유게시글", onClick = onOpenMyBoards),
-                    MenuItem(title = "내가 작성한 교육 프로그램", onClick = {}), // onOpenMyPrograms
+                    MenuItem(title = "내가 작성한 교육 프로그램", onClick = onOpenMyPrograms),
                     MenuItem(title = "내가 작성한 댓글", onClick = {}), // onOpenMyComments
                     MenuItem(title = "고객 센터", onClick = {}), // onOpenSupport
                 )

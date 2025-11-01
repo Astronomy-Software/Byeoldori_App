@@ -237,9 +237,7 @@ fun LikeSection(
                 when (selectedTab) {
                     0 -> EduProgramGrid(
                             programs = likedPrograms,
-                            onClickProgram = { id -> //상세화면 이동
-                                likedPrograms.find { it.id == id }?.let { selectedProgram = it }
-                            },
+                            onClickProgram = { selectedProgram = it },
                             onToggleLike = { id -> eduVm.toggleLike(id.toLong()) }
                     )
                     1 -> ReviewGrid(
@@ -256,7 +254,6 @@ fun LikeSection(
                         onClick = { selectedFree = it },
                         onToggle = { id ->
                             vm.toggleLike(id.toLong()) {
-                                // 서버 응답 후 목록 새고침(간단 모드)
                                 vm.loadPosts()
                             }
                         }

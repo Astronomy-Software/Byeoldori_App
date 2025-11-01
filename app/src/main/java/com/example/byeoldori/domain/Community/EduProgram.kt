@@ -6,6 +6,7 @@ data class EduProgram (
     val id: String,
     val title: String,
     val author: String,
+    val authorId: Long,
     val profile: Int?,
     val rating: Float,
     val likeCount: Int,

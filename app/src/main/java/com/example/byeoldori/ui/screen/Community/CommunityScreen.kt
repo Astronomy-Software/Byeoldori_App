@@ -282,11 +282,10 @@ fun CommunityScreen(
                 vm = eduVm,
                 onEdit = true,
                 onDelete = { id ->
-                    id.toLongOrNull()?.let { pid ->
-                        vm.deletePost(pid) {
-                            selectedProgram = null
-                            eduVm.loadPosts()
-                        }
+                    vm.deletePost(id) {
+                        selectedProgram = null
+                        eduVm.loadPosts()
+                        vm.loadPosts()
                     }
                 }
             )
@@ -304,11 +303,10 @@ fun CommunityScreen(
                 vm = eduVm,
                 onEdit = true,
                 onDelete = { id ->
-                    id.toLongOrNull()?.let { pid ->
-                        vm.deletePost(pid) {
-                            selectedProgram = null
-                            eduVm.loadPosts()
-                        }
+                    vm.deletePost(id) {
+                        selectedProgram = null
+                        eduVm.loadPosts()
+                        vm.loadPosts()
                     }
                 }
             )

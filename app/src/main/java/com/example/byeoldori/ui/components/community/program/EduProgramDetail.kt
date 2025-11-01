@@ -39,7 +39,7 @@ fun EduProgramDetail(
     vm: EducationViewModel? = null,
     onStartProgram: () -> Unit = {},
     onEdit: Boolean = true,
-    onDelete: (programId: String) -> Unit = {},
+    onDelete: (programId: Long) -> Unit = {},
     onEditProgram: (EduProgram) -> Unit = {}
 ) {
     val userVm: UserViewModel = hiltViewModel()
@@ -423,7 +423,7 @@ fun EduProgramDetail(
                     onClick = {
                         showDeleted = false
                         moreMenu = false
-                        onDelete(program.id)
+                        onDelete(program.id.toLong())
                     }
                 ) { Text("삭제") }
             },

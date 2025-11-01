@@ -5,17 +5,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.navigation
+import androidx.navigation.compose.*
 import androidx.navigation.compose.rememberNavController
 import com.example.byeoldori.data.UserViewModel
 import com.example.byeoldori.skymap.StellariumScreen
 import com.example.byeoldori.ui.components.NavBar
-import com.example.byeoldori.ui.components.mypage.LikeSection
-import com.example.byeoldori.ui.components.mypage.MyBoardList
-import com.example.byeoldori.ui.screen.Community.CommunityScreen
-import com.example.byeoldori.ui.screen.Community.CommunityTab
+import com.example.byeoldori.ui.components.mypage.*
+import com.example.byeoldori.ui.screen.Community.*
 import com.example.byeoldori.ui.screen.MyPage.MyPageScreen
 import com.example.byeoldori.ui.screen.Observatory.ObservatoryScreen
 import com.example.byeoldori.ui.screen.home.HomeScreen
@@ -58,11 +54,13 @@ fun MainRoot() {
                 composable("mypage/home") {
                     MyPageScreen(
                         onOpenLikes = { nav.navigate("mypage/likes") },
-                        onOpenMyBoards = { nav.navigate("mypage/myboards") }
+                        onOpenMyBoards = { nav.navigate("mypage/myboards") },
+                        onOpenMyPrograms = { nav.navigate("mypage/myprograms") }
                     )
                 }
                 composable("mypage/likes") { LikeSection(onBack = { nav.popBackStack() }) }
                 composable("mypage/myboards") { MyBoardList(onBack = { nav.popBackStack() }) }
+                composable("mypage/myprograms") { MyProgramList(onBack = { nav.popBackStack() }) }
             }
         }
     }

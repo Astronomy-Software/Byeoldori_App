@@ -11,95 +11,76 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.byeoldori.R
 import com.example.byeoldori.data.UserViewModel
-import com.example.byeoldori.data.model.dto.FreePostResponse
-import com.example.byeoldori.domain.Community.FreePost
-import com.example.byeoldori.ui.components.community.freeboard.*
+import com.example.byeoldori.data.model.dto.EducationResponse
+import com.example.byeoldori.domain.Community.EduProgram
+import com.example.byeoldori.ui.components.community.program.*
 import com.example.byeoldori.ui.theme.Background
 import com.example.byeoldori.ui.theme.*
-import com.example.byeoldori.viewmodel.Community.CommunityViewModel
+import com.example.byeoldori.viewmodel.Community.*
 import com.example.byeoldori.viewmodel.UiState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MyBoardList(
+fun MyProgramList(
     onBack: () -> Unit = {},
+    eduVm: EducationViewModel = hiltViewModel(),
     vm: CommunityViewModel = hiltViewModel(),
     userVm: UserViewModel = hiltViewModel()
 ) {
     LaunchedEffect(Unit) {
         userVm.getMyProfile()
-        vm.loadPosts()
+        eduVm.loadPosts()
     }
     val me = userVm.userProfile.collectAsState().value
     val myId = me?.id
 
-    val postState by vm.postsState.collectAsState()
-    val allPosts = when(postState) {
-        is UiState.Success -> (postState as UiState.Success<List<FreePostResponse>>)
-            .data.map { it.toFreePost() }
+    var selectedProgram by remember { mutableStateOf<EduProgram?>(null) }
+    var editingProgram by remember { mutableStateOf<EduProgram?>(null) }
+
+    val postState by eduVm.postsState.collectAsState()
+    val allPrograms = when(postState) {
+        is UiState.Success -> (postState as UiState.Success<List<EducationResponse>>)
+            .data.map { it.toEduProgram() }
         else -> emptyList()
     }
 
-    val myPosts = remember(allPosts,myId) {
-        if(myId == null) emptyList() else allPosts.filter { it.authorId == myId }
+    val myPrograms = remember(allPrograms,myId) {
+        if(myId == null) emptyList() else allPrograms.filter { it.authorId == myId }
     }
-
-    var selectedFree by remember { mutableStateOf<FreePost?>(null) }
-    var editingFree    by remember { mutableStateOf<FreePost?>(null) }
-
-    val freeDetailState by vm.postDetail.collectAsState()
 
     Background(modifier = Modifier.fillMaxSize()) {
         when {
-            editingFree != null -> {
-                val draft = editingFree!!
-                FreeBoardWriteForm(
-                    onCancel = { editingFree = null; selectedFree = null },
-                    onSubmit = {
-                        editingFree = null
-                        selectedFree = null
-                        vm.loadPosts()
-                    },
-                    onTempSave = {},
-                    onMore = {},
-                    onSubmitPost = {},
-                    initialPost = draft,
-                    onClose = { editingFree = null; selectedFree = null },
-                    vm = vm
-                )
+            editingProgram != null -> {
+                /**이 부분도 추후 추가 예정*/
             }
-
-            selectedFree != null -> {
-                val free = selectedFree!!
-                val apiPost = (freeDetailState as? UiState.Success)?.data
-
-                LaunchedEffect(free.id) {
-                    free.id.toLongOrNull()?.let { vm.loadPostDetail(it) }
+            selectedProgram != null -> {
+                val program = selectedProgram!!
+                LaunchedEffect(program.id) {
+                    program.id.toLongOrNull()?.let { eduVm.loadEducationDetail(it) }
                 }
 
-                FreeBoardDetail(
-                    post = free,
-                    apiPost = apiPost,
-                    vm = vm,
-                    onBack = { selectedFree = null },
-                    onEditPost = { editable ->
-                        editingFree = editable
+                EduProgramDetail(
+                    program = program,
+                    onBack = { selectedProgram = null },
+                    onEditProgram = { editable ->
+                        editingProgram = editable
                     },
                     onDelete = { id ->
                         vm.deletePost(id) {
-                            selectedFree = null
+                            selectedProgram = null
+                            eduVm.loadPosts()
                             vm.loadPosts()
                         }
                     },
+                    vm = eduVm
                 )
             }
-
             else -> {
                 Column(Modifier.fillMaxSize()) {
                     CenterAlignedTopAppBar(
                         title = {
                             Text(
-                                "내가 작성한 자유게시글",
+                                "내가 작성한 교육 프로그램",
                                 color = TextHighlight,
                                 style = MaterialTheme.typography.titleMedium.copy(
                                     fontWeight = FontWeight.Bold,
@@ -120,17 +101,21 @@ fun MyBoardList(
                     )
                     HorizontalDivider(color = Color.White.copy(alpha = 0.6f), thickness = 2.dp)
 
-                    if (myPosts.isEmpty()) {
+                    if (myPrograms.isEmpty()) {
                         Box(Modifier.fillMaxSize()) {
-                            Text("내가 작성한 게시글이 없습니다.", color = TextDisabled)
+                            Text("내가 작성한 교육 프로그램이 없습니다.", color = TextDisabled)
                         }
                     } else {
-                        FreeGrid(
-                            posts = myPosts,
-                            onClick = { post ->
-                                selectedFree = post
+                        EduProgramGrid(
+                            programs = myPrograms,
+                            onClickProgram = { myPrograms ->
+                                selectedProgram = myPrograms
                             },
-                            onToggle = { id -> vm.toggleLike(id.toLong()) { vm.loadPosts() } }
+                            onToggleLike = { id ->
+                                eduVm.toggleLike(id.toLong()) {
+                                    eduVm.loadPosts()
+                                }
+                            }
                         )
                     }
                 }
