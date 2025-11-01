@@ -88,6 +88,7 @@ fun FreePostResponse.toFreePost(): FreePost {
         id = id.toString(),
         title = title,
         author = authorNickname ?: "익명",
+        authorId = authorId,
         likeCount = likeCount,
         commentCount = commentCount,
         viewCount = viewCount,
@@ -206,7 +207,10 @@ fun FreeBoardSection(
                 .align(Alignment.BottomEnd)
                 .offset(x = -(24.dp), y= -(10.dp))
                 .size(56.dp)
-                .clickable(onClick = onWriteClick)
+                .clickable {
+                    vm.clearCreateState()
+                    onWriteClick()
+                }
                 .background(Blue800, shape = CircleShape) // 보라색 배경
                 .border(2.dp, Color.White, CircleShape),
             contentAlignment = Alignment.Center

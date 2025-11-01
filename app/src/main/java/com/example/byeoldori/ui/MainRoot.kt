@@ -13,6 +13,7 @@ import com.example.byeoldori.data.UserViewModel
 import com.example.byeoldori.skymap.StellariumScreen
 import com.example.byeoldori.ui.components.NavBar
 import com.example.byeoldori.ui.components.mypage.LikeSection
+import com.example.byeoldori.ui.components.mypage.MyBoardList
 import com.example.byeoldori.ui.screen.Community.CommunityScreen
 import com.example.byeoldori.ui.screen.Community.CommunityTab
 import com.example.byeoldori.ui.screen.MyPage.MyPageScreen
@@ -54,8 +55,14 @@ fun MainRoot() {
                 composable("community/program")   { CommunityScreen(tab = CommunityTab.Program,   onSelectTab = { t -> nav.navigate("community/$t") }, userVm = userVm) }
             }
             navigation(startDestination = "mypage/home", route = Root.MyPage.route) {
-                composable("mypage/home") { MyPageScreen(onOpenLikes = { nav.navigate("mypage/likes") }) }
+                composable("mypage/home") {
+                    MyPageScreen(
+                        onOpenLikes = { nav.navigate("mypage/likes") },
+                        onOpenMyBoards = { nav.navigate("mypage/myboards") }
+                    )
+                }
                 composable("mypage/likes") { LikeSection(onBack = { nav.popBackStack() }) }
+                composable("mypage/myboards") { MyBoardList(onBack = { nav.popBackStack() }) }
             }
         }
     }

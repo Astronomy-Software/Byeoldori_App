@@ -52,7 +52,7 @@ fun ReviewDetail(
     vm: ReviewViewModel? = null,
     commentsVm: CommentsViewModel? = null,
     onEdit: Boolean = true,
-    onDelete: (reviewId: String) -> Unit = {},
+    onDelete: (reviewId: Long) -> Unit = {},
     onEditReview: (Review) -> Unit = {}
 ) {
     val imeVisible = rememberIsImeVisible()
@@ -423,7 +423,7 @@ fun ReviewDetail(
                     onClick = {
                         showDeleted = false
                         moreMenu = false
-                        onDelete(review.id)
+                        onDelete(review.id.toLong())
                     }
                 ) { Text("삭제") }
             },

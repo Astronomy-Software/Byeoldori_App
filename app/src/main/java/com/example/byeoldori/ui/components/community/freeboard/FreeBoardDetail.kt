@@ -53,7 +53,7 @@ fun FreeBoardDetail (
     vm: CommunityViewModel? = null,
     onSyncFreeLikeCount: (id: String, liked: Boolean, next: Int) -> Unit = { _, _, _ -> },
     onEdit: Boolean = true,
-    onDelete: (postId: String) -> Unit = {},
+    onDelete: (postId: Long) -> Unit = {},
     onEditPost: (FreePost) -> Unit = {}
 ) {
     var input by rememberSaveable { mutableStateOf("") }
@@ -385,7 +385,7 @@ fun FreeBoardDetail (
                     onClick = {
                         showDeleted = false
                         moreMenu = false
-                        onDelete(post.id)
+                        onDelete(post.id.toLong())
                     }
                 ) { Text("삭제") }
             },

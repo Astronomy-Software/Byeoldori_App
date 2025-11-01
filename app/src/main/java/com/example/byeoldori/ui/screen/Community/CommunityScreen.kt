@@ -196,12 +196,10 @@ fun CommunityScreen(
                 vm = reviewVm,
                 onEdit = true, //수정 메뉴 보이도록
                 onDelete = { id ->
-                    id.toLongOrNull()?.let { pid ->
-                        vm.deletePost(pid) {
-                            selectedReview = null
-                            reviewVm.loadPosts()
-                            vm.loadPosts()
-                        }
+                    vm.deletePost(id) {
+                        selectedReview = null
+                        reviewVm.loadPosts()
+                        vm.loadPosts()
                     }
                 },
                 onEditReview = { review ->
@@ -237,11 +235,9 @@ fun CommunityScreen(
                 vm = vm,
                 onEdit = true,
                 onDelete = { id ->
-                    id.toLongOrNull()?.let { pid ->
-                        vm.deletePost(pid) {
-                            selectedFreePost = null
-                            vm.loadPosts()
-                        }
+                    vm.deletePost(id) {
+                        selectedFreePost = null
+                        vm.loadPosts()
                     }
                 },
                 onEditPost = { post ->                //수정 진입
@@ -261,11 +257,9 @@ fun CommunityScreen(
                 vm = vm,
                 onEdit = true,
                 onDelete = { id ->
-                    id.toLongOrNull()?.let { pid ->
-                        vm.deletePost(pid) {
-                            selectedFreePost = null
-                            vm.loadPosts()
-                        }
+                    vm.deletePost(id) {
+                        selectedFreePost = null
+                        vm.loadPosts()
                     }
                 },
                 onEditPost = { post ->                //수정 진입

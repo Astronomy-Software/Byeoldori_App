@@ -143,7 +143,15 @@ fun LikeSection(
                         }
                     },
                     onEditReview = { editable ->
-                        editingReview = editable }
+                        editingReview = editable
+                    },
+                    onDelete = { id ->
+                        vm.deletePost(id) {
+                            selectedReview = null
+                            reviewVm.loadPosts()
+                            vm.loadPosts()
+                        }
+                    }
                 )
                 LaunchedEffect(review.id) {
                     review.id.toLongOrNull()?.let { reviewVm.loadReviewDetail(it) }
@@ -161,6 +169,12 @@ fun LikeSection(
                     onBack = { selectedFree = null },
                     onEditPost = { editable ->
                         editingFree = editable
+                    },
+                    onDelete = { id ->
+                        vm.deletePost(id) {
+                            selectedFree = null
+                            vm.loadPosts()
+                        }
                     }
                 )
                 LaunchedEffect(free.id) { free.id.toLongOrNull()?.let { vm.loadPostDetail(it) } }
