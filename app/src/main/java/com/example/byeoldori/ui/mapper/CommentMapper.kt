@@ -94,9 +94,9 @@ fun formatServerDateKst(raw: String?): String {
     return "--:--"
 }
 
-fun CommentResponse.toUi(postId: String): ReviewComment {
+fun CommentResponse.toUi(postId: Long): ReviewComment {
     return ReviewComment(
-        id = id.toString(),
+        id = id,
         reviewId = postId,           // 게시물(프로그램/리뷰/자유) 공용 id 문자열
         authorId = authorId,                 // 서버에서 닉네임을 추가로 내려주면 채워 넣기
         authorNickname = authorNickname,
@@ -105,7 +105,7 @@ fun CommentResponse.toUi(postId: String): ReviewComment {
         likeCount = likeCount,
         commentCount = 0,
         createdAt = formatServerDateKst(createdAt),
-        parentId = parentId?.toString(),
+        parentId = parentId,
         liked = liked,
         deleted = deleted
     )

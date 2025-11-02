@@ -39,7 +39,7 @@ fun EduProgramDetail(
     vm: EducationViewModel? = null,
     onStartProgram: () -> Unit = {},
     onEdit: Boolean = true,
-    onDelete: (programId: String) -> Unit = {},
+    onDelete: (programId: Long) -> Unit = {},
     onEditProgram: (EduProgram) -> Unit = {}
 ) {
     val userVm: UserViewModel = hiltViewModel()
@@ -79,13 +79,13 @@ fun EduProgramDetail(
     val commentsState by commentsVm.comments.collectAsState()
     val commentCounts by commentsVm.commentCounts.collectAsState()
 
-    val commentCountUi = commentCounts[program.id] ?: when (val s = commentsState) {
-        is UiState.Success -> s.data.size
-        else -> 0
-    }
-
     val commentList: List<ReviewComment> =
         (commentsState as? UiState.Success)?.data ?: emptyList()
+    val nonDeletedCount = remember(commentList) { commentList.count { !it.deleted } }
+    val commentCountUi = when {
+        nonDeletedCount > 0 -> nonDeletedCount
+        else -> commentCounts[program.id] ?: 0
+    }
 
     val myNick: String? = if (myId == null) currentUser else null
 
@@ -193,7 +193,7 @@ fun EduProgramDetail(
                                             onEditProgram(program)
                                         }
                                     )
-                                    Divider(
+                                    HorizontalDivider(
                                         color = Color.Black.copy(alpha = 0.6f),
                                         thickness = 1.dp,
                                         modifier = Modifier.fillMaxWidth()
@@ -210,7 +210,7 @@ fun EduProgramDetail(
                         }
                     }
                 )
-                Divider(color = Color.LightGray.copy(alpha = 0.4f), thickness = 1.dp)
+                HorizontalDivider(color = Color.LightGray.copy(alpha = 0.4f), thickness = 1.dp)
             }
         },
         bottomBar = {
@@ -223,7 +223,7 @@ fun EduProgramDetail(
                         if (t.isEmpty()) return@CommentInput
 
                         if (editingTarget != null) {   //수정 모드
-                            val targetId = editingTarget!!.id.toLongOrNull()
+                            val targetId = editingTarget!!.id
                             val postId = program.id.toLongOrNull()
                             if (targetId != null && postId != null) {
                                 commentsVm.update(
@@ -238,7 +238,7 @@ fun EduProgramDetail(
                                 }
                             }
                         } else {   //일반 댓글 작성
-                            val parentIdStr = parent?.id
+                            val parentIdStr = parent?.id?.toString()
                             commentsVm.submit(content = t, parentId = parentIdStr) {
                                 input = ""
                                 parent = null
@@ -370,16 +370,14 @@ fun EduProgramDetail(
                 )
                 //댓글 + 대댓글
                 CommentList(
-                    postId = program.id,
+                    postId = program.id.toLong(),
                     currentUserId = myId,
                     currentUserNickname = myNick,
                     comments = commentList,
                     liked = likedCommentIds,
                     onLikedChange = {},
                     onLike = { tapped ->
-                        tapped.id.toLongOrNull()?.let { cid ->
-                            commentsVm.toggleLike(cid)
-                        }
+                        commentsVm.toggleLike(tapped.id)
                     },
                     onReply = { target ->
                         parent = target
@@ -396,8 +394,8 @@ fun EduProgramDetail(
                     editingId = editingTarget?.id,
                     onSubmitEditInline = { target, newText ->
                         val postId = program.id.toLongOrNull()
-                        val cid = target.id.toLongOrNull()
-                        if (postId != null && cid != null && newText.isNotBlank()) {
+                        val cid = target.id
+                        if (postId != null && newText.isNotBlank()) {
                             commentsVm.update(
                                 postId = postId,
                                 commentId = cid,
@@ -423,7 +421,7 @@ fun EduProgramDetail(
                     onClick = {
                         showDeleted = false
                         moreMenu = false
-                        onDelete(program.id)
+                        onDelete(program.id.toLong())
                     }
                 ) { Text("삭제") }
             },
@@ -443,17 +441,12 @@ fun EduProgramDetail(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        val cid = deleteTarget!!.id.toLongOrNull()
-                        if (cid != null) {
-                            commentsVm.delete(cid) {
-                                // 성공 시 닫고, 목록/카운트 갱신 트리거
-                                showDeleteDialog = false
-                                deleteTarget = null
-                               // vm?.loadPosts()
-                            }
-                        } else {
+                        val cid = deleteTarget!!.id
+                        commentsVm.delete(cid) {
+                            // 성공 시 닫고, 목록/카운트 갱신 트리거
                             showDeleteDialog = false
                             deleteTarget = null
+                            // vm?.loadPosts()
                         }
                     }
                 ) { Text("삭제") }

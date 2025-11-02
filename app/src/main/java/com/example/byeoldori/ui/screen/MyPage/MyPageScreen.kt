@@ -53,7 +53,7 @@ fun MyPageScreen(
 
     val me = userVm.userProfile.collectAsState().value
     val profileName = me?.nickname?.takeIf { it.isNotBlank() } ?: "익명"
-    val observeCount = 0 //이건 추후 수정
+    val observeCount = 0 //이건 추후 수정(내가 작성한 관측 후기 개수로 함)
 
     Background(modifier = Modifier.fillMaxSize()) {
         Spacer(Modifier.height(20.dp))
@@ -65,7 +65,10 @@ fun MyPageScreen(
             onSelectDate = { selectedDate = it },
             profileName = profileName,
             observationCount = observeCount,
-            onOpenLikes = onOpenLikes
+            onOpenLikes = onOpenLikes,
+            onOpenMyBoards = onOpenMyBoards,
+            onOpenMyPrograms = onOpenMyPrograms,
+            onOpenMyComments = onOpenMyComments
         )
     }
 }
@@ -80,7 +83,10 @@ private fun MyPageContent(
     onOpenSettings: () -> Unit = {},
     profileName: String,
     observationCount: Int,
-    onOpenLikes: () -> Unit = {}
+    onOpenLikes: () -> Unit = {},
+    onOpenMyBoards: () -> Unit = {},
+    onOpenMyPrograms: () -> Unit = {},
+    onOpenMyComments: () -> Unit = {},
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -123,11 +129,11 @@ private fun MyPageContent(
                 containerColor = Color(0xFF3D2A79),
                 items = listOf(
                     MenuItem(title = "관측 일정 및 나의 관측 후기", onClick = {}), // onOpenSchedule
-                    MenuItem(title = "찜", onClick = {}), // onOpenBookmarks
-                    MenuItem(title = "좋아요", onClick = onOpenLikes), // onOpenLikes
-                    MenuItem(title = "내가 작성한 자유게시글", onClick = {}), // onOpenMyBoards
-                    MenuItem(title = "내가 작성한 교육 프로그램", onClick = {}), // onOpenMyPrograms
-                    MenuItem(title = "내가 작성한 댓글", onClick = {}), // onOpenMyComments
+                    //MenuItem(title = "찜", onClick = {}), // onOpenBookmarks
+                    MenuItem(title = "좋아요", onClick = onOpenLikes),
+                    MenuItem(title = "내가 작성한 자유게시글", onClick = onOpenMyBoards),
+                    MenuItem(title = "내가 작성한 교육 프로그램", onClick = onOpenMyPrograms),
+                    MenuItem(title = "내가 작성한 댓글", onClick = onOpenMyComments),
                     MenuItem(title = "고객 센터", onClick = {}), // onOpenSupport
                 )
             )
