@@ -13,6 +13,7 @@ import com.example.byeoldori.ui.components.NavBar
 import com.example.byeoldori.ui.components.mypage.*
 import com.example.byeoldori.ui.screen.Community.*
 import com.example.byeoldori.ui.screen.MyPage.MyPageScreen
+import com.example.byeoldori.ui.screen.MyPage.PlanCheckScreen
 import com.example.byeoldori.ui.screen.Observatory.ObservatoryScreen
 import com.example.byeoldori.ui.screen.home.HomeScreen
 import com.example.byeoldori.ui.theme.BackgroundScaffold
@@ -56,13 +57,15 @@ fun MainRoot() {
                         onOpenLikes = { nav.navigate("mypage/likes") },
                         onOpenMyBoards = { nav.navigate("mypage/myboards") },
                         onOpenMyPrograms = { nav.navigate("mypage/myprograms") },
-                        onOpenMyComments = { nav.navigate("mypage/mycomments") }
+                        onOpenMyComments = { nav.navigate("mypage/mycomments") },
+                        onOpenSchedule = { nav.navigate("mypage/myschedule") }
                     )
                 }
                 composable("mypage/likes") { LikeSection(onBack = { nav.popBackStack() }) }
                 composable("mypage/myboards") { MyBoardList(onBack = { nav.popBackStack() }) }
                 composable("mypage/myprograms") { MyProgramList(onBack = { nav.popBackStack() }) }
                 composable("mypage/mycomments") { MyCommentList(onBack = { nav.popBackStack() }) }
+                composable("mypage/myschedule") { PlanCheckScreen(onBack = { nav.popBackStack() }) }
             }
         }
     }
