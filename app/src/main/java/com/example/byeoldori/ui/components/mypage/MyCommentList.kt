@@ -27,52 +27,101 @@ fun MyCommentList(
     reviewVm: ReviewViewModel = hiltViewModel(),
     userVm: UserViewModel = hiltViewModel(),
     commentsVm: CommentsViewModel = hiltViewModel(),
+    vm: CommunityViewModel = hiltViewModel(),
+    eduVm: EducationViewModel = hiltViewModel()
 ) {
     LaunchedEffect(Unit) {
         userVm.getMyProfile()
-        reviewVm.loadPosts() // 리뷰 목록 선로딩
+        reviewVm.loadPosts()
+        eduVm.loadPosts()
+        vm.loadPosts()
     }
 
     val me = userVm.userProfile.collectAsState().value
     val myId = me?.id ?: -1L
     val reviewState by reviewVm.postsState.collectAsState()
+    val eduState by eduVm.postsState.collectAsState()
+    val vmState by vm.postsState.collectAsState()
+
     var groups by remember { mutableStateOf<List<MyCommentGroup>>(emptyList()) }
     var loading by remember { mutableStateOf(true) }
     var error by remember { mutableStateOf<String?>(null) }
 
-    LaunchedEffect(myId,reviewState) {
-        if(myId <= 0) return@LaunchedEffect
-        loading = true; error = null
-        runCatching {
-            val posts = (reviewState as? UiState.Success)?.data.orEmpty()
-            if(posts.isEmpty()) emptyList<MyCommentGroup>() else coroutineScope {
-                posts.map { p->
-                    async {
-                        val all = commentsVm.AllMyReviewComments(p.id)
-                        val mine = all.filter { it.authorId == myId && !it.deleted }
-                        if(mine.isEmpty()) null else MyCommentGroup(
-                            source = CommentSourceType.REVIEW,
-                            postId = p.id,
-                            postTitle = p.title,
-                            postAuthorName = p.authorNickname ?: "익명",
-                            postCreatedAt = p.createdAt,
-                            myComments = mine.map {
-                                MyCommentUi(
-                                    source = CommentSourceType.REVIEW,
-                                    postId = p.id,
-                                    postTitle = p.title,
-                                    postAuthorName = p.authorNickname ?: "익명",
-                                    commentId = it.id,
-                                    content = it.content ?: "",
-                                    createdAt = it.createdAt
-                                )
-                            }
+    suspend fun <T> buildGroups(
+        source: CommentSourceType,
+        posts: List<T>,
+        id: (T) -> Long,
+        title: (T) -> String,
+        authorName: (T) -> String,
+        createdAt: (T) -> String,
+    ): List<MyCommentGroup> = coroutineScope {
+        posts.map { p->
+            async {
+                val postId = id(p)
+                val all = commentsVm.AllMyComments(postId)
+                val mine = all.filter { it.authorId == myId && !it.deleted }
+
+                if(mine.isEmpty()) null else MyCommentGroup(
+                    source = source,
+                    postId = postId,
+                    postTitle = title(p),
+                    postAuthorName = authorName(p),
+                    postCreatedAt = createdAt(p),
+                    myComments = mine.map {
+                        MyCommentUi(
+                            source = source,
+                            postId = postId,
+                            postTitle = title(p),
+                            postAuthorName = authorName(p),
+                            commentId = it.id,
+                            content = it.content.orEmpty(),
+                            createdAt = it.createdAt
                         )
                     }
-                }.mapNotNull { it.await() }
+                )
             }
+        }.mapNotNull { it.await() }
+    }
+
+    LaunchedEffect(myId,reviewState) {
+        if (myId <= 0) return@LaunchedEffect
+        loading = true; error = null
+        runCatching {
+            val reviews = (reviewState as? UiState.Success)?.data.orEmpty()
+            val boards = (vmState as? UiState.Success)?.data.orEmpty()
+            val educations = (eduState as? UiState.Success)?.data.orEmpty()
+
+            val reviewGroup = buildGroups(
+                source = CommentSourceType.REVIEW,
+                posts = reviews,
+                id = { it.id },
+                title = { it.title },
+                authorName = { it.authorNickname ?: "익명" },
+                createdAt = { it.createdAt }
+            )
+
+            val boardGroup = buildGroups(
+                source = CommentSourceType.FREE,
+                posts = boards,
+                id = { it.id },
+                title = { it.title },
+                authorName = { it.authorNickname ?: "익명" },
+                createdAt = { it.createdAt }
+            )
+
+            val eduGroup = buildGroups(
+                source = CommentSourceType.EDUCATION,
+                posts = educations,
+                id = { it.id },
+                title = { it.title },
+                authorName = { it.authorNickname ?: "익명" },
+                createdAt = { it.createdAt }
+            )
+
+            (reviewGroup + boardGroup + eduGroup)
+                .sortedByDescending { it.postCreatedAt }
         }.onSuccess { groups = it; loading = false }
-            .onFailure { e-> error = e.message ?: "리뷰 댓글 불러오는 중 오류"; loading = false }
+            .onFailure { e -> error = e.message ?: "댓글 로드 실패"; loading = false }
     }
 
     Background(modifier = Modifier.fillMaxSize()) {
@@ -109,7 +158,7 @@ fun MyCommentList(
                     items = groups,
                     key = { g -> "${g.source}-${g.postId}" }
                 ) { g ->
-                    MyReviewComment(
+                    MyComment(
                         group = g,
                         myId = myId,
                         myNickname = me?.nickname

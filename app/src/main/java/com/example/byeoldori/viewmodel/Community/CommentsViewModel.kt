@@ -189,8 +189,8 @@ class CommentsViewModel @Inject constructor(
         }
     }
 
-    //관측 후기에서 내가 쓴 댓글들
-    suspend fun AllMyReviewComments(
+    //게시글에서 내가 쓴 댓글들
+    suspend fun AllMyComments(
         postId: Long,
         pageSize: Int = 30,
         maxPages: Int = 20
