@@ -18,7 +18,6 @@ import com.example.byeoldori.data.model.dto.*
 import com.example.byeoldori.ui.components.community.*
 import com.example.byeoldori.ui.theme.*
 import com.example.byeoldori.domain.Community.FreePost
-import com.example.byeoldori.domain.Community.ReviewComment
 import com.example.byeoldori.domain.Content
 import com.example.byeoldori.domain.Observatory.Review
 import com.example.byeoldori.viewmodel.*
@@ -121,7 +120,10 @@ fun FreeBoardSection(
         else -> emptyList()
     }
 
-    val commentCountsByVm by vm.commentCounts.collectAsState()
+    //val commentCountsByVm by vm.commentCounts.collectAsState()
+    //val commentOverrides by vm.freeCommentOverrides.collectAsState()
+    val commentsVm: CommentsViewModel = hiltViewModel()
+    val commentCounts by commentsVm.commentCounts.collectAsState()
 
     // 검색만
     val filtered = run {
@@ -186,7 +188,8 @@ fun FreeBoardSection(
                 modifier = Modifier.fillMaxSize()
             ) {
                 items(filtered, key = { it.id }) { post ->
-                    val uiCommentCount = commentCountsByVm[post.id] ?: post.commentCount
+                    //val uiCommentCount = commentOverrides[post.id] ?: post.commentCount
+                    val uiCommentCount = commentCounts[post.id] ?: post.commentCount
                     Column {
                         FreeBoardItem(
                             post = post,

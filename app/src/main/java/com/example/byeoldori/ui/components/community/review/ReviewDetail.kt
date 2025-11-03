@@ -320,11 +320,11 @@ fun ReviewDetail(
                 ReviewInput(
                     target = reviewForUi.target.ifBlank { "—" },
                     onTargetChange = {},
-                    site = reviewForUi.target.ifBlank { "—" },
+                    site = reviewForUi.site.ifBlank { "—" },
                     onSiteChange = {},
-                    equipment = reviewForUi.target.ifBlank { "—" },
+                    equipment = reviewForUi.equipment.ifBlank { "—" },
                     onEquipmentChange = {},
-                    date = reviewForUi.target.ifBlank { "—" },
+                    date = reviewForUi.date.ifBlank { "—" },
                     onTimeChange = { _, _ -> },
                     rating = apiDetail?.review?.score?.let { "$it/5" }
                         ?: if (review.rating > 0) { "${review.rating}/5" } else { "미입력" },

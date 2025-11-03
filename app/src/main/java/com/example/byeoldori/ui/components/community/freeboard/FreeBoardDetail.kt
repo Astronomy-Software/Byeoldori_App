@@ -64,6 +64,9 @@ fun FreeBoardDetail (
 
     var parent by remember { mutableStateOf<ReviewComment?>(null) }
     val commentsVm: CommentsViewModel = hiltViewModel() //화면에 연결된 CommentsViewModel 인스턴스 주입
+    LaunchedEffect(post.id) {
+        commentsVm.start(post.id)
+    }
     val commentsState by commentsVm.comments.collectAsState()
 
     val userVm: UserViewModel = hiltViewModel()
