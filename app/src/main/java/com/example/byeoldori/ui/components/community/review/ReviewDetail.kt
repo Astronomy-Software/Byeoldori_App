@@ -318,7 +318,7 @@ fun ReviewDetail(
                 }
                 Spacer(Modifier.height(16.dp))
                 ReviewInput(
-                    target = reviewForUi.target.ifBlank { "—" },
+                    target = reviewForUi.targetDisplay.ifBlank { "—" },
                     onTargetChange = {},
                     site = reviewForUi.site.ifBlank { "—" },
                     onSiteChange = {},
