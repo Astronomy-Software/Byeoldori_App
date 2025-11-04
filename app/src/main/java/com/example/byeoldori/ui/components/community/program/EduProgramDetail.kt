@@ -24,6 +24,7 @@ import com.example.byeoldori.ui.components.community.freeboard.formatCreatedAt
 import com.example.byeoldori.ui.components.community.review.*
 import com.example.byeoldori.ui.mapper.toUi
 import com.example.byeoldori.ui.theme.*
+import com.example.byeoldori.utils.SweObjUtils
 import com.example.byeoldori.viewmodel.*
 import com.example.byeoldori.viewmodel.Community.CommentsViewModel
 import com.example.byeoldori.viewmodel.Community.EducationViewModel
@@ -298,6 +299,7 @@ fun EduProgramDetail(
                         Spacer(Modifier.height(6.dp))
                         val targetDisplay = apiDetail?.education?.targets
                             ?.filter { it.isNotBlank() }
+                            ?.map {SweObjUtils.toKorean(it) }
                             ?.joinToString(" , ")
                             ?: program.targets?.joinToString(" , ")
                             ?: "-"

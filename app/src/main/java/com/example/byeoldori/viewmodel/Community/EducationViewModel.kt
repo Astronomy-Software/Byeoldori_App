@@ -127,7 +127,8 @@ class EducationViewModel @Inject constructor(
         difficulty: Difficulty,
         tags: String,
         status: EduStatus,
-        imageUrls: List<String> = emptyList()
+        imageUrls: List<String> = emptyList(),
+        targets: List<String>? = null
     ) = viewModelScope.launch {
         _createState.value = UiState.Loading
         runCatching {
@@ -138,7 +139,8 @@ class EducationViewModel @Inject constructor(
                 difficulty = difficulty,
                 tags = tags,
                 status = status,
-                imageUrls = imageUrls
+                imageUrls = imageUrls,
+                targets = targets
             )
         }.onSuccess { newId ->
             Log.d("EducationVM", "교육 글 작성 성공 id=$newId")
