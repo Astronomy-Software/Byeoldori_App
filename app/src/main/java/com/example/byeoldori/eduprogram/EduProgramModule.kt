@@ -13,6 +13,7 @@ import androidx.core.view.*
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.byeoldori.character.Live2DController
+import com.example.byeoldori.character.Live2DTestUI
 import com.example.byeoldori.character.TailPosition
 import com.example.byeoldori.skymap.*
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -443,6 +444,7 @@ fun EduProgramScreen() {
     Box(Modifier.fillMaxSize()) {
         StellariumScreen(SkyMode.EDUCATION)
         EduOverlayUI(title, desc, log, timer, step, total, { vm.prev() }, { vm.next() }, { vm.stop() })
+        Live2DTestUI()
     }
 
     LaunchedEffect(Unit) { vm.loadScenario() }

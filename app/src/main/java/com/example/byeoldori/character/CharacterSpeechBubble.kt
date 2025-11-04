@@ -28,9 +28,13 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupProperties
 import com.example.byeoldori.ui.theme.Background
+import com.example.byeoldori.ui.theme.TextHighlight
 
 
 enum class TailPosition {
@@ -116,16 +120,55 @@ class CharacterBubbleShape(
     }
 }
 
+// 팝업을 생성하고 BubbleContent를 띄우는 메인 Composable
 @Composable
 fun CharacterSpeechBubble(
     text: String,
     tailPosition: TailPosition,
+
+    // Live2DScreen에서 전달받을 위치 파라미터를 추가
+    alignment: Alignment,
+    pixelOffset: IntOffset,
+
     modifier: Modifier = Modifier,
-    backgroundColor: Color = Color(0xFFF8BBD0).copy(alpha = 0.85f),
+    backgroundColor: Color = TextHighlight.copy(alpha = 0.70f),
     cornerRadius: Dp = 16.dp,
     tailWidth: Dp = 24.dp,
     tailHeight: Dp = 16.dp,
     tailOffset: Dp = 40.dp // ← 꼬리 위치 고정
+) {
+    // Popup을 여기서 생성합니다.
+    Popup(
+        alignment = alignment,
+        offset = pixelOffset,
+        // 팝업 외부를 클릭해도 닫히지 않도록 focusable false 설정
+        properties = PopupProperties(focusable = false)
+    ) {
+        // 실제 말풍선 UI를 렌더링
+        BubbleContent(
+            text = text,
+            tailPosition = tailPosition,
+            modifier = modifier,
+            backgroundColor = backgroundColor,
+            cornerRadius = cornerRadius,
+            tailWidth = tailWidth,
+            tailHeight = tailHeight,
+            tailOffset = tailOffset
+        )
+    }
+}
+
+// 실제 말풍선 UI 내용을 렌더링하는 내부 Composable 함수
+@Composable
+private fun BubbleContent(
+    text: String,
+    tailPosition: TailPosition,
+    modifier: Modifier = Modifier,
+    backgroundColor: Color,
+    cornerRadius: Dp,
+    tailWidth: Dp,
+    tailHeight: Dp,
+    tailOffset: Dp
 ) {
     val shape = CharacterBubbleShape(tailPosition, cornerRadius, tailWidth, tailHeight, tailOffset)
     val alignment = when (tailPosition) {
@@ -133,13 +176,17 @@ fun CharacterSpeechBubble(
         TailPosition.Center -> Alignment.BottomCenter
         TailPosition.Right -> Alignment.BottomEnd
     }
+
+    // 이 Box가 실제 팝업의 콘텐츠 뷰가 됩니다.
     Box(
         modifier = modifier
             .wrapContentSize(align = alignment)
             .background(backgroundColor, shape)
-            .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = tailHeight+12.dp)
+            // 꼬리 높이만큼 하단 패딩 추가
+            .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = tailHeight + 12.dp)
             .widthIn(min = 120.dp, max = 280.dp) // 범위 제한
     ) {
+        // 텍스트 색상을 TextHighlight로 지정
         Text(text, style = MaterialTheme.typography.bodyMedium, color = Color.Black)
     }
 }
@@ -158,9 +205,10 @@ fun EditableSpeechBubbleDemo() {
                 onValueChange = { text = it },
                 label = { Text("텍스트 입력") }
             )
-            CharacterSpeechBubble(text, TailPosition.Left, Modifier ,Color(0xFFFFFFFF).copy(alpha=0.5f))
-            CharacterSpeechBubble(text, TailPosition.Center,Modifier ,Color(0xFFFFF176).copy(alpha=0.8f))
-            CharacterSpeechBubble(text, TailPosition.Right, Modifier,Color(0xFFA5D6A7).copy(alpha=0.8f))
+            // Preview에서는 Popup 없이 BubbleContent 직접 호출
+            BubbleContent(text, TailPosition.Left, Modifier ,Color(0xFFFFFFFF).copy(alpha=0.5f), 16.dp, 24.dp, 16.dp, 40.dp)
+            BubbleContent(text, TailPosition.Center, Modifier ,Color(0xFFFFF176).copy(alpha=0.8f), 16.dp, 24.dp, 16.dp, 40.dp)
+            BubbleContent(text, TailPosition.Right, Modifier, Color(0xFFA5D6A7).copy(alpha=0.8f), 16.dp, 24.dp, 16.dp, 40.dp)
         }
     }
 }
@@ -193,31 +241,34 @@ fun SpeechBubbleTestScreen() {
         }
 
         // 왼쪽 꼬리 → 화면 왼쪽 하단
-        CharacterSpeechBubble(
+        BubbleContent(
             text = inputText,
             tailPosition = TailPosition.Left,
             backgroundColor = Color(0xFF81D4FA).copy(alpha = 0.9f),
             modifier = Modifier
                 .align(Alignment.BottomStart)
-                .padding(16.dp)
+                .padding(16.dp),
+            cornerRadius = 16.dp, tailWidth = 24.dp, tailHeight = 16.dp, tailOffset = 40.dp
         )
 
         // 중앙 꼬리 → 화면 중앙
-        CharacterSpeechBubble(
+        BubbleContent(
             text = inputText,
             tailPosition = TailPosition.Center,
             backgroundColor = Color(0xFFFFF176).copy(alpha = 0.9f),
-            modifier = Modifier.align(Alignment.Center)
+            modifier = Modifier.align(Alignment.Center),
+            cornerRadius = 16.dp, tailWidth = 24.dp, tailHeight = 16.dp, tailOffset = 40.dp
         )
 
         // 오른쪽 꼬리 → 화면 오른쪽 하단
-        CharacterSpeechBubble(
+        BubbleContent(
             text = inputText,
             tailPosition = TailPosition.Right,
             backgroundColor = Color(0xFFA5D6A7).copy(alpha = 0.9f),
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(16.dp)
+                .padding(16.dp),
+            cornerRadius = 16.dp, tailWidth = 24.dp, tailHeight = 16.dp, tailOffset = 40.dp
         )
     }
 }
