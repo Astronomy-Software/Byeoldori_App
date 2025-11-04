@@ -65,7 +65,7 @@ class Live2DController @Inject constructor() {
     private val _width = MutableStateFlow(200.dp)
     private val _height = MutableStateFlow((_width.value.value / aspectRatio).dp)
 
-    val bubbleYOffset: StateFlow<Dp> = _height.map { (it * 0.1f) }.stateIn(scope, SharingStarted.Eagerly, 0.dp)
+    val bubbleYOffset: StateFlow<Dp> = _height.map { (it * 0.2f) }.stateIn(scope, SharingStarted.Eagerly, 0.dp)
 
     // 최종 Modifier 상태
     private val _viewModifier = MutableStateFlow(
@@ -235,7 +235,7 @@ class Live2DController @Inject constructor() {
         startOffsetXRatio: Float = 1.1f,   // 오른쪽 바깥
         startOffsetYRatio: Float = 0.0f,
         targetXRatio: Float = 0.25f,       // 화면 1/4
-        targetYRatio: Float = 0.5f,
+        targetYRatio: Float = 0.6f,
         minScale: Float = 0.1f,            // ✅ 아주 작게 시작
         maxScale: Float = 1.0f             // ✅ 최종 크기 제한
     ) {

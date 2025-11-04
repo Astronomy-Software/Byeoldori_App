@@ -25,6 +25,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
@@ -35,19 +37,22 @@ import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import com.example.byeoldori.ui.theme.TextHighlight
 
-
 enum class TailPosition {
-    Left,   // 왼쪽 말풍선 (고정 오프셋)
-    Right,  // 오른쪽 말풍선 (고정 오프셋)
+    Left,   // 왼쪽 말풍선
+    Right,  // 오른쪽 말풍선
     Center  // 중앙 말풍선
 }
 
+/**
+ * 💬 CharacterBubbleShape (말풍선 테두리 + 꼬리 포함)
+ * - 폭이 늘어날 때 꼬리 위치를 늘어난 폭의 절반만큼 오른쪽으로 보정
+ */
 class CharacterBubbleShape(
     private val tailPosition: TailPosition,
     private val cornerRadius: Dp = 32.dp,
     private val tailWidth: Dp = 32.dp,
     private val tailHeight: Dp = 16.dp,
-    private val tailOffset: Dp = 40.dp // ← 꼬리 위치 고정 오프셋
+    private val tailOffset: Dp = 40.dp
 ) : Shape {
     override fun createOutline(size: Size, layoutDirection: LayoutDirection, density: Density): Outline {
         val cornerRadiusPx = with(density) { cornerRadius.toPx() }
@@ -59,16 +64,28 @@ class CharacterBubbleShape(
         val mainBottomY = size.height - tailHeightPx
         val path = Path()
 
-        // 꼬리 base 위치 계산
+        // ✅ 기준 폭 (기본 말풍선 크기 기준)
+        val baseWidthPx = with(density) { 200.dp.toPx() }
+
+        // ✅ 현재 폭이 기준보다 얼마나 커졌는지 계산
+        val widthDelta = (width - baseWidthPx).coerceAtLeast(0f)
+
+        // ✅ 폭 증가분의 절반만큼 꼬리 위치 보정
+        val offsetCorrection = widthDelta * (2f / 3f)
+
+        // ✅ 꼬리 baseX 계산 (길이 증가 시 중앙축 기준으로 이동)
         val baseX = when (tailPosition) {
-            TailPosition.Left -> tailOffsetPx
-            TailPosition.Right -> width - tailOffsetPx
+            TailPosition.Left -> tailOffsetPx + offsetCorrection
+            TailPosition.Right -> width - tailOffsetPx - offsetCorrection
             TailPosition.Center -> width / 2f
         }
+
         val baseLeftX = baseX - tailWidthPx / 2
         val baseRightX = baseX + tailWidthPx / 2
 
-        // 말풍선 Path
+        // ===============================
+        //  Path 그리기
+        // ===============================
         path.moveTo(cornerRadiusPx, 0f)
 
         // 상단 → 오른쪽 위 코너
@@ -80,7 +97,7 @@ class CharacterBubbleShape(
             )
         }
 
-        // 오른쪽 변 → 오른쪽 아래
+        // 오른쪽 변
         path.lineTo(width, mainBottomY - cornerRadiusPx)
         if (cornerRadiusPx > 0) {
             path.arcTo(
@@ -89,14 +106,14 @@ class CharacterBubbleShape(
             )
         }
 
-        // 아래 변 (꼬리 전까지)
+        // 아래 변 (꼬리 시작 전까지)
         path.lineTo(baseRightX, mainBottomY)
 
-        // 꼬리 삼각형
+        // 꼬리
         path.lineTo(baseX, size.height)
         path.lineTo(baseLeftX, mainBottomY)
 
-        // 나머지 아래변
+        // 나머지 아래 변
         path.lineTo(cornerRadiusPx, mainBottomY)
         if (cornerRadiusPx > 0) {
             path.arcTo(
@@ -119,45 +136,58 @@ class CharacterBubbleShape(
     }
 }
 
-// 팝업을 생성하고 BubbleContent를 띄우는 메인 Composable
 @Composable
 fun CharacterSpeechBubble(
     text: String,
     tailPosition: TailPosition,
-
-    // Live2DScreen에서 전달받을 위치 파라미터를 추가
     alignment: Alignment,
     pixelOffset: IntOffset,
-
     modifier: Modifier = Modifier,
     backgroundColor: Color = TextHighlight.copy(alpha = 0.70f),
     cornerRadius: Dp = 16.dp,
     tailWidth: Dp = 24.dp,
     tailHeight: Dp = 16.dp,
-    tailOffset: Dp = 40.dp // ← 꼬리 위치 고정
+    tailOffset: Dp = 40.dp
 ) {
-    // Popup을 여기서 생성합니다.
+    val density = LocalDensity.current
+    var bubbleHeightPx by remember { mutableStateOf(0) }
+
+    // 💡 말풍선이 커질수록 위로 절반만큼 보정
+    val adjustedOffset = remember(pixelOffset, bubbleHeightPx) {
+        IntOffset(pixelOffset.x, pixelOffset.y - (bubbleHeightPx / 2))
+    }
+
     Popup(
         alignment = alignment,
-        offset = pixelOffset,
-        // 팝업 외부를 클릭해도 닫히지 않도록 focusable false 설정
-        properties = PopupProperties(focusable = false)
-    ) {
-        // 실제 말풍선 UI를 렌더링
-        BubbleContent(
-            text = text,
-            tailPosition = tailPosition,
-            modifier = modifier,
-            backgroundColor = backgroundColor,
-            cornerRadius = cornerRadius,
-            tailWidth = tailWidth,
-            tailHeight = tailHeight,
-            tailOffset = tailOffset
+        offset = adjustedOffset,
+        properties = PopupProperties(
+            focusable = false,       // 팝업에 포커스 주지 않음
+            dismissOnBackPress = false, // 뒤로가기 눌러도 닫히지 않음
+            dismissOnClickOutside = false, // 외부 터치 시 닫히지 않음
+            clippingEnabled = false, // (선택) 화면 밖으로 나가도 클리핑하지 않음
+            excludeFromSystemGesture = true // ✅ 제스처나 터치 이벤트 완전 무시
         )
+    ) {
+        Box(
+            modifier = modifier
+                .onGloballyPositioned { coordinates ->
+                    bubbleHeightPx = coordinates.size.height
+                }
+        ) {
+            BubbleContent(
+                text = text,
+                tailPosition = tailPosition,
+                modifier = Modifier,
+                backgroundColor = backgroundColor,
+                cornerRadius = cornerRadius,
+                tailWidth = tailWidth,
+                tailHeight = tailHeight,
+                tailOffset = tailOffset
+            )
+        }
     }
 }
 
-// 실제 말풍선 UI 내용을 렌더링하는 내부 Composable 함수
 @Composable
 private fun BubbleContent(
     text: String,
@@ -176,16 +206,13 @@ private fun BubbleContent(
         TailPosition.Right -> Alignment.BottomEnd
     }
 
-    // 이 Box가 실제 팝업의 콘텐츠 뷰가 됩니다.
     Box(
         modifier = modifier
             .wrapContentSize(align = alignment)
             .background(backgroundColor, shape)
-            // 꼬리 높이만큼 하단 패딩 추가
             .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = tailHeight + 12.dp)
-            .widthIn(min = 120.dp, max = 280.dp) // 범위 제한
+            .widthIn(min = 120.dp, max = 280.dp)
     ) {
-        // 텍스트 색상을 TextHighlight로 지정
         Text(text, style = MaterialTheme.typography.bodyMedium, color = Color.Black)
     }
 }
@@ -198,9 +225,8 @@ fun SpeechBubbleTestScreen() {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFECEFF1)) // 테스트용 배경
+            .background(Color(0xFFECEFF1))
     ) {
-        // 입력창 (상단 고정)
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -217,7 +243,7 @@ fun SpeechBubbleTestScreen() {
             Text("입력한 텍스트가 아래 말풍선에 반영됩니다!", style = MaterialTheme.typography.bodySmall)
         }
 
-        // 왼쪽 꼬리 → 화면 왼쪽 하단
+        // 왼쪽 꼬리
         BubbleContent(
             text = inputText,
             tailPosition = TailPosition.Left,
@@ -228,7 +254,7 @@ fun SpeechBubbleTestScreen() {
             cornerRadius = 16.dp, tailWidth = 24.dp, tailHeight = 16.dp, tailOffset = 40.dp
         )
 
-        // 중앙 꼬리 → 화면 중앙
+        // 중앙 꼬리
         BubbleContent(
             text = inputText,
             tailPosition = TailPosition.Center,
@@ -237,7 +263,7 @@ fun SpeechBubbleTestScreen() {
             cornerRadius = 16.dp, tailWidth = 24.dp, tailHeight = 16.dp, tailOffset = 40.dp
         )
 
-        // 오른쪽 꼬리 → 화면 오른쪽 하단
+        // 오른쪽 꼬리
         BubbleContent(
             text = inputText,
             tailPosition = TailPosition.Right,
