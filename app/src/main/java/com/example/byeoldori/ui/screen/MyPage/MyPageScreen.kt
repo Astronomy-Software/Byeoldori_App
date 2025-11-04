@@ -27,6 +27,7 @@ fun MyPageScreen(
     onOpenMyPrograms: () -> Unit = {},
     onOpenMyComments: () -> Unit = {},
     onOpenSupport: () -> Unit = {},
+    onOpenSettings: () -> Unit = {},
 ) {
 
     var baseMonth by remember { mutableStateOf(YearMonth.now()) }
@@ -70,7 +71,8 @@ fun MyPageScreen(
             onOpenMyBoards = onOpenMyBoards,
             onOpenMyPrograms = onOpenMyPrograms,
             onOpenMyComments = onOpenMyComments,
-            onOpenSchedule = onOpenSchedule
+            onOpenSchedule = onOpenSchedule,
+            onOpenSettings = onOpenSettings
         )
     }
 }
@@ -139,7 +141,7 @@ private fun MyPageContent(
                     MenuItem(title = "내가 작성한 교육 프로그램", onClick = onOpenMyPrograms),
                     MenuItem(title = "내가 작성한 댓글", onClick = onOpenMyComments),
                     MenuItem(title = "고객 센터", onClick = {}), // onOpenSupport
-                    MenuItem(title = "설정", onClick = {}), // onOpenSetting
+                    MenuItem(title = "설정", onClick = onOpenSettings),
                 )
             )
         }

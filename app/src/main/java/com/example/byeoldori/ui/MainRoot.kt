@@ -58,7 +58,8 @@ fun MainRoot() {
                         onOpenMyBoards = { nav.navigate("mypage/myboards") },
                         onOpenMyPrograms = { nav.navigate("mypage/myprograms") },
                         onOpenMyComments = { nav.navigate("mypage/mycomments") },
-                        onOpenSchedule = { nav.navigate("mypage/myschedule") }
+                        onOpenSchedule = { nav.navigate("mypage/myschedule") },
+                        onOpenSettings = { nav.navigate("mypage/settings") }
                     )
                 }
                 composable("mypage/likes") { LikeSection(onBack = { nav.popBackStack() }) }
@@ -66,6 +67,7 @@ fun MainRoot() {
                 composable("mypage/myprograms") { MyProgramList(onBack = { nav.popBackStack() }) }
                 composable("mypage/mycomments") { MyCommentList(onBack = { nav.popBackStack() }) }
                 composable("mypage/myschedule") { PlanCheckScreen(onBack = { nav.popBackStack() }) }
+                composable("mypage/settings") { SettingList(onBack = { nav.popBackStack() }) }
             }
         }
     }
