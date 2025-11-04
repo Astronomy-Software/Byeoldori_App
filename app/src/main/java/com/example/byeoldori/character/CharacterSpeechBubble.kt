@@ -33,7 +33,6 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
-import com.example.byeoldori.ui.theme.Background
 import com.example.byeoldori.ui.theme.TextHighlight
 
 
@@ -191,28 +190,6 @@ private fun BubbleContent(
     }
 }
 
-@Preview(showBackground = true, widthDp = 400)
-@Composable
-fun EditableSpeechBubbleDemo() {
-    var text by remember { mutableStateOf("수정 가능한 말풍선!") }
-    Background{
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            TextField(
-                value = text,
-                onValueChange = { text = it },
-                label = { Text("텍스트 입력") }
-            )
-            // Preview에서는 Popup 없이 BubbleContent 직접 호출
-            BubbleContent(text, TailPosition.Left, Modifier ,Color(0xFFFFFFFF).copy(alpha=0.5f), 16.dp, 24.dp, 16.dp, 40.dp)
-            BubbleContent(text, TailPosition.Center, Modifier ,Color(0xFFFFF176).copy(alpha=0.8f), 16.dp, 24.dp, 16.dp, 40.dp)
-            BubbleContent(text, TailPosition.Right, Modifier, Color(0xFFA5D6A7).copy(alpha=0.8f), 16.dp, 24.dp, 16.dp, 40.dp)
-        }
-    }
-}
-
 @Preview(showBackground = true, widthDp = 400, heightDp = 600)
 @Composable
 fun SpeechBubbleTestScreen() {
@@ -266,7 +243,7 @@ fun SpeechBubbleTestScreen() {
             tailPosition = TailPosition.Right,
             backgroundColor = Color(0xFFA5D6A7).copy(alpha = 0.9f),
             modifier = Modifier
-                .align(Alignment.BottomEnd)
+                .align(Alignment.TopEnd)
                 .padding(16.dp),
             cornerRadius = 16.dp, tailWidth = 24.dp, tailHeight = 16.dp, tailOffset = 40.dp
         )

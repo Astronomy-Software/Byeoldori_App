@@ -38,6 +38,7 @@ class Live2DController @Inject constructor() {
         live2DView = view
         view.visibility = View.GONE   // ✅ 기본값을 숨김으로 설정
     }
+
     fun detachView() { live2DView = null }
 
     /** 말풍선 상태 */
@@ -58,8 +59,8 @@ class Live2DController @Inject constructor() {
     private val _offsetX = MutableStateFlow(0.dp)
     private val _offsetY = MutableStateFlow(0.dp)
     private val aspectRatio =  9f / 16f
-    private val minWidth = 180.dp
-    private val minHeight = 320.dp
+    private val minWidth = 9.dp
+    private val minHeight = 16.dp
 
     private val _width = MutableStateFlow(200.dp)
     private val _height = MutableStateFlow((_width.value.value / aspectRatio).dp)
@@ -173,84 +174,6 @@ class Live2DController @Inject constructor() {
         }
     }
 
-    /** ✅ 애니메이션 이동 (예: 1.5초 동안 X축으로 총 +60dp 이동, 120fps 기준) */
-    fun animateMoveX(durationSeconds: Double, totalDx: Dp) {
-        scope.launch {
-            val fps = 120
-            val frames = (fps * durationSeconds).toInt()  // 총 프레임 수 (소수 → 정수 변환)
-            val step = totalDx / frames
-            val delayPerFrame = (1000.0 / fps).toLong()   // 1프레임당 지연시간 ≈ 8ms
-
-            repeat(frames) {
-                moveBy(step, 0.dp)
-                delay(delayPerFrame)
-            }
-        }
-    }
-
-    /** ✅ Ease-Out 애니메이션 이동 (예: 2초 동안 X축 +60dp 이동, 60fps 기준) */
-    fun animateMoveXEaseOut(durationSeconds: Double, totalDx: Dp) {
-        scope.launch {
-            val fps = 60
-            val frames = (fps * durationSeconds).toInt().coerceAtLeast(1) // 최소 1프레임 이상
-            val delayPerFrame = (1000.0 / fps).toLong()
-
-            repeat(frames) { i ->
-                val t = i.toDouble() / frames   // 0.0 ~ 1.0
-                val easedT = 1 - (1 - t) * (1 - t)  // EaseOutQuad
-
-                val currentX = (totalDx.value * easedT).dp
-                val prevX = if (i == 0) 0.dp
-                else (totalDx.value * (1 - (1 - (i - 1).toDouble() / frames).pow(2.0))).dp
-
-                // 이번 프레임에서 이동할 차이만큼 이동
-                moveBy(currentX - prevX, 0.dp)
-
-                delay(delayPerFrame)
-            }
-        }
-    }
-
-    fun animateCustomSmoothMove(durationSeconds: Double, totalDx: Dp, totalDy: Dp) {
-        scope.launch {
-            val fps = 60
-            val frames = (fps * durationSeconds).toInt().coerceAtLeast(1)
-            val delayPerFrame = (1000.0 / fps).toLong()
-
-            val dxTotal = totalDx.value
-            val dyTotal = totalDy.value
-
-            var prevX = 0f
-            var prevY = 0f
-
-            repeat(frames) { i ->
-                val t = i.toDouble() / frames // 0 ~ 1
-                val easedT = customEase(t)
-
-                val currentX = (dxTotal * easedT).toFloat()
-                val currentY = (dyTotal * easedT).toFloat()
-
-                val stepX = (currentX - prevX).dp
-                val stepY = (currentY - prevY).dp
-                moveBy(stepX, stepY)
-
-                prevX = currentX
-                prevY = currentY
-
-                delay(delayPerFrame)
-            }
-        }
-    }
-
-    // easing 함수
-    private fun customEase(t: Double): Double {
-        return if (t < 0.5) {
-            t * 0.12                // 앞 구간은 거의 직선 (1초 동안 약 12% 진척 → 500dp 중 30dp 정도)
-        } else {
-            0.12 + (1 - (1 - (t - 0.5) * 2).pow(2.0)) * 0.88
-        }
-    }
-
     /** ✅ X축 중앙 정렬 */
     fun centerHorizontally() {
         val displayMetrics = Resources.getSystem().displayMetrics
@@ -275,5 +198,207 @@ class Live2DController @Inject constructor() {
         val newOffsetY = (screenHeightDp - characterHeight) / 2
         _offsetY.value = newOffsetY
         refreshModifier()
+    }
+
+    fun fadeInCharacter(durationMs: Long = 2000L) {
+        live2DView?.apply {
+            alpha = 0f        // 완전 투명한 상태에서 시작
+            visibility = View.VISIBLE
+            animate()
+                .alpha(1f)    // 1로 천천히 복귀
+                .setDuration(durationMs)
+                .setStartDelay(0)
+                .withStartAction { _isVisible.value = true }
+                .withEndAction {
+                    alpha = 1f // 혹시 모를 잔여 상태 방지
+                }
+                .start()
+        }
+    }
+
+    fun fadeOutCharacter(durationMs: Long = 2000L) {
+        live2DView?.apply {
+            animate()
+                .alpha(0f)    // 서서히 투명해짐
+                .setDuration(durationMs)
+                .withEndAction {
+                    visibility = View.GONE
+                    alpha = 1f // 다음 등장 때 다시 보이도록 복구
+                    _isVisible.value = false
+                }
+                .start()
+        }
+    }
+
+    fun appearAtFixedPosition(
+        durationSeconds: Double = 3.0,
+        startOffsetXRatio: Float = 1.1f,   // 오른쪽 바깥
+        startOffsetYRatio: Float = 0.0f,
+        targetXRatio: Float = 0.25f,       // 화면 1/4
+        targetYRatio: Float = 0.5f,
+        minScale: Float = 0.1f,            // ✅ 아주 작게 시작
+        maxScale: Float = 1.0f             // ✅ 최종 크기 제한
+    ) {
+        scope.launch {
+            val metrics = Resources.getSystem().displayMetrics
+            val density = metrics.density
+
+            val screenWidthDp: Float
+            val screenHeightDp: Float
+
+            if (metrics.widthPixels > metrics.heightPixels) {
+                screenWidthDp = metrics.widthPixels / density
+                screenHeightDp = metrics.heightPixels / density
+            } else {
+                screenWidthDp = metrics.heightPixels / density
+                screenHeightDp = metrics.widthPixels / density
+            }
+
+            // 🎯 캐릭터 크기 보정값 (중심 정렬용)
+            val charWidth = _width.value.value
+            val charHeight = _height.value.value
+            val halfW = charWidth / 2f
+            val halfH = charHeight / 2f
+
+            // 📍 시작점 / 도착점 (중심 기준)
+            val startX = screenWidthDp * startOffsetXRatio - halfW
+            val startY = screenHeightDp * startOffsetYRatio - halfH
+            val targetX = screenWidthDp * targetXRatio - halfW
+            val targetY = screenHeightDp * targetYRatio - halfH
+
+            val dx = targetX - startX
+            val dy = targetY - startY
+
+            live2DView?.apply {
+                // 초기 상태 설정
+                alpha = 0f
+                scaleX = minScale
+                scaleY = minScale
+                visibility = View.VISIBLE
+                _isVisible.value = true
+
+                setLocation(startX.dp, startY.dp)
+
+                val fps = 60
+                val frames = (fps * durationSeconds).toInt().coerceAtLeast(1)
+                val delayPerFrame = (1000.0 / fps).toLong()
+
+                repeat(frames + 1) { i ->
+                    val t = i.toDouble() / frames
+                    // 🎢 부드럽게 감속하는 등장 (EaseOutCubic)
+                    val eased = 1 - (1 - t).pow(3.0)
+
+                    // 위치 보간
+                    val curX = startX + dx * eased
+                    val curY = startY + dy * eased
+                    setLocation(curX.dp, curY.dp)
+
+                    // ✅ scale 0.1 → 1.0 (maxScale로 제한)
+                    val scale = (minScale + (maxScale - minScale) * eased)
+                        .coerceIn(minScale.toDouble(), maxScale.toDouble())
+                        .toFloat()
+
+                    scaleX = scale
+                    scaleY = scale
+
+                    // ✅ 부드러운 fade-in
+                    alpha = eased.toFloat().coerceIn(0f, 1f)
+
+                    delay(delayPerFrame)
+                }
+
+                alpha = 1f
+                scaleX = maxScale
+                scaleY = maxScale
+                setLocation(targetX.dp, targetY.dp)
+            }
+        }
+    }
+
+    fun disappearAtFixedPosition(
+        durationSeconds: Double = 1.8,
+        endOffsetXRatio: Float = -0.2f,   // 왼쪽 바깥쪽으로 사라짐
+        endOffsetYRatio: Float = 0.0f,
+        minScale: Float = 0.1f,           // 사라질 때 최소 크기
+        maxScale: Float = 1.0f            // 현재 크기 기준
+    ) {
+        scope.launch {
+            val metrics = Resources.getSystem().displayMetrics
+            val density = metrics.density
+
+            val screenWidthDp: Double
+            val screenHeightDp: Double
+
+            if (metrics.widthPixels > metrics.heightPixels) {
+                screenWidthDp = metrics.widthPixels / density.toDouble()
+                screenHeightDp = metrics.heightPixels / density.toDouble()
+            } else {
+                screenWidthDp = metrics.heightPixels / density.toDouble()
+                screenHeightDp = metrics.widthPixels / density.toDouble()
+            }
+
+            // 현재 기준 (중심점 계산용)
+            val charWidth = _width.value.value.toDouble()
+            val charHeight = _height.value.value.toDouble()
+            val halfW = charWidth / 2.0
+            val halfH = charHeight / 2.0
+
+            // 현재 위치
+            val currentX = _offsetX.value.value.toDouble()
+            val currentY = _offsetY.value.value.toDouble()
+
+            // 목표 위치 (화면 왼쪽 바깥쪽으로 이동)
+            val targetX = screenWidthDp * endOffsetXRatio - halfW
+            val targetY = screenHeightDp * endOffsetYRatio - halfH
+
+            val dx = targetX - currentX
+            val dy = targetY - currentY
+
+            val baseWidth = _width.value
+
+            live2DView?.apply {
+                alpha = 1f
+                visibility = View.VISIBLE
+
+                val fps = 60
+                val frames = (fps * durationSeconds).toInt().coerceAtLeast(1)
+                val delayPerFrame = (1000.0 / fps).toLong()
+
+                var prevX = currentX
+                var prevY = currentY
+
+                repeat(frames + 1) { i ->
+                    val t = i.toDouble() / frames
+                    val eased = t.pow(3.0)
+
+                    // 이동
+                    val curX = currentX + dx * eased
+                    val curY = currentY + dy * eased
+                    val stepX = (curX - prevX).dp
+                    val stepY = (curY - prevY).dp
+                    moveBy(stepX, stepY)
+
+                    prevX = curX
+                    prevY = curY
+
+                    // ✅ 점점 축소
+                    val currentScale = (maxScale - (maxScale - minScale) * eased).toDouble()
+                        .coerceIn(minScale.toDouble(), maxScale.toDouble())
+                    val newWidth = (baseWidth.value.toDouble() * currentScale).dp
+                    setSize(newWidth)
+
+                    // ✅ fade-out
+                    alpha = (1.0 - eased).toFloat().coerceIn(0f, 1f)
+
+                    delay(delayPerFrame)
+                }
+
+                // 사라짐 처리
+                visibility = View.GONE
+                alpha = 1f
+                setSize(baseWidth)
+                _isVisible.value = false
+            }
+        }
     }
 }
