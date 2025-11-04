@@ -11,11 +11,14 @@ import androidx.compose.ui.graphics.*
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.byeoldori.data.model.dto.PlanDetailDto
 import com.example.byeoldori.ui.components.TopBar
 import com.example.byeoldori.ui.components.mypage.*
 import com.example.byeoldori.ui.theme.Purple500
-import java.time.LocalDateTime
-
+import com.example.byeoldori.viewmodel.Community.PlanViewModel
+import com.example.byeoldori.viewmodel.UiState
+import java.time.*
 
 enum class ObserveTab { Schedule, Review }
 
@@ -25,9 +28,10 @@ fun PlanCheckScreen(
     schedules: List<ScheduleUiModel> = emptyList(),
     onBack: () -> Unit = {},
     onAddSchedule: () -> Unit = {},
-    onEdit: (ScheduleUiModel) -> Unit = {},
-    onDelete: (ScheduleUiModel) -> Unit = {},
-    onWriteReview: (ScheduleUiModel) -> Unit = {},
+    onEdit: (PlanDetailDto) -> Unit = {},
+    onDelete: (PlanDetailDto) -> Unit = {},
+    onWriteReview: (PlanDetailDto) -> Unit = {},
+    planVm: PlanViewModel = hiltViewModel()
 ) {
     var currentTab by remember { mutableStateOf(ObserveTab.Schedule) }
     val bg = Brush.verticalGradient(listOf(Color(0xFF3B2377), Color(0xFF5B2F8F)))
@@ -35,9 +39,23 @@ fun PlanCheckScreen(
     var isInReviewDetail by remember { mutableStateOf(false) } //Detail 진입 여부
     var showWriteForm by remember { mutableStateOf(false) }
 
+    //오늘 날짜 기준으로 현재 월 데이터 불러오기
+    val now = remember { LocalDate.now() }
+    LaunchedEffect(now.year, now.monthValue) {
+        planVm.loadMonthPlans(now.year, now.monthValue)
+    }
+
+    val planState by planVm.monthPlansState.collectAsState()
+    val plans: List<PlanDetailDto> = remember(planState) {
+        when (val s = planState) {
+            is UiState.Success -> s.data
+            else -> emptyList()
+        }
+    }
+
     if(showWriteForm) {
         PlanWriteForm(
-            onBack = {showWriteForm = false}
+            onBack = { showWriteForm = false}
         )
     } else {
         Scaffold(
@@ -128,9 +146,9 @@ fun PlanCheckScreen(
                             Spacer(Modifier.height(8.dp))
 
                             LazyColumn(modifier = Modifier.fillMaxSize()) {
-                                itemsIndexed(schedules, key = { _, it -> it.id }) { index, item ->
+                                items(items = plans, key = { it.id }) { dto ->
                                     ObserveScheduleCard(
-                                        item = item,
+                                        item = dto,
                                         onEdit = onEdit,
                                         onDelete = onDelete,
                                         onWriteReview = onWriteReview,
