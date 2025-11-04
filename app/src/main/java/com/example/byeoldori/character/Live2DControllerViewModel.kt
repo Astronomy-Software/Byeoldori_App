@@ -42,7 +42,7 @@ class Live2DControllerViewModel @Inject constructor(
     fun playExitMotion() {
         viewModelScope.launch {
             controller.playMotion("Exit", 0) // 퇴장 모션
-            controller.disappearAtFixedPosition() // 오른쪽으로 이동
+            controller.disappearAtFixedPosition()
         }
     }
 }

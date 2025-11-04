@@ -10,8 +10,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -20,6 +22,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 
@@ -32,6 +37,9 @@ fun Live2DTestUI(
     val isCharacterVisible by controller.isVisible.collectAsState()
 
     var isPanelExpanded by remember { mutableStateOf(false) }
+
+    // 🗨️ 사용자 입력 텍스트 상태
+    var chatText by remember { mutableStateOf("") }
 
     Box(modifier = Modifier.fillMaxSize()) {
         // ---------------------------------------
@@ -54,8 +62,17 @@ fun Live2DTestUI(
             Surface(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(top = 60.dp, start = 8.dp, end = 8.dp, bottom = 8.dp),
-                tonalElevation = 6.dp
+                    .padding(top = 60.dp, start = 8.dp, end = 8.dp, bottom = 8.dp)
+                    .pointerInput(Unit) {
+                        awaitPointerEventScope {
+                            // 👇 모든 터치 이벤트를 받되, 소비하지 않고 그대로 통과시킴
+                            while (true) {
+                                awaitPointerEvent(pass = PointerEventPass.Final)
+                            }
+                        }
+                    },
+                color = Color.Transparent,
+                tonalElevation = 0.dp,
             ) {
                 LazyColumn(
                     modifier = Modifier
@@ -79,7 +96,7 @@ fun Live2DTestUI(
                         }
                     }
 
-                    // 2️⃣ 감정 표현 테스트 버튼 섹션
+                    // 2️⃣ 감정 표현 테스트
                     if (isCharacterVisible) {
                         item {
                             Column(
@@ -128,8 +145,9 @@ fun Live2DTestUI(
                                     controller.showSpeech("베텔게우스 🔥", TailPosition.Right, Alignment.TopCenter)
                                 }) { Text("💬 우측") }
                             }
-
                         }
+
+                        // 5️⃣ 페이드인/아웃
                         item {
                             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                                 Button(onClick = { controller.fadeInCharacter() }) { Text("페이드인") }
@@ -137,7 +155,7 @@ fun Live2DTestUI(
                             }
                         }
 
-                        // 5️⃣ 크기/위치 조정 및 기타
+                        // 6️⃣ 크기/위치 조정
                         item {
                             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                                 Button(onClick = { controller.resizeBy(50.dp) }) { Text("➕ 커지기") }
@@ -146,7 +164,39 @@ fun Live2DTestUI(
                             }
                         }
 
-                        // 6️⃣ 모션 리스트
+                        // 7️⃣ 사용자 입력 대사 전송 (채팅 입력)
+                        item {
+                            Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Text("💬 캐릭터에게 말 걸기", style = MaterialTheme.typography.titleSmall)
+
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    TextField(
+                                        value = chatText,
+                                        onValueChange = { chatText = it },
+                                        label = { Text("대사 입력...") },
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                    Button(
+                                        enabled = chatText.isNotBlank(),
+                                        onClick = {
+                                            controller.showSpeech(chatText, TailPosition.Left, Alignment.TopCenter)
+                                            chatText = ""
+                                        }
+                                    ) {
+                                        Text("보내기")
+                                    }
+                                }
+                            }
+                        }
+
+                        // 8️⃣ 모션 리스트
                         item { Button(onClick = { controller.refreshMotions() }) { Text("🔄 모션 새로고침") } }
                         items(motions) { fullName ->
                             val parts = fullName.split("_")
