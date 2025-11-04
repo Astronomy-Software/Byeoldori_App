@@ -19,7 +19,7 @@ val dummyReviews = mutableStateListOf(
         profile = R.drawable.profile1,
         viewCount = 60,
         createdAt = "20251029",
-        target = "태양",
+        targets = listOf("태양"),
         site = "충북대학교 천문대",
         date = "2025-10-29",
         siteScore = 5,
@@ -40,7 +40,7 @@ val dummyReviews = mutableStateListOf(
         profile = R.drawable.profile1,
         viewCount = 100,
         createdAt = "20251030",
-        target = "태양",
+        targets = listOf("태양"),
         site = "충북대학교 천문대",
         date = "2025-10-29",
         siteScore = 5,
@@ -60,7 +60,7 @@ val dummyReviews = mutableStateListOf(
         profile = R.drawable.profile1,
         viewCount = 80,
         createdAt = "20251129",
-        target = "태양",
+        targets = listOf("태양"),
         site = "충북대학교 천문대",
         date = "2025-10-30",
         siteScore = 5,
@@ -80,7 +80,7 @@ val dummyReviews = mutableStateListOf(
         profile = R.drawable.profile1,
         viewCount = 60,
         createdAt = "20251015",
-        target = "태양",
+        targets = listOf("태양"),
         site = "충북대학교 천문대",
         date = "2025-10-14",
         siteScore = 5,
@@ -100,7 +100,7 @@ val dummyReviews = mutableStateListOf(
         profile = R.drawable.profile1,
         viewCount = 20,
         createdAt = "20251014",
-        target = "태양",
+        targets = listOf("태양"),
         site = "충북대학교 천문대",
         date = "2025-10-10",
         siteScore = 5,
@@ -120,7 +120,7 @@ val dummyReviews = mutableStateListOf(
         profile = R.drawable.profile1,
         viewCount = 5,
         createdAt = "20251027",
-        target = "태양",
+        targets = listOf("태양"),
         site = "충북대학교 천문대",
         date = "2025-10-25",
         siteScore = 5,
@@ -335,7 +335,7 @@ val dummyPrograms = mutableStateListOf(
             Content.Text("실습 포함: 파인더 정렬, 배율 계산")
         ),
         liked = true,
-        target = "망원경",
+        targets = listOf("망원경"),
         averageScore = 4.5
     ),
     EduProgram(
@@ -355,7 +355,7 @@ val dummyPrograms = mutableStateListOf(
             Content.Text("필수 장비 체크리스트 제공")
         ),
         liked = false,
-        target = "유성우",
+        targets = listOf("유성우"),
         averageScore = 4.8
     ),
     EduProgram(
@@ -374,7 +374,7 @@ val dummyPrograms = mutableStateListOf(
             Content.Text("필터 사용과 관측 대상 추천")
         ),
         liked = false,
-        target = "별",
+        targets = listOf("별"),
         averageScore = 3.5
     )
 )

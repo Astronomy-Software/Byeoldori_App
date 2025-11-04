@@ -82,10 +82,11 @@ fun EduProgramDetail(
     val commentList: List<ReviewComment> =
         (commentsState as? UiState.Success)?.data ?: emptyList()
     val nonDeletedCount = remember(commentList) { commentList.count { !it.deleted } }
-    val commentCountUi = when {
-        nonDeletedCount > 0 -> nonDeletedCount
-        else -> commentCounts[program.id] ?: 0
-    }
+
+    val commentCountUi =
+        commentCounts[program.id]
+            ?: nonDeletedCount.takeIf { it > 0 }
+            ?: (apiPost?.commentCount ?: program.commentCount)
 
     val myNick: String? = if (myId == null) currentUser else null
 
@@ -295,10 +296,13 @@ fun EduProgramDetail(
                     Column(Modifier.weight(1f)) {
                         Text(text = "관측 대상", style = MaterialTheme.typography.labelLarge.copy(color = TextDisabled))
                         Spacer(Modifier.height(6.dp))
-                        Text(
-                        text = apiDetail?.education?.target ?: program.target ?: "—",
-                            style = MaterialTheme.typography.bodyLarge.copy(color = Color.White)
-                        )
+                        val targetDisplay = apiDetail?.education?.targets
+                            ?.filter { it.isNotBlank() }
+                            ?.joinToString(" , ")
+                            ?: program.targets?.joinToString(" , ")
+                            ?: "-"
+
+                        Text(text = targetDisplay, style = MaterialTheme.typography.bodyLarge.copy(color = Color.White))
                     }
 
                     Column(Modifier.weight(1f)) {

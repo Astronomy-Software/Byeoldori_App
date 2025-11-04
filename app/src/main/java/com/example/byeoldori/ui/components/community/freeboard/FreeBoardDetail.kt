@@ -64,7 +64,11 @@ fun FreeBoardDetail (
 
     var parent by remember { mutableStateOf<ReviewComment?>(null) }
     val commentsVm: CommentsViewModel = hiltViewModel() //화면에 연결된 CommentsViewModel 인스턴스 주입
+    LaunchedEffect(post.id) {
+        commentsVm.start(post.id)
+    }
     val commentsState by commentsVm.comments.collectAsState()
+    val commentCounts by commentsVm.commentCounts.collectAsState()
 
     val userVm: UserViewModel = hiltViewModel()
     LaunchedEffect(Unit) { userVm.getMyProfile() }
@@ -79,8 +83,10 @@ fun FreeBoardDetail (
     LaunchedEffect(post.id, nonDeletedCount) {
         vm?.overrideFreeCommentCount(post.id, nonDeletedCount)
     }
-    val commentCountUi = nonDeletedCount.takeIf { it > 0 }
-        ?: (apiPost?.commentCount ?: post.commentCount)
+    val commentCountUi =
+        commentCounts[post.id]
+            ?: nonDeletedCount.takeIf { it > 0 }
+            ?: (apiPost?.commentCount ?: post.commentCount)
 
     var moreMenu by remember { mutableStateOf(false) }
     var showDeleted by remember { mutableStateOf(false) }
@@ -111,7 +117,6 @@ fun FreeBoardDetail (
         }
     }
 
-    LaunchedEffect(post.id) { commentsVm.start(post.id) }
     LaunchedEffect(currentUserId, currentUserNickname) { Log.d("CommentCheck", "FreeBoardDetail 진입: meId=$currentUserId, meNick=$currentUserNickname") }
 
     Scaffold(

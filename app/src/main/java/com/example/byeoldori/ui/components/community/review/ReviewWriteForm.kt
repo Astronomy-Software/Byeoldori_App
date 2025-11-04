@@ -70,7 +70,9 @@ fun ReviewWriteForm(
     var title by rememberSaveable { mutableStateOf( initialReview?.title ?: "") }
     var ratingInt by rememberSaveable { mutableStateOf(initialReview?.rating ?: 0) }
     var rating by rememberSaveable { mutableStateOf(if (ratingInt > 0) "$ratingInt/5" else "") }
-    var target by rememberSaveable { mutableStateOf(initialReview?.target ?: "") }
+    //var target by rememberSaveable { mutableStateOf(initialReview?.targets ?: "") }
+
+    var targetsText by rememberSaveable { mutableStateOf(initialReview?.targets?.joinToString(", ") ?: "") }
     var site by rememberSaveable { mutableStateOf(initialReview?.site ?: "") }
     var equipment by rememberSaveable { mutableStateOf(initialReview?.equipment ?: "") }
     var date by rememberSaveable { mutableStateOf(initialReview?.date ?: "") }
@@ -193,7 +195,7 @@ fun ReviewWriteForm(
 
     fun validateRequirement(): Boolean {
         return title.isNotBlank() &&
-                target.isNotBlank() &&
+                targetsText.isNotBlank() &&
                 site.isNotBlank() &&
                 equipment.isNotBlank() &&
                 date.isNotBlank() &&
@@ -231,6 +233,11 @@ fun ReviewWriteForm(
         }
     }
 
+    fun parseTargets(raw: String): List<String> =
+        raw.split(',')
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+
     Box(Modifier.fillMaxSize()) {
         SnackbarHost(
             hostState = snackbar,
@@ -261,6 +268,7 @@ fun ReviewWriteForm(
                         if(validateRequirement()) {
                             val matchedId = findMatchingSiteId(site, sites)
                             val payloadContent = buildContentText(items)
+                            val targets = parseTargets(targetsText)
 
                             if (isEditMode) {
                                 val idL = initialReview!!.id.toLong()
@@ -269,7 +277,7 @@ fun ReviewWriteForm(
                                     title = title.trim(),
                                     content = payloadContent,
                                     location = site.trim(),
-                                    target = target.trim(),
+                                    targets = targets,
                                     equipment = equipment.trim(),
                                     observationDate = date,
                                     score = ratingInt,
@@ -283,7 +291,7 @@ fun ReviewWriteForm(
                                     title = title.trim(),
                                     content = buildContentText(items),
                                     location = site.trim(),
-                                    target = target.trim(),
+                                    targets = targets,
                                     equipment = equipment.trim(),
                                     observationDate = date,
                                     score = ratingInt,
@@ -315,8 +323,8 @@ fun ReviewWriteForm(
             }
             item {
                 ReviewInput(
-                    target = target,
-                    onTargetChange = { target = it },
+                    target = targetsText,
+                    onTargetChange = { targetsText = it },
                     site = site,
                     onSiteChange = { site = it },
                     equipment = equipment,

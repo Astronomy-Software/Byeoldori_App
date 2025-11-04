@@ -65,14 +65,6 @@ fun ProfileCard(
 
                             )
                         }
-                        IconButton(onClick = onOpenSettings) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_settings),
-                                contentDescription = "설정",
-                                tint = Color.White,
-                                modifier = Modifier.size(25.dp)
-                            )
-                        }
                     }
                 }
                 Text(

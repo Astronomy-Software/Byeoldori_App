@@ -13,7 +13,7 @@ data class Review (
     val profile: Int?,
     val viewCount: Int,  //조회수
     val createdAt: String, //작성 시점
-    val target: String,  //관측 대상
+    val targets: List<String> = emptyList(),  //관측 대상
     val site: String,    //관측지
     val date: String,    //관측 일자
     val siteScore: Int,
@@ -21,4 +21,8 @@ data class Review (
     val contentItems: List<Content>, //본문 + 이미지
     val liked: Boolean = false,
     val thumbnail: String? = null
-)
+) {
+    val targetDisplay: String
+        get() = targets.filter { it.isNotBlank() }
+            .joinToString(" , ")
+}

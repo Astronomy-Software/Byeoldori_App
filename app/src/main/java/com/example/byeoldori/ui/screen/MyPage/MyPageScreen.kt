@@ -12,6 +12,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.*
+import com.example.byeoldori.data.TestUserScreen
 import com.example.byeoldori.data.UserViewModel
 import com.example.byeoldori.ui.components.mypage.*
 import com.example.byeoldori.ui.theme.*
@@ -26,6 +27,7 @@ fun MyPageScreen(
     onOpenMyPrograms: () -> Unit = {},
     onOpenMyComments: () -> Unit = {},
     onOpenSupport: () -> Unit = {},
+    onOpenSettings: () -> Unit = {},
 ) {
 
     var baseMonth by remember { mutableStateOf(YearMonth.now()) }
@@ -68,10 +70,13 @@ fun MyPageScreen(
             onOpenLikes = onOpenLikes,
             onOpenMyBoards = onOpenMyBoards,
             onOpenMyPrograms = onOpenMyPrograms,
-            onOpenMyComments = onOpenMyComments
+            onOpenMyComments = onOpenMyComments,
+            onOpenSchedule = onOpenSchedule,
+            onOpenSettings = onOpenSettings
         )
     }
 }
+
 @Composable
 private fun MyPageContent(
     baseMonth: YearMonth,
@@ -87,6 +92,8 @@ private fun MyPageContent(
     onOpenMyBoards: () -> Unit = {},
     onOpenMyPrograms: () -> Unit = {},
     onOpenMyComments: () -> Unit = {},
+    onOpenSchedule: () -> Unit = {},
+    userVm: UserViewModel = hiltViewModel(),
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -128,17 +135,29 @@ private fun MyPageContent(
             MenuGroupCard(
                 containerColor = Color(0xFF3D2A79),
                 items = listOf(
-                    MenuItem(title = "관측 일정 및 나의 관측 후기", onClick = {}), // onOpenSchedule
-                    //MenuItem(title = "찜", onClick = {}), // onOpenBookmarks
+                    MenuItem(title = "관측 일정 및 나의 관측 후기", onClick = onOpenSchedule),
                     MenuItem(title = "좋아요", onClick = onOpenLikes),
                     MenuItem(title = "내가 작성한 자유게시글", onClick = onOpenMyBoards),
                     MenuItem(title = "내가 작성한 교육 프로그램", onClick = onOpenMyPrograms),
                     MenuItem(title = "내가 작성한 댓글", onClick = onOpenMyComments),
                     MenuItem(title = "고객 센터", onClick = {}), // onOpenSupport
+                    MenuItem(title = "설정", onClick = onOpenSettings),
                 )
             )
         }
         item { Spacer(Modifier.height(12.dp)) }
+
+        item {
+            Divider(
+                color = Color.White.copy(alpha = 0.3f),
+                thickness = 1.dp,
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
+        }
+
+        item {
+            TestUserScreen(vm = userVm)
+        }
     }
 }
 

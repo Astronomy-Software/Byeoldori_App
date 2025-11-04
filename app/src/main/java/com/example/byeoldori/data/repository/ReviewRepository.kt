@@ -50,7 +50,7 @@ class ReviewRepository @Inject constructor(
         title: String,
         content: String,
         location: String,
-        target: String,
+        targets: List<String>,
         equipment: String,
         observationDate: String,
         score: Int,
@@ -66,7 +66,7 @@ class ReviewRepository @Inject constructor(
             review = ReviewDto(
                 location = location,
                 observationSiteId = observationSiteId,
-                target = target,
+                targets = targets,
                 equipment = equipment,
                 observationDate = observationDate,
                 score = score
@@ -131,7 +131,7 @@ class ReviewRepository @Inject constructor(
         title: String,
         content: String,
         location: String,
-        target: String,
+        targets: List<String>,
         equipment: String,
         observationDate: String,
         score: Int,
@@ -145,7 +145,7 @@ class ReviewRepository @Inject constructor(
             review = ReviewDto(
                 location = location,
                 observationSiteId = observationSiteId,
-                target = target,
+                targets = targets,
                 equipment = equipment,
                 observationDate = observationDate,
                 score = score
