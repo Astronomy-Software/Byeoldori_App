@@ -64,7 +64,7 @@ class EducationRepository @Inject constructor(
                 difficulty = difficulty,
                 tags = tags,
                 status = status,
-                target = "",
+                targets = emptyList(),
                 averageScore = 0.0
             ),
             imageUrls = sanitized.ifEmpty { null }

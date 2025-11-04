@@ -44,8 +44,17 @@ fun MyProgramList(
         else -> emptyList()
     }
 
+    val commentsVm: CommentsViewModel = hiltViewModel()
+    val counts by commentsVm.commentCounts.collectAsState()
+
     val myPrograms = remember(allPrograms,myId) {
         if(myId == null) emptyList() else allPrograms.filter { it.authorId == myId }
+    }
+
+    val myProgramsUi = remember(myPrograms, counts) {
+        myPrograms.map { p ->
+            p.copy(commentCount = counts[p.id] ?: p.commentCount)
+        }
     }
 
     Background(modifier = Modifier.fillMaxSize()) {
@@ -107,7 +116,7 @@ fun MyProgramList(
                         }
                     } else {
                         EduProgramGrid(
-                            programs = myPrograms,
+                            programs = myProgramsUi,
                             onClickProgram = { myPrograms ->
                                 selectedProgram = myPrograms
                             },

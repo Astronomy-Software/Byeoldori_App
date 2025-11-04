@@ -15,6 +15,6 @@ data class EduProgram (
     val createdAt: String, //작성 시점
     val contentItems: List<Content>,
     val liked: Boolean,
-    val target: String? = null,
+    val targets: List<String>? = null,
     val averageScore: Double? = 0.0
 )

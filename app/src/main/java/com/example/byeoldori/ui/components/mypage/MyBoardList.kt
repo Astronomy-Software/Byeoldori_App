@@ -16,6 +16,7 @@ import com.example.byeoldori.domain.Community.FreePost
 import com.example.byeoldori.ui.components.community.freeboard.*
 import com.example.byeoldori.ui.theme.Background
 import com.example.byeoldori.ui.theme.*
+import com.example.byeoldori.viewmodel.Community.CommentsViewModel
 import com.example.byeoldori.viewmodel.Community.CommunityViewModel
 import com.example.byeoldori.viewmodel.UiState
 
@@ -40,8 +41,17 @@ fun MyBoardList(
         else -> emptyList()
     }
 
+    val commentsVm: CommentsViewModel = hiltViewModel()
+    val counts by commentsVm.commentCounts.collectAsState()
+
     val myPosts = remember(allPosts,myId) {
         if(myId == null) emptyList() else allPosts.filter { it.authorId == myId }
+    }
+
+    val myPostsUi = remember(myPosts, counts) {
+        myPosts.map { p ->
+            p.copy(commentCount = counts[p.id] ?: p.commentCount)
+        }
     }
 
     var selectedFree by remember { mutableStateOf<FreePost?>(null) }
@@ -126,7 +136,7 @@ fun MyBoardList(
                         }
                     } else {
                         FreeGrid(
-                            posts = myPosts,
+                            posts = myPostsUi,
                             onClick = { post ->
                                 selectedFree = post
                             },

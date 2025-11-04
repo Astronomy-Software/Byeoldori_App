@@ -335,7 +335,7 @@ val dummyPrograms = mutableStateListOf(
             Content.Text("실습 포함: 파인더 정렬, 배율 계산")
         ),
         liked = true,
-        target = "망원경",
+        targets = listOf("망원경"),
         averageScore = 4.5
     ),
     EduProgram(
@@ -355,7 +355,7 @@ val dummyPrograms = mutableStateListOf(
             Content.Text("필수 장비 체크리스트 제공")
         ),
         liked = false,
-        target = "유성우",
+        targets = listOf("유성우"),
         averageScore = 4.8
     ),
     EduProgram(
@@ -374,7 +374,7 @@ val dummyPrograms = mutableStateListOf(
             Content.Text("필터 사용과 관측 대상 추천")
         ),
         liked = false,
-        target = "별",
+        targets = listOf("별"),
         averageScore = 3.5
     )
 )

@@ -19,7 +19,7 @@ data class EducationDto(
     val difficulty: Difficulty? = null,
     val tags: String? = null,
     val status: EduStatus? = null,
-    val target: String? = null,
+    val targets: List<String>? = null,
     val averageScore: Double? = 0.0
 )
 
