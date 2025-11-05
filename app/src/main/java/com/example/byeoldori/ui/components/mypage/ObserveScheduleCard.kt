@@ -82,6 +82,7 @@ fun ObserveScheduleCard(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 12.dp, vertical = 6.dp)
+            .clickable { onWriteReview(item) } //카드 전체 클릭시 작성화면 열기
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
 

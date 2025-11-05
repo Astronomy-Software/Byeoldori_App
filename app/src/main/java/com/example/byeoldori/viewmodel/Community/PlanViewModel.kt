@@ -28,6 +28,12 @@ class PlanViewModel @Inject constructor(
     private val _monthPlansState = MutableStateFlow<UiState<List<PlanDetailDto>>>(UiState.Idle)
     val monthPlansState: StateFlow<UiState<List<PlanDetailDto>>> = _monthPlansState
 
+    private val _updateState = MutableStateFlow<UiState<PlanDetailDto>>(UiState.Idle)
+    val updateState: StateFlow<UiState<PlanDetailDto>> = _updateState
+
+    private val _deleteState = MutableStateFlow<UiState<Unit>>(UiState.Idle)
+    val deleteState: StateFlow<UiState<Unit>> = _deleteState
+
     fun loadMonthSummary(year: Int, month: Int) {
         _monthSummaryState.value = UiState.Loading
         viewModelScope.launch {
@@ -84,8 +90,39 @@ class PlanViewModel @Inject constructor(
         }
     }
 
+    fun updatePlan(id: Long, body: UpdatePlanRequest) {
+        _updateState.value = UiState.Loading
+        viewModelScope.launch {
+            try {
+                val updated = repo.updatePlan(id, body)
+                _updateState.value = UiState.Success(updated)
+                _detailState.value = UiState.Success(updated)
+            } catch(ce: CancellationException) {
+                throw ce
+            } catch(t: Throwable) {
+                _createState.value = UiState.Error(t.message ?: "관측 계획 수정 실패")
+            }
+        }
+    }
+
+    fun deletePlan(id: Long, onSuccess: (() -> Unit)? = null) {
+        _deleteState.value = UiState.Loading
+        viewModelScope.launch {
+            try {
+                repo.deletePlan(id)
+                _deleteState.value = UiState.Success(Unit)
+            } catch(ce: CancellationException) {
+                throw ce
+            } catch(t: Throwable) {
+                _createState.value = UiState.Error(t.message ?: "관측 계획 삭제 실패")
+            }
+        }
+    }
+
     /** 필요 시 외부에서 상태 초기화 */
     fun resetCreateState() { _createState.value = UiState.Idle }
     fun resetDetailState() { _detailState.value = UiState.Idle }
     fun resetMonthState() { _monthSummaryState.value = UiState.Idle }
+    fun resetUpdateState() { _updateState.value = UiState.Idle }
+    fun resetDeleteState() { _deleteState.value = UiState.Idle }
 }

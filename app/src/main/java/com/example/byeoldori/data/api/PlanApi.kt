@@ -28,4 +28,15 @@ interface PlanApi {
     suspend fun getEventsByDate(
         @Query("date") date: String // "YYYY-MM-DD"
     ): BaseResponse<List<PlanDetailDto>>
+
+    @PATCH("calendar/events/{id}")
+    suspend fun updatePlan(
+        @Path("id") id: Long,
+        @Body body: UpdatePlanRequest
+    ): BaseResponse<PlanDetailDto>
+
+    @DELETE("calendar/events/{id}")
+    suspend fun deletePlan(
+        @Path("id") id: Long
+    ): BaseResponse<Unit>
 }

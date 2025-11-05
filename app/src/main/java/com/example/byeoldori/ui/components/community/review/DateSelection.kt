@@ -85,6 +85,42 @@ fun DateTimeSelection(
     var startTime by remember { mutableStateOf("") }
     var endTime by remember { mutableStateOf("") }
 
+    LaunchedEffect(datetime) {
+        if (datetime.isNullOrBlank()) return@LaunchedEffect
+
+        fun pad2(i: Int) = "%02d".format(i)
+
+        // 케이스 A) "yyyy-MM-dd HH:mm HH:mm"
+        val a = Regex("""^(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2})\s+(\d{2}):(\d{2})$""")
+        // 케이스 B) "yy.MM.dd HH:mm ~ HH:mm"
+        val b = Regex("""^(\d{2})\.(\d{2})\.(\d{2})\s+(\d{2}):(\d{2})\s*~\s*(\d{2}):(\d{2})$""")
+
+        when {
+            a.matches(datetime) -> {
+                val m = a.find(datetime)!!.groupValues
+                val y = m[1].toInt(); val mo = m[2].toInt(); val d = m[3].toInt()
+                val sh = m[4].toInt(); val sm = m[5].toInt()
+                val eh = m[6].toInt(); val em = m[7].toInt()
+                startDate = "%04d-%02d-%02d".format(y, mo, d)
+                startTime = "${pad2(sh)}:${pad2(sm)}"
+                endTime   = "${pad2(eh)}:${pad2(em)}"
+            }
+            b.matches(datetime) -> {
+                val m = b.find(datetime)!!.groupValues
+                val y2 = m[1].toInt(); val y = 2000 + y2 // 20xx 가정
+                val mo = m[2].toInt(); val d = m[3].toInt()
+                val sh = m[4].toInt(); val sm = m[5].toInt()
+                val eh = m[6].toInt(); val em = m[7].toInt()
+                startDate = "%04d-%02d-%02d".format(y, mo, d)
+                startTime = "%02d:%02d".format(sh, sm)
+                endTime   = "%02d:%02d".format(eh, em)
+            }
+            else -> {
+                // 알 수 없는 포맷이면 그대로 둠
+            }
+        }
+    }
+
     val displayDate = remember(startDate, startTime, endTime) {
         if (startDate.isNotEmpty() && startTime.isNotEmpty() && endTime.isNotEmpty()) {
             try {
@@ -150,6 +186,13 @@ fun DateTimeSelection(
             } else {
                 Text(displayDate, fontSize = 14.sp, color = TextHighlight)
             }
+        }
+    }
+
+    fun emitPicked() {
+        if (startDate.isNotEmpty() && startTime.isNotEmpty() && endTime.isNotEmpty()) {
+            // PlanWriteForm.parseDateTimes가 기대하는 포맷 유지
+            onPicked("$startDate $startTime $endTime")
         }
     }
 }

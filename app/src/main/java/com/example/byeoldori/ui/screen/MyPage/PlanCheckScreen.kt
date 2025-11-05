@@ -53,9 +53,30 @@ fun PlanCheckScreen(
         }
     }
 
-    if(showWriteForm) {
+    val createState by planVm.createState.collectAsState()
+    LaunchedEffect(createState) {
+        if(createState is UiState.Success) {
+            showWriteForm = false
+            planVm.loadMonthPlans(now.year, now.monthValue)
+        }
+    }
+
+    val monthState by planVm.monthPlansState.collectAsState()
+    var selectedPlan by remember { mutableStateOf<PlanDetailDto?>(null) }
+    var showDetail by remember { mutableStateOf(false) }
+
+    if (showDetail && selectedPlan != null) {
+        LaunchedEffect(selectedPlan!!.id) {
+            planVm.loadPlanDetail(selectedPlan!!.id)
+        }
+        PlanDetail(
+            plan = selectedPlan!!,
+            onBack = { showDetail = false }
+        )
+    } else if (showWriteForm) {
         PlanWriteForm(
-            onBack = { showWriteForm = false}
+            onBack = { showWriteForm = false },
+            initialPlan = selectedPlan
         )
     } else {
         Scaffold(
@@ -131,7 +152,10 @@ fun PlanCheckScreen(
                             Spacer(Modifier.height(12.dp))
 
                             FilledTonalButton(
-                                onClick = { showWriteForm = true }, //onAddSchedule
+                                onClick = {
+                                    selectedPlan = null
+                                    showWriteForm = true
+                                }, //onAddSchedule
                                 shape = RoundedCornerShape(14.dp),
                                 colors = ButtonDefaults.filledTonalButtonColors(
                                     containerColor = Purple500, //0xFF9B7CFF
@@ -149,9 +173,16 @@ fun PlanCheckScreen(
                                 items(items = plans, key = { it.id }) { dto ->
                                     ObserveScheduleCard(
                                         item = dto,
-                                        onEdit = onEdit,
+                                        onEdit = { plan ->           // ← 수정 버튼 누르면
+                                            selectedPlan = plan
+                                            showDetail = false       // 혹시 열려있을 수도 있으니 닫고
+                                            showWriteForm = true     // ← WriteForm 열기
+                                        },
                                         onDelete = onDelete,
-                                        onWriteReview = onWriteReview,
+                                        onWriteReview = {
+                                            selectedPlan = dto          // ← 선택한 계획 기억
+                                            showDetail = true
+                                        },
                                         modifier = Modifier.fillMaxWidth()
                                     )
                                     HorizontalDivider(

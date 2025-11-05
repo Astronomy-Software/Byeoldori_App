@@ -42,4 +42,15 @@ class PlanRepository @Inject constructor(
 
         perDay.flatten().sortedBy { it.startAt }
     }
+
+    suspend fun updatePlan(id: Long, body: UpdatePlanRequest): PlanDetailDto {
+        val response = api.updatePlan(id, body)
+        if (!response.success) throw IllegalStateException(response.message ?: "관측 계획 수정 실패")
+        return response.data
+    }
+
+    suspend fun deletePlan(id: Long) {
+        val response = api.deletePlan(id)
+        if(!response.success) throw IllegalStateException(response.message ?: "관측 계획 삭제 실패")
+    }
 }

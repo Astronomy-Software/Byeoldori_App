@@ -59,3 +59,19 @@ data class PhotoDto(
     val url: String,
     val contentType: String?
 )
+
+@JsonClass(generateAdapter = true)
+data class UpdatePlanRequest(
+    val title: String? = null,
+    val startAt: String? = null,
+    val endAt: String? = null,
+    val targets: List<String>? = null,
+    val observationSiteId: Long? = null,
+    val lat: Double? = null,
+    val lon: Double? = null,
+    val placeName: String? = null,
+    val memo: String? = null,
+    val status: EventStatus? = null,
+    val addImageUrls: List<String> = emptyList(),
+    val removeImageIds: List<Long> = emptyList()
+)

@@ -13,20 +13,49 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.*
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.byeoldori.data.model.common.copyUriToCache
+import com.example.byeoldori.data.model.dto.CreatePlanRequest
+import com.example.byeoldori.data.model.dto.EventStatus
+import com.example.byeoldori.data.model.dto.PlanDetailDto
+import com.example.byeoldori.data.model.dto.UpdatePlanRequest
 import com.example.byeoldori.ui.components.community.*
 import com.example.byeoldori.ui.components.community.review.*
 import com.example.byeoldori.ui.theme.Purple600
 import com.example.byeoldori.viewmodel.Community.FileUploadViewModel
+import com.example.byeoldori.viewmodel.Community.PlanViewModel
 import com.example.byeoldori.viewmodel.UiState
 import kotlinx.coroutines.launch
+import java.time.LocalDateTime
+import java.time.OffsetDateTime
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+
+private fun parseDateTimeFlexible(raw: String): LocalDateTime {
+    runCatching { return ZonedDateTime.parse(raw).toLocalDateTime() }
+    runCatching { return OffsetDateTime.parse(raw).toLocalDateTime() }
+    runCatching { return LocalDateTime.parse(raw) }
+    val noSec = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm")
+    runCatching { return LocalDateTime.parse(raw, noSec) }
+    return LocalDateTime.now()
+}
+
+private fun makeDateFieldValue(startAt: String, endAt: String): String {
+    val s = parseDateTimeFlexible(startAt)
+    val e = parseDateTimeFlexible(endAt)
+    val d = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+    val t = DateTimeFormatter.ofPattern("HH:mm")
+    return "${s.format(d)} ${s.format(t)} ${e.format(t)}"
+}
 
 @Composable
 fun PlanWriteForm(
-    onBack: () -> Unit = {}
+    onBack: () -> Unit = {},
+    planVm: PlanViewModel = hiltViewModel(),
+    initialPlan: PlanDetailDto? = null
 ) {
     val scope = rememberCoroutineScope()
     var showSavedDialog by remember { mutableStateOf(false) }
@@ -43,8 +72,8 @@ fun PlanWriteForm(
 
     val pickImages = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickMultipleVisualMedia(maxItems = 10)
-    ) { uris -> //uri리스트
-        val picked = uris ?: emptyList() //아무것도 안골랐을 수도 있으니 nullable
+    ) { uris: List<Uri> -> //uri리스트
+        val picked = uris  //아무것도 안골랐을 수도 있으니 nullable
 
         // ContentInput이 넘겨준 onPicked를 여기서 호출
         pendingOnPicked?.invoke(picked)
@@ -85,6 +114,15 @@ fun PlanWriteForm(
         }
     }
 
+    var title by rememberSaveable { mutableStateOf("") }
+    var date by rememberSaveable { mutableStateOf("") }
+    var target by rememberSaveable { mutableStateOf("") }
+    var site by rememberSaveable { mutableStateOf("") }
+    var memo by rememberSaveable { mutableStateOf("") }
+
+    val createState by planVm.createState.collectAsState()
+    val updateState by planVm.updateState.collectAsState()
+
     //초기 내용 입력창 하나 생기도록
     LaunchedEffect(Unit) {
         if(editorItems.none { it is EditorItem.Paragraph }) {
@@ -121,6 +159,56 @@ fun PlanWriteForm(
         }
     }
 
+    LaunchedEffect(initialPlan) {
+        initialPlan ?: return@LaunchedEffect
+        title = initialPlan.title.orEmpty()
+        date = makeDateFieldValue(initialPlan.startAt, initialPlan.endAt)
+        target = initialPlan.targets?.filter { it.isNotBlank() }?.joinToString(", ") ?: initialPlan.title.orEmpty()
+        site = initialPlan.placeName ?: (initialPlan.observationSiteName ?: "")
+        memo = initialPlan.memo ?: ""
+        val paragraph = if (memo.isNotBlank()) {
+            EditorItem.Paragraph(value = TextFieldValue(memo))
+        } else {
+            EditorItem.Paragraph()
+        }
+        val photos = initialPlan.photos?.mapNotNull { it.url }?.map { EditorItem.Photo(model = it) } ?: emptyList()
+        editorItems = listOf(paragraph) + photos
+    }
+
+    fun buildContentText(items: List<EditorItem>): String =
+        items.joinToString("\n") { if (it is EditorItem.Paragraph) it.value.text else "" }
+
+    fun collectImageUrls(items: List<EditorItem>): List<String> =
+        items.filterIsInstance<EditorItem.Photo>()
+            .mapNotNull { it.model as? String }
+
+    fun parseDateTimes(raw: String): Pair<String, String> {
+        // raw 예: "2025-11-05 20:50 23:10"
+        val parts = raw.split(" ")
+        return if (parts.size >= 3) {
+            val startIso = "${parts[0]}T${parts[1]}"
+            val endIso = "${parts[0]}T${parts[2]}"
+            startIso to endIso
+        } else {
+            "" to ""
+        }
+    }
+
+    LaunchedEffect(createState) {
+        when (val s = createState) {
+            is UiState.Success -> { showSavedDialog = true }
+            is UiState.Error -> { snackbar.showSnackbar(s.message ?: "관측 계획 생성 실패") }
+            else -> Unit
+        }
+    }
+    LaunchedEffect(updateState) {
+        when (val s = updateState) {
+            is UiState.Success -> showSavedDialog = true
+            is UiState.Error   -> snackbar.showSnackbar(s.message ?: "관측 계획 수정 실패")
+            else -> Unit
+        }
+    }
+
     Box(Modifier.fillMaxSize()) {
         SnackbarHost(
             hostState = snackbar,
@@ -147,7 +235,59 @@ fun PlanWriteForm(
             item {
                 WriteBar(
                     onSubmit = {
-                        showSavedDialog = true //저장완료 다이얼로그
+                        val images = collectImageUrls(editorItems)
+                        val content = buildContentText(editorItems).trim()
+
+                        val (startIso, endIso) = parseDateTimes(date)
+                        if (startIso.isBlank() || endIso.isBlank()) {
+                            scope.launch { snackbar.showSnackbar("관측 일시를 선택해주세요") }
+                            return@WriteBar
+                        }
+
+//                        val body = CreatePlanRequest(
+//                            title =  if (title.isNotBlank()) title else "-",
+//                            startAt = startIso,
+//                            endAt = endIso,
+//                            observationSiteId = null,          // 관측지 id 매칭 시 여기에 설정
+//                            targets = target.split(',').map { it.trim() }.filter { it.isNotEmpty() },                // 서버가 sweFormat 요구 시 변환 로직 추가
+//                            lat = null, lon = null,
+//                            placeName = site.ifBlank { null }, // 장소명
+//                            memo = content.ifBlank { null },
+//                            imageUrls = images
+//                        )
+                        if (initialPlan == null) {
+                            // ➤ 생성: 기존 그대로
+                            val body = CreatePlanRequest(
+                                title = if (title.isNotBlank()) title else "-",
+                                startAt = startIso,
+                                endAt = endIso,
+                                observationSiteId = null,
+                                targets = target.split(',').map { it.trim() }.filter { it.isNotEmpty() },
+                                lat = null, lon = null,
+                                placeName = site.ifBlank { null },
+                                memo = content.ifBlank { null },
+                                imageUrls = images
+                            )
+                            planVm.createPlan(body)
+                        } else {
+                            val existing = initialPlan.photos?.mapNotNull { it.url } ?: emptyList()
+                            val addOnly = images.filter { it !in existing }
+
+                            val body = UpdatePlanRequest(
+                                title = if (title.isNotBlank()) title else null,
+                                startAt = startIso,
+                                endAt = endIso,
+                                targets = target.split(',').map { it.trim() }.filter { it.isNotEmpty() }.ifEmpty { null },
+                                observationSiteId = null,
+                                lat = null, lon = null,
+                                placeName = site.ifBlank { null },
+                                memo = content.ifBlank { null },
+                                status = EventStatus.PLANNED, // 필요 시 유지/제거
+                                addImageUrls = addOnly,
+                                removeImageIds = emptyList()
+                            )
+                            planVm.updatePlan(initialPlan.id, body)
+                        }
                     },
                     onTempSave = {
                         scope.launch {
@@ -162,17 +302,22 @@ fun PlanWriteForm(
                     }
                 )
             }
+            item { Divider(color = Color.White.copy(alpha = 0.6f), thickness = 1.dp, modifier = Modifier.offset(y = (-15).dp)) }
+            item { TitleInput(title = title, onValueChange = { title = it }, placeholder = "제목을 입력해주세요") }
+            item { Divider(color = Color.White.copy(alpha = 0.6f), thickness = 1.dp, modifier = Modifier.offset(y = (-15).dp)) }
 
             item {
-                Divider(
-                    color = Color.White.copy(alpha = 0.6f),
-                    thickness = 1.dp,
-                    modifier = Modifier.offset(y = (-15).dp)
-
+                PlanInputSection(
+                    date = date,
+                    onDateChange = { date = it },
+                    target = target,
+                    onTargetChange = { target = it },
+                    site = site,
+                    onSiteChange = { site = it },
+                    memo = memo,
+                    onMemoChange = { memo = it }
                 )
-            }
-
-            item { PlanInputSection() } //관측 일자, 관측 대상, 관측지
+            } //관측 일자, 관측 대상, 관측지
 
             item {
                 Spacer(Modifier.height(8.dp))
@@ -197,7 +342,6 @@ fun PlanWriteForm(
                 )
             }
         }
-
         if (showSavedDialog) {
             AlertDialog(
                 onDismissRequest = { showSavedDialog = false },
@@ -206,6 +350,8 @@ fun PlanWriteForm(
                 confirmButton = {
                     TextButton(onClick = {
                         showSavedDialog = false
+                        planVm.resetCreateState()
+                        planVm.resetUpdateState()
                         onBack() // 저장 후 이전 화면으로 복귀 (원치 않으면 제거)
                     }) {
                         Text("확인")
@@ -217,11 +363,16 @@ fun PlanWriteForm(
 }
 
 @Composable
-fun PlanInputSection() {
-    var date by rememberSaveable { mutableStateOf("") }
-    var site by rememberSaveable { mutableStateOf("") }
-    var target by rememberSaveable { mutableStateOf("") }
-
+fun PlanInputSection(
+    date: String,
+    onDateChange: (String) -> Unit,
+    target: String,
+    onTargetChange: (String) -> Unit,
+    site: String,
+    onSiteChange: (String) -> Unit,
+    memo: String,
+    onMemoChange: (String) -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -230,7 +381,7 @@ fun PlanInputSection() {
         DateTimeSelection(
             label = "관측 일자",
             datetime = date,
-            onPicked = { date = it }
+            onPicked = onDateChange
         )
 
         Spacer(Modifier.height(6.dp))
@@ -238,7 +389,7 @@ fun PlanInputSection() {
         Label(
             title = "관측 대상",
             value = target,
-            onValueChange = { target = it },
+            onValueChange = onTargetChange,
             placeholder = "관측 대상을 선택해주세요",
             selectable = false,
             enabled = true
@@ -248,19 +399,14 @@ fun PlanInputSection() {
         Label(
             title = "관측지",
             value = site,
-            onValueChange = { site = it },
+            onValueChange = onSiteChange,
             placeholder = "관측지를 선택해주세요",
             selectable = false,
             enabled = true
         )
 
         Spacer(Modifier.height(6.dp))
-
-        Divider(
-            color = Color.White.copy(alpha = 0.6f),
-            thickness = 2.dp,
-            modifier = Modifier.padding(top = 6.dp, bottom = 12.dp)
-        )
+        Divider(color = Color.White.copy(alpha = 0.6f), thickness = 2.dp, modifier = Modifier.padding(top = 6.dp, bottom = 12.dp))
     }
 }
 
