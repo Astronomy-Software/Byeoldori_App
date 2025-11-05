@@ -49,7 +49,7 @@ class Live2DController @Inject constructor() {
     val tailPosition: StateFlow<TailPosition> = _tailPosition
 
     private val _alignment = MutableStateFlow(Alignment.TopCenter)
-    val alignment: StateFlow<Alignment> = _alignment
+    val alignment: StateFlow<Alignment> = _alignment // TODO : 이거 잘안쓰긴하는데 일단 추후 수정예정
 
     /** 모션 목록 */
     private val _motions = MutableStateFlow<List<String>>(emptyList())
