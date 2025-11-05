@@ -38,5 +38,5 @@ interface PlanApi {
     @DELETE("calendar/events/{id}")
     suspend fun deletePlan(
         @Path("id") id: Long
-    ): BaseResponse<Unit>
+    ): BaseResponse<Any?>
 }

@@ -17,6 +17,7 @@ import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
+import androidx.compose.ui.Alignment
 
 data class ScheduleUiModel(
     val id: Long,
@@ -82,7 +83,6 @@ fun ObserveScheduleCard(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 12.dp, vertical = 6.dp)
-            .clickable { onWriteReview(item) } //카드 전체 클릭시 작성화면 열기
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
 
@@ -92,6 +92,7 @@ fun ObserveScheduleCard(
                     modifier = Modifier
                         .align(Alignment.TopStart)
                         .padding(end = 72.dp)
+                        .clickable { onWriteReview(item) }
                 ) {
                     Text("관측 일자", style = MaterialTheme.typography.labelSmall, color = labelColor)
                     Spacer(Modifier.height(2.dp))

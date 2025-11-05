@@ -54,7 +54,7 @@ private fun makeDateFieldValue(startAt: String, endAt: String): String {
 @Composable
 fun PlanWriteForm(
     onBack: () -> Unit = {},
-    planVm: PlanViewModel = hiltViewModel(),
+    planVm: PlanViewModel,
     initialPlan: PlanDetailDto? = null
 ) {
     val scope = rememberCoroutineScope()
@@ -243,18 +243,6 @@ fun PlanWriteForm(
                             scope.launch { snackbar.showSnackbar("관측 일시를 선택해주세요") }
                             return@WriteBar
                         }
-
-//                        val body = CreatePlanRequest(
-//                            title =  if (title.isNotBlank()) title else "-",
-//                            startAt = startIso,
-//                            endAt = endIso,
-//                            observationSiteId = null,          // 관측지 id 매칭 시 여기에 설정
-//                            targets = target.split(',').map { it.trim() }.filter { it.isNotEmpty() },                // 서버가 sweFormat 요구 시 변환 로직 추가
-//                            lat = null, lon = null,
-//                            placeName = site.ifBlank { null }, // 장소명
-//                            memo = content.ifBlank { null },
-//                            imageUrls = images
-//                        )
                         if (initialPlan == null) {
                             // ➤ 생성: 기존 그대로
                             val body = CreatePlanRequest(
@@ -410,6 +398,6 @@ fun PlanInputSection(
     }
 }
 
-@Preview(name = "PlanWriteForm Preview", showBackground = true, backgroundColor = 0xFF241860)
-@Composable
-private fun Preview_PlanWriteForm() { PlanWriteForm(onBack = {}) }
+//@Preview(name = "PlanWriteForm Preview", showBackground = true, backgroundColor = 0xFF241860)
+//@Composable
+//private fun Preview_PlanWriteForm() { PlanWriteForm(onBack = {}) }

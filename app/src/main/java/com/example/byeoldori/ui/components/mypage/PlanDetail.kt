@@ -42,7 +42,7 @@ private fun makeDisplayDate(startAt: String, endAt: String): String {
 fun PlanDetail(
     plan: PlanDetailDto,
     onBack: () -> Unit = {},
-    planVm: PlanViewModel = hiltViewModel()
+    planVm: PlanViewModel
 ) {
     val detailState by planVm.detailState.collectAsState()
     val currentPlan = when (val s = detailState) {
@@ -148,34 +148,34 @@ private fun LabeledField(label: String, value: String) {
     }
 }
 
-private fun dummyPlan(): PlanDetailDto = PlanDetailDto(
-    id = 3L,
-    title = "오리온자리 관측하기",
-    startAt = "2025-11-04T21:00",
-    endAt   = "2025-11-04T22:00",
-    targets = listOf("오리온자리"),
-    observationSiteId = 3L,
-    observationSiteName = "충북대 대운동장",
-    lat = 36.62599134299997,
-    lon = 127.46185397919821,
-    placeName = "충북대 대운동장",
-    status = EventStatus.PLANNED,
-    memo = "오리온대(벨트)와 M42를 중심으로 관측 예정. 간단 스케치 후 비교.",
-    photos = emptyList(),
-    createdAt = "",
-    updatedAt = ""
-)
-
-private fun dummyPlanNoPhoto(): PlanDetailDto =
-    dummyPlan().copy(photos = emptyList(), memo = "")
-
-@Preview(
-    name = "PlanDetail - No Photo",
-    showBackground = true,
-    backgroundColor = 0xFF241860,
-    widthDp = 360, heightDp = 720
-)
-@Composable
-private fun Preview_PlanDetail_NoPhoto() {
-    PlanDetail(plan = dummyPlanNoPhoto())
-}
+//private fun dummyPlan(): PlanDetailDto = PlanDetailDto(
+//    id = 3L,
+//    title = "오리온자리 관측하기",
+//    startAt = "2025-11-04T21:00",
+//    endAt   = "2025-11-04T22:00",
+//    targets = listOf("오리온자리"),
+//    observationSiteId = 3L,
+//    observationSiteName = "충북대 대운동장",
+//    lat = 36.62599134299997,
+//    lon = 127.46185397919821,
+//    placeName = "충북대 대운동장",
+//    status = EventStatus.PLANNED,
+//    memo = "오리온대(벨트)와 M42를 중심으로 관측 예정. 간단 스케치 후 비교.",
+//    photos = emptyList(),
+//    createdAt = "",
+//    updatedAt = ""
+//)
+//
+//private fun dummyPlanNoPhoto(): PlanDetailDto =
+//    dummyPlan().copy(photos = emptyList(), memo = "")
+//
+//@Preview(
+//    name = "PlanDetail - No Photo",
+//    showBackground = true,
+//    backgroundColor = 0xFF241860,
+//    widthDp = 360, heightDp = 720
+//)
+//@Composable
+//private fun Preview_PlanDetail_NoPhoto() {
+//    PlanDetail(plan = dummyPlanNoPhoto())
+//}
