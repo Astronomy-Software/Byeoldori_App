@@ -231,7 +231,7 @@ class Live2DController @Inject constructor() {
     }
 
     fun appearAtFixedPosition(
-        durationSeconds: Double = 3.0,
+        durationSeconds: Double = 2.0,
         startOffsetXRatio: Float = 1.1f,   // 오른쪽 바깥
         startOffsetYRatio: Float = 0.0f,
         targetXRatio: Float = 0.25f,       // 화면 1/4

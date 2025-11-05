@@ -16,10 +16,9 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.live2d.live2dview.LAppDelegate
 
-// Context에서 Activity를 찾기 위한 헬퍼 함수
+// Context에서 Activity를 찾는 헬퍼
 private fun Context.findActivity(): Activity? = when (this) {
     is Activity -> this
     is ContextWrapper -> baseContext.findActivity()
@@ -27,18 +26,20 @@ private fun Context.findActivity(): Activity? = when (this) {
 }
 
 /**
- * Jetpack Compose 환경에서 Live2D 모델을 렌더링하는 Composable View입니다.
+ * Jetpack Compose에서 Live2D 캐릭터를 표시하는 Composable.
+ * 이제 전역 싱글톤 기반 ViewModel을 직접 참조함.
  */
 @Composable
-fun Live2DScreen(
-    vm: Live2DControllerViewModel = hiltViewModel()
-) {
+fun Live2DScreen() {
     val context = LocalContext.current
     val density = LocalDensity.current
     val activity = context.findActivity()
-        ?: throw IllegalStateException("Live2DComposeView must be used within an Activity context.")
+        ?: throw IllegalStateException("Live2DScreen은 Activity 컨텍스트 내에서만 사용 가능합니다.")
 
-    val controller = vm.controller
+    // 전역 Live2D 컨트롤러 접근
+    val controller = Live2DControllerViewModel.controller
+
+    // Live2D View 생성 및 attach
     val live2DView = remember {
         Live2DGLSurfaceView(context).apply {
             controller.attachView(this)
@@ -50,17 +51,17 @@ fun Live2DScreen(
     val tail by controller.tailPosition.collectAsState()
     val align by controller.alignment.collectAsState()
     val modifier by controller.viewModifier.collectAsState()
-    val bubbleYOffset by controller.bubbleYOffset.collectAsState() // ViewModel에서 세로 위치 관리
+    val bubbleYOffset by controller.bubbleYOffset.collectAsState()
     val isVisible by controller.isVisible.collectAsState()
 
-    // 꼬리 위치에 따른 가로 오프셋 (DP)
+    // 꼬리 위치에 따른 가로 오프셋 계산
     val xOffset = when (tail) {
         TailPosition.Left -> 40.dp
         TailPosition.Right -> (-40).dp
         TailPosition.Center -> 0.dp
     }
 
-    // DP 값을 픽셀 정수(IntOffset)로 변환하여 Popup에 전달
+    // DP → 픽셀 변환
     val pixelOffset = remember(xOffset, bubbleYOffset, density) {
         with(density) {
             IntOffset(
@@ -70,19 +71,19 @@ fun Live2DScreen(
         }
     }
 
+    // 본문 UI
     Box(modifier) {
-        // Live2DGLSurfaceView를 Compose 트리에 통합
+        // Live2DGLSurfaceView를 Compose 트리에 삽입
         AndroidView(
             modifier = Modifier.fillMaxSize(),
             factory = {
                 LAppDelegate.getInstance().onStart(activity)
-                // Live2D Surface 투명도 확보 및 Z-Order 최상단 설정
                 live2DView.setZOrderOnTop(true)
                 live2DView
             }
         )
 
-        // Compose Lifecycle 관리
+        // 생명주기 관리
         DisposableEffect(Unit) {
             live2DView.onResume()
             onDispose {
@@ -93,13 +94,13 @@ fun Live2DScreen(
             }
         }
 
-        // 팝업 생성 로직은 CharacterSpeechBubble로 이동
+        // 말풍선 표시
         if (isVisible) {
             CharacterSpeechBubble(
                 text = speech,
                 tailPosition = tail,
-                alignment = align,      // Popup의 기준 정렬
-                pixelOffset = pixelOffset, // Popup의 픽셀 오프셋 (머리 중앙 위치)
+                alignment = align,
+                pixelOffset = pixelOffset,
                 modifier = Modifier
             )
         }

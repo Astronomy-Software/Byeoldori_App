@@ -26,12 +26,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 
 @Composable
-fun Live2DTestUI(
-    vm: Live2DControllerViewModel = hiltViewModel()
-) {
+fun Live2DTestUI() {
+    // ✅ Hilt 제거 → 싱글톤 직접 참조
+    val vm = Live2DControllerViewModel
     val controller = vm.controller
     val motions by controller.motions.collectAsState()
     val isCharacterVisible by controller.isVisible.collectAsState()
