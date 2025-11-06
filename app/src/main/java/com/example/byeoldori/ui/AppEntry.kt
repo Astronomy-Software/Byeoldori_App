@@ -30,7 +30,8 @@ fun AppEntry() {
     val authVm: AuthViewModel = hiltViewModel() // ✅ Hilt ViewModelFactory 사용
     val signedIn by authVm.isSignedIn.collectAsState()
     val eduVm: EduViewModel = hiltViewModel()
-//    val viewEduProgram by eduVm.viewEduProgram.collectAsState()
+    val viewEduProgram by eduVm.viewEduProgram.collectAsState()
+
 
     Box {
         if (signedIn) {
@@ -38,8 +39,7 @@ fun AppEntry() {
         } else {
             AuthRoot()
         }
-//        if (viewEduProgram){
-        if (true){
+        if (viewEduProgram){
             EduProgramScreen()
         }
         Live2DScreen()

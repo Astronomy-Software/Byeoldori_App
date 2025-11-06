@@ -1,15 +1,14 @@
 //package com.example.byeoldori.eduprogram
 //
-//import android.content.Context
 //import androidx.lifecycle.ViewModel
 //import androidx.lifecycle.viewModelScope
-//import com.example.byeoldori.skymap.StellariumController
+//import com.example.byeoldori.character.Emotion
+//import com.example.byeoldori.character.Live2DControllerViewModel
 //import dagger.hilt.android.lifecycle.HiltViewModel
+//import kotlinx.coroutines.delay
 //import kotlinx.coroutines.flow.MutableStateFlow
 //import kotlinx.coroutines.flow.asStateFlow
 //import kotlinx.coroutines.launch
-//import org.json.JSONObject
-//import java.io.InputStream
 //import javax.inject.Inject
 //
 //@HiltViewModel
@@ -17,63 +16,44 @@
 //    private val engine: EduEngine
 //) : ViewModel() {
 //
-//    // 📘 교육 프로그램 실행 여부
-//    private val _viewEduProgram = MutableStateFlow(false)
+//    val isLoading = engine.isLoading
+//    val isReady = engine.isReady
+//    val isStarted = engine.isStarted
+//    val isEnded = engine.isEnded
+//
+//    val log = engine.log
+//    val timer = engine.timerRemaining
+//    val title = engine.currentTitle
+//    val programTitle = engine.programTitle
+//    val sectionIndex = engine.currentSection
+//    val totalSections = engine.totalSections
+//    val autoPlay = engine.autoPlay
+//
+//    // ✅ 앱 전체에서 EduProgram을 보이게/숨기게 하는 StateFlow
+//    private val _viewEduProgram = MutableStateFlow(true)
 //    val viewEduProgram = _viewEduProgram.asStateFlow()
 //
-//    // 🎓 로그 출력용
-//    val log = engine.log
-//
-//    // ⚙️ 초기 세팅 여부
-//    private val _initialized = MutableStateFlow(false)
-//    val initialized = _initialized.asStateFlow()
-//
-//    /**
-//     * ✅ JSON 파일 로드 및 초기화
-//     * - init 섹션을 읽어 초기 세팅 진행
-//     */
-//    fun loadAndInitialize(context: Context) {
-//        viewModelScope.launch {
-//            try {
-//                val jsonString = context.assets.open("edu_scenario.json")
-//                    .bufferedReader().use { it.readText() }
-//
-//                val root = JSONObject(jsonString)
-//                val initConfig = root.optJSONObject("init")
-//                val scenarioArray = root.optJSONArray("scenario")
-//
-//                // 초기화 (init 섹션 기반)
-//                engine.initialize(StellariumController, initConfig)
-//                _initialized.value = true
-//
-//                // 시나리오 실행 시작
-//                scenarioArray?.let {
-//                    engine.runScenarioArray(it)
-//                }
-//
-//            } catch (e: Exception) {
-//                println("❌ EduViewModel 초기화 오류: ${e.message}")
-//            }
-//        }
+//    fun preloadScenario() = viewModelScope.launch {
+//        engine.loadScenarioWithLoading { getScenarioJson() }
 //    }
 //
-//    /**
-//     * ▶️ 프로그램 수동 시작 (외부 호출용)
-//     */
-//    fun startProgram(jsonStream: InputStream) {
-//        viewModelScope.launch {
-////            engine.runScenario(jsonStream)
-//        }
+//    private fun getScenarioJson(): String {
+//        return CYGNUS_SCENARIO_JSON
 //    }
 //
-//    /**
-//     * ⏹️ 시나리오 중단
-//     */
-//    fun stopProgram() {
+//    fun start() = engine.start()
+//    fun next() = engine.nextStep()
+//    fun prev() = engine.prevStep()
+//    fun toggleAuto() = engine.toggleAutoPlay()
+//    fun stop() = engine.stop()
+//
+//    /** ✅ 종료 버튼: Live2D 멘트 → 퇴장 → EduProgram 닫기 */
+//    fun closeProgram() = viewModelScope.launch {
 //        engine.stop()
-//    }
-//
-//    fun setViewEduProgram(value: Boolean) {
-//        _viewEduProgram.value = value
+//        Live2DControllerViewModel.chat("교육을 종료할게! 다음에 또 보자 ✨", Emotion.Happy)
+//        delay(3000)
+//        Live2DControllerViewModel.playExitMotion()
+//        delay(1000)
+//        _viewEduProgram.value = false
 //    }
 //}

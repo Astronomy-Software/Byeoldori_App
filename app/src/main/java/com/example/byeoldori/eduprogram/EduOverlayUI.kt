@@ -1,76 +1,101 @@
+//package com.example.byeoldori.eduprogram
+//
+//import androidx.compose.foundation.layout.Arrangement
 //import androidx.compose.foundation.layout.Box
+//import androidx.compose.foundation.layout.Column
+//import androidx.compose.foundation.layout.Row
 //import androidx.compose.foundation.layout.fillMaxSize
-//import androidx.compose.foundation.layout.height
 //import androidx.compose.foundation.layout.padding
 //import androidx.compose.material3.Button
+//import androidx.compose.material3.CircularProgressIndicator
 //import androidx.compose.material3.MaterialTheme
+//import androidx.compose.material3.OutlinedButton
 //import androidx.compose.material3.Text
 //import androidx.compose.runtime.Composable
 //import androidx.compose.ui.Alignment
 //import androidx.compose.ui.Modifier
 //import androidx.compose.ui.unit.dp
-//import com.example.byeoldori.ui.theme.TextHighlight
 //
 //@Composable
 //fun EduOverlayUI(
-//    onPrevClick: (() -> Unit)? = null,
-//    onNextClick: (() -> Unit)? = null,
-//    onStopClick: (() -> Unit)? = null,
-//    currentStepText: String = "별자리 위치 학습",
-//    log: String = ""
+//    programTitle: String,
+//    sectionTitle: String,
+//    log: String,
+//    timer: Long,
+//    currentSection: Int,
+//    totalSections: Int,
+//    autoPlay: Boolean,
+//    enabled: Boolean = true,
+//    onNextClick: () -> Unit,
+//    onPrevClick: () -> Unit,
+//    onAutoClick: () -> Unit,
+//    onCloseClick: () -> Unit
 //) {
-//    Box(modifier = Modifier.fillMaxSize()) {
+//    Box(Modifier.fillMaxSize()) {
 //
-//        // 🔹 상단 현재 단계
+//        // ✅ 상단 좌측 — 프로그램 제목 + 섹션 제목
 //        Text(
-//            text = currentStepText,
-//            color = TextHighlight,
-//            style = MaterialTheme.typography.bodyLarge,
+//            text = "$programTitle - $sectionTitle",
+//            style = MaterialTheme.typography.titleLarge,
 //            modifier = Modifier
 //                .align(Alignment.TopStart)
-//                .padding(start = 20.dp, top = 16.dp)
+//                .padding(16.dp)
 //        )
 //
-//        // 🔹 우상단 종료 버튼
-//        Button(
-//            onClick = { onStopClick?.invoke() },
+//        // ✅ 상단 우측 — 자동 넘김 + 종료
+//        Row(
 //            modifier = Modifier
 //                .align(Alignment.TopEnd)
-//                .padding(end = 20.dp, top = 12.dp)
-//                .height(36.dp)
+//                .padding(12.dp),
+//            horizontalArrangement = Arrangement.spacedBy(8.dp)
 //        ) {
-//            Text("교육 종료", fontSize = MaterialTheme.typography.bodyMedium.fontSize)
+//            OutlinedButton(
+//                onClick = onAutoClick,
+//                enabled = enabled
+//            ) {
+//                Text(if (autoPlay) "자동 ON" else "자동 OFF")
+//            }
+//
+//            Button(onClick = onCloseClick) {
+//                Text("종료")
+//            }
 //        }
 //
-//        // 🔹 하단 로그 표시 (현재 엔진 상태)
+//        // ✅ 하단 중앙 — 상태 로그
 //        Text(
-//            text = log,
-//            color = MaterialTheme.colorScheme.onBackground,
-//            style = MaterialTheme.typography.bodyMedium,
+//            text = if (totalSections > 0 && currentSection >= 0)
+//                "SECTION ${currentSection + 1}/$totalSections · $log"
+//            else log,
 //            modifier = Modifier
 //                .align(Alignment.BottomCenter)
-//                .padding(bottom = 60.dp)
+//                .padding(bottom = 64.dp)
 //        )
 //
-//        // 🔹 이전 / 다음 버튼
-//        Button(
-//            onClick = { onPrevClick?.invoke() },
-//            modifier = Modifier
-//                .align(Alignment.BottomStart)
-//                .padding(start = 20.dp, bottom = 12.dp)
-//                .height(36.dp)
-//        ) {
-//            Text("이전", fontSize = MaterialTheme.typography.bodyLarge.fontSize)
-//        }
-//
-//        Button(
-//            onClick = { onNextClick?.invoke() },
+//        // ✅ 하단 우측 — 타이머 + 이전/다음 버튼
+//        Column(
 //            modifier = Modifier
 //                .align(Alignment.BottomEnd)
-//                .padding(end = 20.dp, bottom = 12.dp)
-//                .height(36.dp)
+//                .padding(24.dp),
+//            horizontalAlignment = Alignment.End,
+//            verticalArrangement = Arrangement.spacedBy(8.dp)
 //        ) {
-//            Text("다음", fontSize = MaterialTheme.typography.bodyLarge.fontSize)
+//            // ✅ 자동 넘김 활성화 + duration 존재할 때만 진행 표시
+//            if (autoPlay && timer > 0) {
+//                CircularProgressIndicator(
+//                    progress = { (timer / 10000f).coerceIn(0f, 1f) }
+//                )
+//            }
+//
+//            Row(
+//                horizontalArrangement = Arrangement.spacedBy(8.dp)
+//            ) {
+//                OutlinedButton(onClick = onPrevClick, enabled = enabled) {
+//                    Text("이전")
+//                }
+//                Button(onClick = onNextClick, enabled = enabled) {
+//                    Text("다음")
+//                }
+//            }
 //        }
 //    }
 //}

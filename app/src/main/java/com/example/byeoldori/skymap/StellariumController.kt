@@ -94,7 +94,27 @@ object StellariumController {
         runJS("\$stelController.setEducationMode();")
     }
 
+    fun setEducationRightBarMode() {
+        runJS("\$stelController.setEducationRightBarMode();")
+    }
+
     fun setLookUpObject(name : String) {
         runJS("\$stelController.selectAndTrackObjectByName($name)")
+    }
+
+    /** 🌟 객체를 이름으로 선택하고 시선 고정 */
+    fun selectAndTrackObjectByName(name: String, zoomFovDeg: Double = 20.0) {
+        val safeName = "\"${name}\""   // 문자열 안전 처리
+        runJS("\$stelController.selectAndTrackObjectByName($safeName, $zoomFovDeg);")
+    }
+
+    /** 🔭 RA/Dec 좌표로 바로 이동 (잠깐 쓰는 임시 별 생성) */
+    fun moveToRaDec(raDeg: Double, decDeg: Double, fovDeg: Double = 20.0) {
+        runJS("\$stelController.moveToRaDec($raDeg, $decDeg, $fovDeg);")
+    }
+
+    /** 🔭 RA/Dec 좌표로 이동 + selection 설정 */
+    fun pointMoveToRaDec(raDeg: Double, decDeg: Double, fovDeg: Double = 20.0) {
+        runJS("\$stelController.pointMoveToRaDec($raDeg, $decDeg, $fovDeg);")
     }
 }
