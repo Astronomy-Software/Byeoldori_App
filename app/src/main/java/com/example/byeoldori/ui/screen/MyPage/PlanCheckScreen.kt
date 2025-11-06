@@ -18,9 +18,20 @@ import com.example.byeoldori.data.model.dto.PlanDetailDto
 import com.example.byeoldori.ui.components.TopBar
 import com.example.byeoldori.ui.components.mypage.*
 import com.example.byeoldori.ui.theme.Purple500
+import com.example.byeoldori.ui.theme.SuccessGreen
 import com.example.byeoldori.viewmodel.Community.PlanViewModel
 import com.example.byeoldori.viewmodel.UiState
 import java.time.*
+import java.time.format.DateTimeFormatter
+
+private fun parseDateTimeFlexible(raw: String): LocalDateTime {
+    runCatching { return ZonedDateTime.parse(raw).toLocalDateTime() }
+    runCatching { return OffsetDateTime.parse(raw).toLocalDateTime() }
+    runCatching { return LocalDateTime.parse(raw) }
+    val noSec = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm")
+    runCatching { return LocalDateTime.parse(raw, noSec) }
+    return LocalDateTime.now()
+}
 
 enum class ObserveTab { Schedule, Review }
 
@@ -40,12 +51,6 @@ fun PlanCheckScreen(
 
     var isInReviewDetail by remember { mutableStateOf(false) } //Detail 진입 여부
     var showWriteForm by remember { mutableStateOf(false) }
-
-    //오늘 날짜 기준으로 현재 월 데이터 불러오기
-//    val now = remember { LocalDate.now() }
-//    LaunchedEffect(now.year, now.monthValue) {
-//        planVm.loadMonthPlans(now.year, now.monthValue)
-//    }
 
     val today = remember { LocalDate.now() }
     var ym by remember { mutableStateOf(YearMonth.of(today.year, today.monthValue)) }
@@ -207,22 +212,18 @@ fun PlanCheckScreen(
                         HorizontalDivider(color = Color.White.copy(alpha = 0.60f), thickness = 2.dp, modifier = Modifier.padding(vertical = 8.dp))
                         Spacer(Modifier.height(8.dp))
 
-                        val allplans: List<PlanDetailDto> = when (val s = ui) {
+                        val allPlans: List<PlanDetailDto> = when (val s = ui) {
                             is UiState.Success -> s.data
                             else -> emptyList()
                         }
-                        LaunchedEffect(allplans) {
-                            Log.d("PlanScreen", "plans visible=${allplans.map { it.id }}")
+                        LaunchedEffect(allPlans) {
+                            Log.d("PlanScreen", "plans visible=${allPlans.map { it.id }}")
                         }
 
-                        val monthPlans = remember(ym, allplans) {
-                            allplans.filter {
-                                try {
-                                    val start = LocalDateTime.parse(it.startAt)
-                                    YearMonth.from(start.toLocalDate()) == ym
-                                } catch (e: Exception) {
-                                    false
-                                }
+                        val monthPlans = remember(ym, allPlans) { //현재 YearMonth에 속하는 일정만 필터링
+                            allPlans.filter {
+                                try { YearMonth.from(parseDateTimeFlexible(it.startAt).toLocalDate()) == ym }
+                                catch (e: Exception) { false }
                             }
                         }
 

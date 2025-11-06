@@ -10,7 +10,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.byeoldori.R
 import com.example.byeoldori.data.model.dto.*
 import com.example.byeoldori.ui.components.community.*
@@ -18,17 +17,7 @@ import com.example.byeoldori.ui.theme.*
 import com.example.byeoldori.utils.SweObjUtils
 import com.example.byeoldori.viewmodel.Community.PlanViewModel
 import com.example.byeoldori.viewmodel.UiState
-import java.time.*
 import java.time.format.DateTimeFormatter
-
-private fun parseDateTimeFlexible(raw: String): LocalDateTime {
-    runCatching { return ZonedDateTime.parse(raw).toLocalDateTime() }
-    runCatching { return OffsetDateTime.parse(raw).toLocalDateTime() }
-    runCatching { return LocalDateTime.parse(raw) }
-    val noSec = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm")
-    runCatching { return LocalDateTime.parse(raw, noSec) }
-    return LocalDateTime.now()
-}
 
 private fun makeDisplayDate(startAt: String, endAt: String): String {
     val s = parseDateTimeFlexible(startAt)

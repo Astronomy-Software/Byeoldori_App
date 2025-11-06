@@ -13,9 +13,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.byeoldori.data.model.dto.PlanDetailDto
-import java.time.LocalDateTime
-import java.time.OffsetDateTime
-import java.time.ZonedDateTime
+import java.time.*
 import java.time.format.DateTimeFormatter
 import androidx.compose.ui.Alignment
 import com.example.byeoldori.utils.SweObjUtils
@@ -35,7 +33,7 @@ private val timeFmt = DateTimeFormatter.ofPattern("HH:mm")
 
 
 /** 서버 문자열을 유연하게 LocalDateTime으로 파싱 */
-private fun parseDateTimeFlexible(raw: String): LocalDateTime {
+fun parseDateTimeFlexible(raw: String): LocalDateTime {
     // 1) ISO_ZONED/OFFSET 시도
     runCatching { return ZonedDateTime.parse(raw).toLocalDateTime() }
     runCatching { return OffsetDateTime.parse(raw).toLocalDateTime() }

@@ -12,10 +12,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.*
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.byeoldori.data.TestUserScreen
 import com.example.byeoldori.data.UserViewModel
+import com.example.byeoldori.data.model.dto.PlanDetailDto
 import com.example.byeoldori.ui.components.mypage.*
 import com.example.byeoldori.ui.theme.*
+import com.example.byeoldori.viewmodel.Community.PlanViewModel
+import com.example.byeoldori.viewmodel.UiState
 import java.time.*
 
 @Composable
@@ -28,6 +32,7 @@ fun MyPageScreen(
     onOpenMyComments: () -> Unit = {},
     onOpenSupport: () -> Unit = {},
     onOpenSettings: () -> Unit = {},
+    planVm: PlanViewModel = hiltViewModel()
 ) {
 
     var baseMonth by remember { mutableStateOf(YearMonth.now()) }
@@ -55,7 +60,59 @@ fun MyPageScreen(
 
     val me = userVm.userProfile.collectAsState().value
     val profileName = me?.nickname?.takeIf { it.isNotBlank() } ?: "익명"
-    val observeCount = 0 //이건 추후 수정(내가 작성한 관측 후기 개수로 함)
+    val observeCount = 0  //TODO: 이것도 연결해야 함
+
+    //현재 월이 바뀔 때마다 월간 일정 로딩
+    LaunchedEffect(baseMonth) {
+        planVm.loadMonthPlans(baseMonth.year, baseMonth.monthValue)
+    }
+
+    val monthUi by planVm.monthPlansState.collectAsStateWithLifecycle()
+    val plans = when(val s = monthUi) {
+        is UiState.Success -> s.data
+        else -> emptyList()
+    }
+
+    //단일 관측일 때
+    val singleBadges = remember(baseMonth, plans) {
+        val today = LocalDate.now()
+        plans
+            .mapNotNull { runCatching { parseDateTimeFlexible(it.startAt).toLocalDate() }.getOrNull() }
+            .filter { YearMonth.from(it) == baseMonth }
+            .distinct()
+            .associateWith { date ->
+                if (date.isBefore(today)) SuccessGreen    // 과거 일정 → 초록
+                else WarningYellow                        // 오늘 이후 일정 → 노랑
+            }
+    }
+
+    //자정을 넘길 때
+    val ranges = remember(baseMonth, plans) {
+        val today = LocalDate.now()
+        plans.mapNotNull { p->
+            val s = runCatching { parseDateTimeFlexible(p.startAt).toLocalDate() }.getOrNull()
+            val e = runCatching { parseDateTimeFlexible(p.endAt).toLocalDate() }.getOrNull()
+            if(s != null && e != null && s != e) {
+                val color = if(e.isBefore(today)) SuccessGreen else WarningYellow
+                ColoredRange(s, e, color)
+            } else null
+        }.filter { r ->
+            val a = YearMonth.from(r.start)
+            val b = YearMonth.from(r.end)
+            a == baseMonth || baseMonth == b
+        }
+    }
+
+    var showPlanSheet by remember { mutableStateOf(false) }
+
+    val plansForSelectedDay = remember(selectedDate, plans) {
+        plans.filter { p->
+            val s = runCatching { parseDateTimeFlexible(p.startAt).toLocalDate() }.getOrNull()
+            val e = runCatching { parseDateTimeFlexible(p.endAt).toLocalDate() }.getOrNull()
+            if (s == null || e == null) return@filter false
+            !selectedDate.isBefore(s) && !selectedDate.isAfter(e)
+        }
+    }
 
     Background(modifier = Modifier.fillMaxSize()) {
         Spacer(Modifier.height(20.dp))
@@ -64,7 +121,10 @@ fun MyPageScreen(
             selectedDate = selectedDate,
             onPrevMonth = { baseMonth = baseMonth.minusMonths(1) },
             onNextMonth = { baseMonth = baseMonth.plusMonths(1) },
-            onSelectDate = { selectedDate = it },
+            onSelectDate = { date ->
+                selectedDate = date
+                showPlanSheet = true
+            },
             profileName = profileName,
             observationCount = observeCount,
             onOpenLikes = onOpenLikes,
@@ -72,7 +132,32 @@ fun MyPageScreen(
             onOpenMyPrograms = onOpenMyPrograms,
             onOpenMyComments = onOpenMyComments,
             onOpenSchedule = onOpenSchedule,
-            onOpenSettings = onOpenSettings
+            onOpenSettings = onOpenSettings,
+            singleBadges = singleBadges,
+            ranges = ranges
+        )
+    }
+    if (showPlanSheet) {
+        PlanBottomSheet(
+            date = selectedDate,
+            plans = plansForSelectedDay,
+            onDismiss = { showPlanSheet = false },
+            onOpenScheduleScreen = {
+                showPlanSheet = false
+                onOpenSchedule()
+            },
+            onEdit = {
+                showPlanSheet = false
+                onOpenSchedule()
+            },
+            onDelete = {
+                showPlanSheet = false
+                onOpenSchedule()
+            },
+            onWriteReview = {
+                showPlanSheet = false
+                onOpenSchedule()
+            }
         )
     }
 }
@@ -94,7 +179,12 @@ private fun MyPageContent(
     onOpenMyComments: () -> Unit = {},
     onOpenSchedule: () -> Unit = {},
     userVm: UserViewModel = hiltViewModel(),
+    singleBadges: Map<LocalDate, Color>,
+    ranges: List<ColoredRange>
 ) {
+    var showDaySheet by remember { mutableStateOf(false) }
+    var sheetDate by remember { mutableStateOf<LocalDate?>(null) }
+
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(14.dp),
@@ -124,9 +214,11 @@ private fun MyPageContent(
             CalendarCard(
                 yearMonth = baseMonth,
                 selected = selectedDate,
-                singleBadges = sampleBadges(baseMonth),
-                ranges = sampleRanges(baseMonth),
-                onSelect = onSelectDate,
+                singleBadges = singleBadges,
+                ranges = ranges,
+                onSelect =  { date ->
+                    onSelectDate(date)
+                },
                 onPrev = onPrevMonth,
                 onNext = onNextMonth
             )
@@ -181,7 +273,14 @@ private fun PreviewMyPageContent() {
             onSelectDate = {},
             profileName = "별도리",
             observationCount = 123,
-            onOpenLikes = {}
+            onOpenLikes = {},
+            onOpenMyBoards = {},
+            onOpenMyPrograms = {},
+            onOpenMyComments = {},
+            onOpenSchedule = {},
+            onOpenSettings = {},
+            singleBadges = mapOf(YearMonth.of(2025, 10).atDay(1) to SuccessGreen),
+            ranges = listOf(ColoredRange(YearMonth.of(2025, 10).atDay(10), YearMonth.of(2025, 10).atDay(11), ErrorRed))
         )
     }
 }

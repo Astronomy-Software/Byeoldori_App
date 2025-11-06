@@ -25,25 +25,33 @@ import com.example.byeoldori.utils.SweObjUtils
 import com.example.byeoldori.viewmodel.Community.*
 import com.example.byeoldori.viewmodel.UiState
 import kotlinx.coroutines.launch
-import java.time.*
 import java.time.format.DateTimeFormatter
 
-private fun parseDateTimeFlexible(raw: String): LocalDateTime {
-    runCatching { return ZonedDateTime.parse(raw).toLocalDateTime() }
-    runCatching { return OffsetDateTime.parse(raw).toLocalDateTime() }
-    runCatching { return LocalDateTime.parse(raw) }
-    val noSec = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm")
-    runCatching { return LocalDateTime.parse(raw, noSec) }
-    return LocalDateTime.now()
-}
-
-private fun makeDateFieldValue(startAt: String, endAt: String): String {
+fun makeDateFieldValue(startAt: String, endAt: String): String {
     val s = parseDateTimeFlexible(startAt)
     val e = parseDateTimeFlexible(endAt)
     val d = DateTimeFormatter.ofPattern("yyyy-MM-dd")
     val t = DateTimeFormatter.ofPattern("HH:mm")
     return "${s.format(d)} ${s.format(t)} ${e.format(t)}"
 }
+
+fun parseDateTimes(raw: String): Pair<String, String> {
+    val parts = raw.trim().split(" ")
+    if (parts.size < 3) return "" to ""
+
+    val date = java.time.LocalDate.parse(parts[0])
+    val start = java.time.LocalTime.parse(parts[1])
+    val end = java.time.LocalTime.parse(parts[2])
+
+    val startDt = java.time.LocalDateTime.of(date, start)
+    var endDt   = java.time.LocalDateTime.of(date, end)
+    if (endDt.isBefore(startDt)) endDt = endDt.plusDays(1)
+
+    //서버가 기대하는 포맷(초 없음)
+    val f = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm")
+    return startDt.format(f) to endDt.format(f)
+}
+
 
 @Composable
 fun PlanWriteForm(
@@ -182,18 +190,6 @@ fun PlanWriteForm(
     fun collectImageUrls(items: List<EditorItem>): List<String> =
         items.filterIsInstance<EditorItem.Photo>()
             .mapNotNull { it.model as? String }
-
-    fun parseDateTimes(raw: String): Pair<String, String> {
-        // raw 예: "2025-11-05 20:50 23:10"
-        val parts = raw.split(" ")
-        return if (parts.size >= 3) {
-            val startIso = "${parts[0]}T${parts[1]}"
-            val endIso = "${parts[0]}T${parts[2]}"
-            startIso to endIso
-        } else {
-            "" to ""
-        }
-    }
 
     LaunchedEffect(createState) {
         when (val s = createState) {
