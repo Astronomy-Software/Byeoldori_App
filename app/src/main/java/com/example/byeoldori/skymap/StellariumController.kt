@@ -117,4 +117,9 @@ object StellariumController {
     fun pointMoveToRaDec(raDeg: Double, decDeg: Double, fovDeg: Double = 20.0) {
         runJS("\$stelController.pointMoveToRaDec($raDeg, $decDeg, $fovDeg);")
     }
+
+    /** 🔍 부드러운 리니어 줌 */
+    fun zoomTo(fovDeg: Double, durationMs: Int = 1000) {
+        runJS("\$stelController.Zoom($fovDeg, $durationMs);")
+    }
 }

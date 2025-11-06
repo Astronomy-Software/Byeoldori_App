@@ -306,6 +306,11 @@ class EduEngine @Inject constructor() {
                 }
             }
 
+            // ----- (F) 줌 처리 -----
+            if (sky.has("zoom")) {
+                sc.zoomTo(sky.optDouble("zoom"))
+            }
+
             // ----- (E) 토글 설정 -----
             sky.optJSONObject("toggles")?.let { tg ->
                 tg.optBoolean("constellation", false).let { sc.toggleConstellations(it) }

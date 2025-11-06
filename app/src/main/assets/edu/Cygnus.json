@@ -3,7 +3,7 @@
     "programTitle": "백조자리 이야기 – 확장 풀버전",
     "mode": "education",
     "fov": 60,
-    "view": { "yaw": 30, "pitch": 25 },
+    "view": { "yaw": 0, "pitch": 0 },
     "toggles": {
       "constellation": false,
       "equatorialGrid": false,
@@ -13,164 +13,239 @@
     }
   },
   "scenario": [
+
     {
       "title": "오프닝",
       "steps": [
-        { "live2d": { "text": "안녕! 오늘은 밤하늘의 주인공, 백조자리를 완전 정복해보자!", "emotion": "Happy" }, "duration": 6000 },
-        { "live2d": { "text": "먼저 길잡이 별, 북극성부터 정확히 찾아볼게.", "emotion": "Idle" }, "duration": 5000 }
+        { "live2d": { "text": "안녕! 오늘은 밤하늘의 주인공, 백조자리를 완전 정복해보자!", "emotion": "Happy" }, "duration": 5000 },
+        { "live2d": { "text": "먼저 길잡이 별, 북극성부터 정확히 찾아볼게.", "emotion": "Idle" }, "duration": 4500 }
       ]
     },
+
     {
       "title": "북극성 찾기 1 — 기본 개념",
       "steps": [
         {
-          "live2d": { "text": "북극성은 하늘의 북쪽을 가리켜서 옛 항해자들의 나침반 역할을 했어.", "emotion": "Idle" },
-          "sky": { "camera": { "yaw": 10, "pitch": 35 }, "fov": 55 },
-          "duration": 6000
+          "live2d": { "text": "북극성은 하늘의 북쪽을 가리켜 항해자들의 나침반 역할을 했어.", "emotion": "Idle" },
+          "sky": { "ra": 37.954, "dec": 89.264, "select": false, "fovRaDec": 60 },
+          "duration": 5000
         },
         {
-          "live2d": { "text": "자, 이제 실제 위치로 이동해볼게!", "emotion": "Her" },
+          "live2d": { "text": "실제 위치로 이동해볼게!", "emotion": "Her" },
           "sky": { "ra": 37.954, "dec": 89.264, "select": true, "fovRaDec": 45 },
-          "duration": 6000
+          "duration": 5000
         }
       ]
     },
+
     {
-      "title": "북극성 찾기 2 — 찾는 방법 설명",
+      "title": "북극성 찾기 2 — 찾는 방법",
       "steps": [
-        { "live2d": { "text": "북두칠성의 바깥쪽 두 별을 직선으로 5배쯤 연장하면 만나는 별이 바로 북극성이야.", "emotion": "Idle" }, "duration": 7000 },
-        { "live2d": { "text": "도시 불빛이 밝아도 비교적 찾기 쉬운 편이니, 하늘이 트인 북쪽을 기준으로 연습해봐!", "emotion": "Happy" }, "duration": 6000 }
+        {
+          "live2d": { "text": "북두칠성의 바깥쪽 두 별을 직선으로 5배쯤 연장하면 바로 여기, 북극성이야.", "emotion": "Idle" },
+          "duration": 5500
+        },
+        {
+          "live2d": { "text": "도시에서도 비교적 찾기 쉬우니까 기준으로 삼기 좋아.", "emotion": "Happy" },
+          "duration": 4500
+        }
       ]
     },
+
     {
       "title": "북극성 기준 방향 익히기",
       "steps": [
         {
-          "live2d": { "text": "지금처럼 북극성을 정면으로 바라봤다고 생각해봐.", "emotion": "Idle" },
+          "live2d": { "text": "지금처럼 북극성을 정면으로 바라본다고 생각해봐!", "emotion": "Idle" },
           "sky": { "ra": 37.954, "dec": 89.264, "select": true, "fovRaDec": 40 },
-          "duration": 6000
+          "duration": 5000
         },
-        { "live2d": { "text": "양팔을 벌렸을 때, 네 오른팔이 가리키는 쪽이 동쪽!", "emotion": "Happy" }, "duration": 6000 },
-        { "live2d": { "text": "왼팔이 가리키는 쪽은 서쪽이야. 북쪽을 기준으로 동·서가 이렇게 정해져.", "emotion": "Idle" }, "duration": 6000 },
-        { "live2d": { "text": "헷갈리면? 잠깐 정지! 북극성을 찾고 다시 팔로 확인해보자!", "emotion": "Angry" }, "duration": 5000 }
+        { "live2d": { "text": "양팔을 벌렸을 때 오른팔은 동쪽!", "emotion": "Happy" }, "duration": 4500 },
+        { "live2d": { "text": "왼팔은 서쪽이야. 북쪽을 기준으로 동·서가 이렇게 정해져.", "emotion": "Idle" }, "duration": 4500 },
+        { "live2d": { "text": "헷갈리면 북극성을 먼저 찾고 팔 벌리기!", "emotion": "Angry" }, "duration": 4000 }
       ]
     },
+
     {
       "title": "백조자리로 이동",
       "steps": [
-        { "live2d": { "text": "이제 백조자리를 향해 이동!", "emotion": "Her" }, "sky": { "camera": { "yaw": 40, "pitch": 25 } }, "duration": 5000 },
-        { "live2d": { "text": "백조자리는 은하수 한가운데를 길게 가로지르는 멋진 별자리야.", "emotion": "Idle" }, "duration": 6000 },
-        { "live2d": { "text": "먼저 꼬리의 별, 데네브로 이동할게.", "emotion": "Happy" }, "sky": { "ra": 310.359, "dec": 45.280, "select": true, "fovRaDec": 35 }, "duration": 6000 }
+        {
+          "live2d": { "text": "이제 백조자리 방향으로 이동해볼게.", "emotion": "Her" },
+          "sky": { "ra": 305.557, "dec": 40.256, "select": false, "fovRaDec": 60 },
+          "duration": 4500
+        },
+        {
+          "live2d": { "text": "백조자리는 은하수 한가운데를 길게 가로지르는 아름다운 별자리야.", "emotion": "Idle" },
+          "duration": 5000
+        },
+        {
+          "live2d": { "text": "먼저 꼬리의 별 데네브로 갈게!", "emotion": "Happy" },
+          "sky": { "ra": 310.359, "dec": 45.280, "select": true, "fovRaDec": 35 },
+          "duration": 5000
+        }
       ]
     },
+
     {
       "title": "백조자리 구조 — 개요",
       "steps": [
-        { "live2d": { "text": "백조자리는 전체적으로 십자 모양이야. 꼬리에서 몸통을 지나 머리까지 일자 라인이 이어지지.", "emotion": "Idle" }, "duration": 7000 },
-        { "live2d": { "text": "그리고 좌우로 쫙 펼쳐진 두 날개가 십자를 만들어.", "emotion": "Happy" }, "duration": 6000 }
+        { "live2d": { "text": "백조자리는 십자 모양이야. 꼬리에서 머리까지 일직선!", "emotion": "Idle" }, "duration": 5500 },
+        { "live2d": { "text": "그리고 좌우로 펼쳐진 멋진 두 날개가 있어.", "emotion": "Happy" }, "duration": 4500 }
       ]
     },
+
     {
-      "title": "꼬리 — 데네브(α Cyg)",
+      "title": "꼬리 — 데네브",
       "steps": [
-        { "live2d": { "text": "여기가 꼬리, 데네브야. 여름철 대삼각형의 꼭짓점이기도 해.", "emotion": "Idle" }, "sky": { "ra": 310.359, "dec": 45.280, "select": true }, "duration": 6000 },
-        { "live2d": { "text": "이름은 아랍어로 '꼬리'라는 뜻! 멀리 있지만 너무 밝아서 이렇게 잘 보여.", "emotion": "Happy" }, "duration": 6000 }
+        {
+          "live2d": { "text": "여기가 꼬리 부분인 데네브야.", "emotion": "Idle" },
+          "sky": { "ra": 310.359, "dec": 45.280, "select": true, "fovRaDec": 32 },
+          "duration": 5000
+        },
+        { "live2d": { "text": "이름은 ‘꼬리’를 의미하는 아랍어에서 왔어.", "emotion": "Happy" }, "duration": 5000 }
       ]
     },
+
     {
-      "title": "몸통 — 사드르(γ Cyg)",
+      "title": "몸통 — 사드르",
       "steps": [
-        { "live2d": { "text": "이제 몸통의 중심, 사드르로.", "emotion": "Idle" }, "sky": { "ra": 305.557, "dec": 40.256, "select": true, "fovRaDec": 30 }, "duration": 6000 },
-        { "live2d": { "text": "사드르는 백조의 가슴께에 해당해. 은하수 성운이 배경처럼 흐르지?", "emotion": "Her" }, "duration": 7000 }
+        {
+          "live2d": { "text": "몸통 중심, 사드르로 이동!", "emotion": "Idle" },
+          "sky": { "ra": 305.557, "dec": 40.256, "select": true, "fovRaDec": 30 },
+          "duration": 5000
+        },
+        { "live2d": { "text": "사드르는 백조의 가슴 자리야. 은하수 배경이 정말 멋져!", "emotion": "Her" }, "duration": 5500 }
       ]
     },
+
     {
-      "title": "오른쪽 날개 — 델타 시그니(δ Cyg)",
+      "title": "오른쪽 날개 — 델타 Cyg",
       "steps": [
-        { "live2d": { "text": "오른쪽 날개로 뻗어가 볼게. 델타 시그니야.", "emotion": "Idle" }, "sky": { "ra": 297.641, "dec": 45.280, "select": true, "fovRaDec": 35 }, "duration": 6000 },
-        { "live2d": { "text": "직선으로 펼쳐진 날개 라인을 따라가면 백조의 균형 잡힌 모양이 보일 거야.", "emotion": "Happy" }, "duration": 6000 }
+        {
+          "live2d": { "text": "오른쪽 날개 델타 시그니!", "emotion": "Idle" },
+          "sky": { "ra": 297.641, "dec": 45.280, "select": true, "fovRaDec": 35 },
+          "duration": 5000
+        },
+        { "live2d": { "text": "백조의 우아한 날개가 펼쳐지는 게 보이지?", "emotion": "Happy" }, "duration": 4500 }
       ]
     },
+
     {
-      "title": "왼쪽 날개 — 기에나(ε Cyg)",
+      "title": "왼쪽 날개 — 기에나",
       "steps": [
-        { "live2d": { "text": "이제 반대쪽, 왼쪽 날개인 기에나로 이동!", "emotion": "Her" }, "sky": { "ra": 296.243, "dec": 34.123, "select": true, "fovRaDec": 35 }, "duration": 6000 },
-        { "live2d": { "text": "좌우 날개가 균형 있게 벌어져 십자 모양을 완성해.", "emotion": "Idle" }, "duration": 6000 }
+        {
+          "live2d": { "text": "이제 왼쪽 날개인 기에나!", "emotion": "Her" },
+          "sky": { "ra": 296.243, "dec": 34.123, "select": true, "fovRaDec": 35 },
+          "duration": 5000
+        },
+        { "live2d": { "text": "좌우 날개가 십자를 만들어주는 중!", "emotion": "Idle" }, "duration": 4500 }
       ]
     },
+
     {
-      "title": "머리 — 알비레오(β Cyg) 1단계",
+      "title": "머리 — 알비레오 1단계",
       "steps": [
-        { "live2d": { "text": "마지막은 머리, 알비레오로 가보자.", "emotion": "Idle" }, "sky": { "ra": 292.680, "dec": 27.959, "select": true, "fovRaDec": 25 }, "duration": 6000 },
-        { "live2d": { "text": "여기가 별명 많은 스타, 알비레오!", "emotion": "Happy" }, "duration": 5000 }
+        {
+          "live2d": { "text": "이제 머리의 별 알비레오로 이동!", "emotion": "Idle" },
+          "sky": { "ra": 292.680, "dec": 27.959, "select": true, "fovRaDec": 28 },
+          "duration": 5000
+        },
+        {
+          "live2d": { "text": "여기가 유명한 머리 별 알비레오야!", "emotion": "Happy" },
+          "duration": 4500
+        }
       ]
     },
+
     {
-      "title": "별자리 라인 켜기",
+      "title": "백조자리 라인 켜기",
       "steps": [
-        { "live2d": { "text": "이제 백조자리 그림을 켤게. 구조가 한눈에 들어올 거야.", "emotion": "Happy" }, "sky": { "toggles": { "constellation": true } }, "duration": 5000 },
-        { "live2d": { "text": "꼬리(데네브) → 몸통(사드르) → 머리(알비레오), 그리고 좌우 날개 라인이 딱 보이지?", "emotion": "Idle" }, "duration": 7000 }
+        {
+          "live2d": { "text": "백조자리 선을 켤게!", "emotion": "Happy" },
+          "sky": { "toggles": { "constellation": true } },
+          "duration": 4500
+        },
+        {
+          "live2d": { "text": "꼬리에서 몸통, 머리까지 선이 잘 보이지?", "emotion": "Idle" },
+          "duration": 5500
+        }
       ]
     },
+
     {
-      "title": "알비레오 2단계 — 쌍성 확인",
+      "title": "알비레오 2단계 — 쌍성",
       "steps": [
-        { "live2d": { "text": "이 별은 망원경으로 보면 쌍성으로 보이는 걸로 유명해.", "emotion": "Idle" }, "duration": 6000 },
-        { "live2d": { "text": "조금 더 확대해볼게!", "emotion": "Her" }, "sky": { "ra": 292.680, "dec": 27.959, "select": true, "fovRaDec": 12 }, "duration": 6000 },
-        { "live2d": { "text": "한 번 더 줌!", "emotion": "Happy" }, "sky": { "ra": 292.680, "dec": 27.959, "select": true, "fovRaDec": 8 }, "duration": 6000 }
+        {
+          "live2d": { "text": "알비레오는 망원경으로 보면 쌍성으로 보여!", "emotion": "Idle" },
+          "duration": 5000
+        },
+        {
+          "live2d": { "text": "조금 더 확대해볼게!", "emotion": "Her" },
+          "sky": { "ra": 292.680, "dec": 27.959, "select": true, "fovRaDec": 12 },
+          "duration": 5000
+        },
+        {
+          "live2d": { "text": "한 번 더 줌!", "emotion": "Happy" },
+          "sky": { "ra": 292.680, "dec": 27.959, "select": true, "fovRaDec": 8 ,"zoom": 0.1},
+          "duration": 5000
+        }
       ]
     },
+
     {
-      "title": "알비레오 3단계 — 눈탱이 밤탱이별",
+      "title": "알비레오 색 — 눈탱이 밤탱이별",
       "steps": [
-        { "live2d": { "text": "파란 별과 주황 별이 나란히 보여서 ‘눈탱이 밤탱이별’이라고도 불려!", "emotion": "Happy" }, "duration": 7000 },
-        { "live2d": { "text": "색이 다른 건 별의 표면 온도 차이 때문이야. 파란 별은 더 뜨겁고, 주황 별은 비교적 차갑지.", "emotion": "Idle" }, "duration": 8000 },
-        { "live2d": { "text": "이 색 대비가 정말 아름다워서, 입문자 추천 대상이기도 해.", "emotion": "Happy" }, "duration": 6000 }
+        { "live2d": { "text": "알비레오는 파란 별과 주황 별이 나란히 보여!", "emotion": "Happy" }, "duration": 6000 },
+        { "live2d": { "text": "그래서 눈탱이 밤탱이별이라고도 불린다구!", "emotion": "Idle" }, "duration": 5000 },
+        { "live2d": { "text": "색이 다른 이유는 표면 온도 차이 때문이야.", "emotion": "Happy" }, "duration": 5000 }
       ]
     },
+
     {
-      "title": "백조자리 요약 복습",
+      "title": "백조자리 요약",
       "steps": [
-        { "live2d": { "text": "정리해볼게! 꼬리 데네브, 몸통 사드르, 머리 알비레오, 좌우 날개는 델타 시그니와 기에나!", "emotion": "Her" }, "duration": 8000 },
-        { "live2d": { "text": "이제 너도 십자 모양이 눈에 들어오지?", "emotion": "Happy" }, "duration": 5000 }
+        { "live2d": { "text": "정리하자면! 데네브, 사드르, 알비레오. 그리고 양쪽 날개!", "emotion": "Her" }, "duration": 6500 },
+        { "live2d": { "text": "이제 완벽히 보이지?", "emotion": "Happy" }, "duration": 4500 }
       ]
     },
+
     {
-      "title": "신화 — 제우스와 레다 1",
+      "title": "신화 — 제우스와 레다",
       "steps": [
-        { "live2d": { "text": "왜 하필 백조일까? 가장 유명한 신화를 들려줄게.", "emotion": "Idle" }, "duration": 6000 },
-        { "live2d": { "text": "제우스는 스파르타의 여왕 레다에게 사랑에 빠졌어.", "emotion": "Her" }, "duration": 8000 }
+        { "live2d": { "text": "왜 하필 백조일까? 유명한 신화를 들려줄게.", "emotion": "Idle" }, "duration": 5000 },
+        { "live2d": { "text": "제우스는 스파르타의 여왕 레다에게 사랑에 빠졌어.", "emotion": "Her" }, "duration": 6500 },
+        { "live2d": { "text": "그대로 다가가면 두려워할까 걱정해서…", "emotion": "Idle" }, "duration": 4500 },
+        {
+          "live2d": { "text": "아름다운 백조의 모습으로 변신했대!", "emotion": "Happy" },
+          "sky": { "ra": 310.359, "dec": 45.280, "select": false, "fovRaDec": 45 },
+          "duration": 6000
+        },
+        { "live2d": { "text": "폭풍 속에서 상처 입은 백조를 본 레다는 품에 안아 보호했어.", "emotion": "Crying" }, "duration": 7000 },
+        { "live2d": { "text": "그 따뜻한 순간이 하늘에 남아 백조자리가 되었다고 해.", "emotion": "Idle" }, "duration": 6000 }
       ]
     },
+
     {
-      "title": "신화 — 제우스와 레다 2",
+      "title": "방향 복습",
       "steps": [
-        { "live2d": { "text": "사람 모습으로 다가가면 두려워할까 걱정한 제우스는…", "emotion": "Idle" }, "duration": 6000 },
-        { "live2d": { "text": "고결하고 아름다운 ‘백조’로 변신해 레다의 곁으로 갔어.", "emotion": "Happy" }, "sky": { "camera": { "yaw": 70, "pitch": 20 } }, "duration": 8000 }
+        {
+          "live2d": { "text": "방향 복습! 다시 북극성으로 돌아갈게.", "emotion": "Her" },
+          "sky": { "ra": 37.954, "dec": 89.264, "select": true, "fovRaDec": 45 },
+          "duration": 5500
+        },
+        { "live2d": { "text": "북극성을 정면에 두면 오른쪽이 동쪽, 왼쪽이 서쪽!", "emotion": "Happy" }, "duration": 6500 },
+        { "live2d": { "text": "오늘 배운 걸로 하늘을 읽는 법 완성!", "emotion": "Idle" }, "duration": 6000 }
       ]
     },
+
     {
-      "title": "신화 — 제우스와 레다 3",
+      "title": "클로징",
       "steps": [
-        { "live2d": { "text": "폭풍을 피해 힘겹게 내려앉은 백조를 본 레다는 품에 안아 보살폈지.", "emotion": "Crying" }, "duration": 9000 },
-        { "live2d": { "text": "그 따뜻한 순간이 하늘에 남아 별자리가 되었다고 전해져.", "emotion": "Idle" }, "duration": 7000 }
-      ]
-    },
-    {
-      "title": "방향감각 복습",
-      "steps": [
-        { "live2d": { "text": "마지막으로 방향 복습! 다시 북극성으로.", "emotion": "Her" }, "sky": { "ra": 37.954, "dec": 89.264, "select": true, "fovRaDec": 45 }, "duration": 6000 },
-        { "live2d": { "text": "북극성을 정면에 두고 양팔을 벌리면, 오른팔은 동쪽, 왼팔은 서쪽!", "emotion": "Happy" }, "duration": 7000 },
-        { "live2d": { "text": "하늘을 볼 땐 늘 기준점을 세우는 게 중요해. 오늘 배운 걸로 충분히 할 수 있어!", "emotion": "Idle" }, "duration": 7000 }
-      ]
-    },
-    {
-      "title": "백조자리 클로징",
-      "steps": [
-        { "live2d": { "text": "백조자리의 구조, 알비레오의 쌍성, 그리고 제우스 신화까지 완주했어!", "emotion": "Happy" }, "duration": 7000 },
-        { "live2d": { "text": "이제 너도 밤하늘의 백조를 누구보다 멋지게 설명할 수 있어.", "emotion": "Idle" }, "duration": 6000 },
-        { "live2d": { "text": "다음에도 함께 관측하자! 안녕~!", "emotion": "Happy" }, "duration": 6000 }
+        { "live2d": { "text": "백조자리와 북극성, 그리고 신화까지 완전 마스터했어!", "emotion": "Happy" }, "duration": 6000 },
+        { "live2d": { "text": "다음에도 함께 별자리 여행하자!", "emotion": "Idle" }, "duration": 5000 },
+        { "live2d": { "text": "안녕~!", "emotion": "Happy" }, "duration": 5000 }
       ]
     }
+
   ]
 }
