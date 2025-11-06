@@ -14,24 +14,18 @@ import androidx.compose.ui.*
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.byeoldori.data.model.common.copyUriToCache
-import com.example.byeoldori.data.model.dto.CreatePlanRequest
-import com.example.byeoldori.data.model.dto.EventStatus
-import com.example.byeoldori.data.model.dto.PlanDetailDto
-import com.example.byeoldori.data.model.dto.UpdatePlanRequest
+import com.example.byeoldori.data.model.dto.*
 import com.example.byeoldori.ui.components.community.*
 import com.example.byeoldori.ui.components.community.review.*
 import com.example.byeoldori.ui.theme.Purple600
-import com.example.byeoldori.viewmodel.Community.FileUploadViewModel
-import com.example.byeoldori.viewmodel.Community.PlanViewModel
+import com.example.byeoldori.utils.SweObjUtils
+import com.example.byeoldori.viewmodel.Community.*
 import com.example.byeoldori.viewmodel.UiState
 import kotlinx.coroutines.launch
-import java.time.LocalDateTime
-import java.time.OffsetDateTime
-import java.time.ZonedDateTime
+import java.time.*
 import java.time.format.DateTimeFormatter
 
 private fun parseDateTimeFlexible(raw: String): LocalDateTime {
@@ -86,10 +80,10 @@ fun PlanWriteForm(
                 fileUploadVm.reset()
 
                 val afdLen = context.contentResolver //uRI가 가리키는 파일의 크기를 알아냄
-                    .openAssetFileDescriptor(uri,"r") //시스템이 파일을 대신 열어줌
+                    .openAssetFileDescriptor(uri, "r") //시스템이 파일을 대신 열어줌
                     ?.length
                     ?: -1L
-                val size = if(afdLen > 0) afdLen else file.length()
+                val size = if (afdLen > 0) afdLen else file.length()
                 if (size > MAX_IMAGE_BYTES) {
                     snackbar.showSnackbar("이미지 '${file.name}'이(가) 10MB를 초과하여 업로드할 수 없습니다.")
                     return@launch
@@ -103,9 +97,10 @@ fun PlanWriteForm(
                 )
                 val fileName = file.name
                 fileUploadVm.uploadImage(file) { sent, total ->
-                    val progress = if (total > 0) (sent.toFloat() / total).coerceIn(0f,1f) else 0f
+                    val progress = if (total > 0) (sent.toFloat() / total).coerceIn(0f, 1f) else 0f
                     uploadItems = uploadItems.toMutableList().also { list ->
-                        val idx = list.indexOfFirst { it.name == fileName && it.status == UploadStatus.UPLOADING }
+                        val idx =
+                            list.indexOfFirst { it.name == fileName && it.status == UploadStatus.UPLOADING }
                         if (idx >= 0) list[idx] = list[idx].copy(progress = progress)
                     }
 
@@ -125,7 +120,7 @@ fun PlanWriteForm(
 
     //초기 내용 입력창 하나 생기도록
     LaunchedEffect(Unit) {
-        if(editorItems.none { it is EditorItem.Paragraph }) {
+        if (editorItems.none { it is EditorItem.Paragraph }) {
             editorItems = editorItems + EditorItem.Paragraph()
         }
     }
@@ -141,9 +136,10 @@ fun PlanWriteForm(
                     m[idx] = m[idx].copy(url = url, status = UploadStatus.DONE, progress = 1f)
                     uploadItems = m
                 }
-                editorItems =  editorItems + EditorItem.Photo(model = url)
+                editorItems = editorItems + EditorItem.Photo(model = url)
                 fileUploadVm.reset() //다음 이미지 업로드를 준비하기 위해 Idle로 초기화
             }
+
             is UiState.Error -> {
                 // 실패한 항목 표시
                 val idx = uploadItems.indexOfFirst { it.status == UploadStatus.UPLOADING }
@@ -155,6 +151,7 @@ fun PlanWriteForm(
                 snackbar.showSnackbar(s.message ?: "이미지 업로드에 실패했습니다.")
                 fileUploadVm.reset()
             }
+
             else -> Unit
         }
     }
@@ -163,7 +160,10 @@ fun PlanWriteForm(
         initialPlan ?: return@LaunchedEffect
         title = initialPlan.title.orEmpty()
         date = makeDateFieldValue(initialPlan.startAt, initialPlan.endAt)
-        target = initialPlan.targets?.filter { it.isNotBlank() }?.joinToString(", ") ?: initialPlan.title.orEmpty()
+        target = initialPlan.targets
+            ?.filter { it.isNotBlank() }
+            ?.joinToString(", ") { SweObjUtils.toKorean(it) }
+            ?: initialPlan.title.orEmpty()
         site = initialPlan.placeName ?: (initialPlan.observationSiteName ?: "")
         memo = initialPlan.memo ?: ""
         val paragraph = if (memo.isNotBlank()) {
@@ -171,7 +171,8 @@ fun PlanWriteForm(
         } else {
             EditorItem.Paragraph()
         }
-        val photos = initialPlan.photos?.mapNotNull { it.url }?.map { EditorItem.Photo(model = it) } ?: emptyList()
+        val photos = initialPlan.photos?.mapNotNull { it.url }?.map { EditorItem.Photo(model = it) }
+            ?: emptyList()
         editorItems = listOf(paragraph) + photos
     }
 
@@ -196,15 +197,21 @@ fun PlanWriteForm(
 
     LaunchedEffect(createState) {
         when (val s = createState) {
-            is UiState.Success -> { showSavedDialog = true }
-            is UiState.Error -> { snackbar.showSnackbar(s.message ?: "관측 계획 생성 실패") }
+            is UiState.Success -> {
+                showSavedDialog = true
+            }
+
+            is UiState.Error -> {
+                snackbar.showSnackbar(s.message ?: "관측 계획 생성 실패")
+            }
+
             else -> Unit
         }
     }
     LaunchedEffect(updateState) {
         when (val s = updateState) {
             is UiState.Success -> showSavedDialog = true
-            is UiState.Error   -> snackbar.showSnackbar(s.message ?: "관측 계획 수정 실패")
+            is UiState.Error -> snackbar.showSnackbar(s.message ?: "관측 계획 수정 실패")
             else -> Unit
         }
     }
@@ -244,13 +251,14 @@ fun PlanWriteForm(
                             return@WriteBar
                         }
                         if (initialPlan == null) {
-                            // ➤ 생성: 기존 그대로
                             val body = CreatePlanRequest(
                                 title = if (title.isNotBlank()) title else "-",
                                 startAt = startIso,
                                 endAt = endIso,
                                 observationSiteId = null,
-                                targets = target.split(',').map { it.trim() }.filter { it.isNotEmpty() },
+                                targets = target.split(',')
+                                    .map { it.trim() }.filter { it.isNotEmpty() }
+                                    .map { SweObjUtils.toSweFormat(it) },
                                 lat = null, lon = null,
                                 placeName = site.ifBlank { null },
                                 memo = content.ifBlank { null },
@@ -265,12 +273,16 @@ fun PlanWriteForm(
                                 title = if (title.isNotBlank()) title else null,
                                 startAt = startIso,
                                 endAt = endIso,
-                                targets = target.split(',').map { it.trim() }.filter { it.isNotEmpty() }.ifEmpty { null },
+                                targets = target.split(',')
+                                    .map { it.trim() }
+                                    .filter { it.isNotEmpty() }
+                                    .map { SweObjUtils.toSweFormat(it) }
+                                    .ifEmpty { null },
                                 observationSiteId = null,
                                 lat = null, lon = null,
                                 placeName = site.ifBlank { null },
                                 memo = content.ifBlank { null },
-                                status = EventStatus.PLANNED, // 필요 시 유지/제거
+                                status = EventStatus.PLANNED,
                                 addImageUrls = addOnly,
                                 removeImageIds = emptyList()
                             )
@@ -290,9 +302,27 @@ fun PlanWriteForm(
                     }
                 )
             }
-            item { Divider(color = Color.White.copy(alpha = 0.6f), thickness = 1.dp, modifier = Modifier.offset(y = (-15).dp)) }
-            item { TitleInput(title = title, onValueChange = { title = it }, placeholder = "제목을 입력해주세요") }
-            item { Divider(color = Color.White.copy(alpha = 0.6f), thickness = 1.dp, modifier = Modifier.offset(y = (-15).dp)) }
+            item {
+                Divider(
+                    color = Color.White.copy(alpha = 0.6f),
+                    thickness = 1.dp,
+                    modifier = Modifier.offset(y = (-15).dp)
+                )
+            }
+            item {
+                TitleInput(
+                    title = title,
+                    onValueChange = { title = it },
+                    placeholder = "제목을 입력해주세요"
+                )
+            }
+            item {
+                Divider(
+                    color = Color.White.copy(alpha = 0.6f),
+                    thickness = 1.dp,
+                    modifier = Modifier.offset(y = (-15).dp)
+                )
+            }
 
             item {
                 PlanInputSection(
@@ -394,10 +424,10 @@ fun PlanInputSection(
         )
 
         Spacer(Modifier.height(6.dp))
-        Divider(color = Color.White.copy(alpha = 0.6f), thickness = 2.dp, modifier = Modifier.padding(top = 6.dp, bottom = 12.dp))
+        Divider(
+            color = Color.White.copy(alpha = 0.6f),
+            thickness = 2.dp,
+            modifier = Modifier.padding(top = 6.dp, bottom = 12.dp)
+        )
     }
 }
-
-//@Preview(name = "PlanWriteForm Preview", showBackground = true, backgroundColor = 0xFF241860)
-//@Composable
-//private fun Preview_PlanWriteForm() { PlanWriteForm(onBack = {}) }

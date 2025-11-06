@@ -18,6 +18,7 @@ import java.time.OffsetDateTime
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import androidx.compose.ui.Alignment
+import com.example.byeoldori.utils.SweObjUtils
 
 data class ScheduleUiModel(
     val id: Long,
@@ -74,7 +75,10 @@ fun ObserveScheduleCard(
     }
 
     val displayPeriod = "$datePart $timePart"
-    val targets = item.targets.firstOrNull()?.takeIf { it.isNotBlank() } ?: item.title
+    val targets = item.targets.firstOrNull()
+        ?.takeIf { it.isNotBlank() }
+        ?.let { SweObjUtils.toKorean(it) }
+        ?: item.title
     val address = item.placeName ?: (item.observationSiteName ?: "—")
 
     Surface(
@@ -148,8 +152,6 @@ fun ObserveScheduleCard(
                         LabeledTwoLine("메모", it, labelColor, valueColor, maxLines = 2)
                     }
                 }
-
-               // if (item.isPast && !item.hasReview) {
                 Column(
                     modifier = Modifier
                         .fillMaxHeight()

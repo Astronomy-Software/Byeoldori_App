@@ -20,7 +20,6 @@ import com.example.byeoldori.ui.components.mypage.*
 import com.example.byeoldori.ui.theme.Purple500
 import com.example.byeoldori.viewmodel.Community.PlanViewModel
 import com.example.byeoldori.viewmodel.UiState
-import kotlinx.coroutines.flow.map
 import java.time.*
 
 enum class ObserveTab { Schedule, Review }
@@ -43,9 +42,17 @@ fun PlanCheckScreen(
     var showWriteForm by remember { mutableStateOf(false) }
 
     //오늘 날짜 기준으로 현재 월 데이터 불러오기
-    val now = remember { LocalDate.now() }
-    LaunchedEffect(now.year, now.monthValue) {
-        planVm.loadMonthPlans(now.year, now.monthValue)
+//    val now = remember { LocalDate.now() }
+//    LaunchedEffect(now.year, now.monthValue) {
+//        planVm.loadMonthPlans(now.year, now.monthValue)
+//    }
+
+    val today = remember { LocalDate.now() }
+    var ym by remember { mutableStateOf(YearMonth.of(today.year, today.monthValue)) }
+    var seleted by remember { mutableStateOf(today) }
+
+    LaunchedEffect(ym) { // 현재 ym이 바뀔때마다 해당 월 로딩
+        planVm.loadMonthPlans(ym.year, ym.monthValue)
     }
 
     val ui by planVm.monthPlansState.collectAsStateWithLifecycle()
@@ -53,22 +60,16 @@ fun PlanCheckScreen(
     val updateState by planVm.updateState.collectAsState()
     val deleteState by planVm.deleteState.collectAsState()
 
-//    val planState by planVm.monthPlansState.collectAsState()
-//    val plans by remember(planVm) {
-//        planVm.monthPlansState
-//            .map { (it as? UiState.Success)?.data ?: emptyList() }
-//    }.collectAsStateWithLifecycle(initialValue = emptyList())
-
     LaunchedEffect(createState, showWriteForm) {
         if (!showWriteForm && createState is UiState.Success) {
-            planVm.loadMonthPlans(now.year, now.monthValue)
+            planVm.loadMonthPlans(ym.year, ym.monthValue)
             planVm.resetCreateState()
         }
     }
 
     LaunchedEffect(updateState, showWriteForm) {
         if (!showWriteForm && updateState is UiState.Success) {
-            planVm.loadMonthPlans(now.year, now.monthValue)
+            planVm.loadMonthPlans(ym.year, ym.monthValue)
             planVm.resetUpdateState()
         } else if (!showWriteForm && updateState is UiState.Error) {
             planVm.resetUpdateState()
@@ -101,7 +102,7 @@ fun PlanCheckScreen(
         PlanWriteForm(
             onBack = {
                 showWriteForm = false
-                planVm.loadMonthPlans(now.year, now.monthValue)
+                planVm.loadMonthPlans(ym.year, ym.monthValue)
             },
             planVm = planVm,
             initialPlan = selectedPlan
@@ -197,13 +198,32 @@ fun PlanCheckScreen(
                         ) { Text("${"관측 계획 추가하기"}  +") }
 
                         Spacer(Modifier.height(8.dp))
+                        MonthNavigator(
+                            ym = ym,
+                            onPrev = { ym = ym.minusMonths(1) },
+                            onNext = { ym = ym.plusMonths(1) },
+                            textColor = Color.White
+                        )
+                        HorizontalDivider(color = Color.White.copy(alpha = 0.60f), thickness = 2.dp, modifier = Modifier.padding(vertical = 8.dp))
+                        Spacer(Modifier.height(8.dp))
 
-                        val plans: List<PlanDetailDto> = when (val s = ui) {
+                        val allplans: List<PlanDetailDto> = when (val s = ui) {
                             is UiState.Success -> s.data
                             else -> emptyList()
                         }
-                        LaunchedEffect(plans) {
-                            Log.d("PlanScreen", "plans visible=${plans.map { it.id }}")
+                        LaunchedEffect(allplans) {
+                            Log.d("PlanScreen", "plans visible=${allplans.map { it.id }}")
+                        }
+
+                        val monthPlans = remember(ym, allplans) {
+                            allplans.filter {
+                                try {
+                                    val start = LocalDateTime.parse(it.startAt)
+                                    YearMonth.from(start.toLocalDate()) == ym
+                                } catch (e: Exception) {
+                                    false
+                                }
+                            }
                         }
 
                         when (ui) {
@@ -222,7 +242,7 @@ fun PlanCheckScreen(
                             }
                             is UiState.Idle, is UiState.Success -> {
                                 LazyColumn(modifier = Modifier.fillMaxSize()) {
-                                    items(items = plans, key = { it.id }) { dto ->
+                                    items(items = monthPlans, key = { it.id }) { dto ->
                                         ObserveScheduleCard(
                                             item = dto,
                                             onEdit = { plan ->           //수정 버튼 누르면
@@ -241,11 +261,7 @@ fun PlanCheckScreen(
                                             },
                                             modifier = Modifier.fillMaxWidth()
                                         )
-                                        HorizontalDivider(
-                                            color = Color.White.copy(alpha = 0.60f),
-                                            thickness = 2.dp,
-                                            modifier = Modifier.padding(vertical = 8.dp)
-                                        )
+                                        HorizontalDivider(color = Color.White.copy(alpha = 0.60f), thickness = 2.dp, modifier = Modifier.padding(vertical = 8.dp))
                                     }
                                 }
                             }
@@ -313,7 +329,7 @@ fun PlanCheckScreen(
                     confirmButton = { TextButton(onClick = {
                         val id = confirmDeleteTarget?.id ?: return@TextButton
                         confirmDeleteTarget = null
-                        planVm.deletePlan(id, now.year, now.monthValue)
+                        planVm.deletePlan(id, ym.year, ym.monthValue)
                     }) { Text("삭제") } },
                     dismissButton = { TextButton(onClick = { confirmDeleteTarget = null }) { Text("취소") } }
                 )

@@ -15,6 +15,7 @@ import com.example.byeoldori.R
 import com.example.byeoldori.data.model.dto.*
 import com.example.byeoldori.ui.components.community.*
 import com.example.byeoldori.ui.theme.*
+import com.example.byeoldori.utils.SweObjUtils
 import com.example.byeoldori.viewmodel.Community.PlanViewModel
 import com.example.byeoldori.viewmodel.UiState
 import java.time.*
@@ -104,7 +105,13 @@ fun PlanDetail(
             Spacer(Modifier.height(12.dp))
 
             LabeledField("관측 일시", makeDisplayDate(currentPlan.startAt, currentPlan.endAt))
-            LabeledField("관측 대상", currentPlan.targets?.joinToString(", ") ?: "—")
+            LabeledField(
+                "관측 대상",
+                currentPlan.targets
+                        ?.filter { it.isNotBlank() }
+                        ?.joinToString(", ") { SweObjUtils.toKorean(it) }
+                        ?: "—"
+            )
             LabeledField("관측지", currentPlan.placeName ?: currentPlan.observationSiteName ?: "—")
 
             HorizontalDivider(color = Color.White.copy(alpha = 0.6f), thickness = 2.dp)
