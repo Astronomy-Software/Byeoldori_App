@@ -25,6 +25,7 @@ import com.example.byeoldori.domain.Observatory.Review
 import com.example.byeoldori.ui.mapper.toUi
 import com.example.byeoldori.ui.theme.Purple500
 import com.example.byeoldori.ui.theme.Purple600
+import com.example.byeoldori.utils.SweObjUtils
 import com.example.byeoldori.viewmodel.Community.FileUploadViewModel
 import com.example.byeoldori.viewmodel.Community.ReviewViewModel
 import com.example.byeoldori.viewmodel.Observatory.ObservatoryMapViewModel
@@ -70,7 +71,6 @@ fun ReviewWriteForm(
     var title by rememberSaveable { mutableStateOf( initialReview?.title ?: "") }
     var ratingInt by rememberSaveable { mutableStateOf(initialReview?.rating ?: 0) }
     var rating by rememberSaveable { mutableStateOf(if (ratingInt > 0) "$ratingInt/5" else "") }
-    //var target by rememberSaveable { mutableStateOf(initialReview?.targets ?: "") }
 
     var targetsText by rememberSaveable { mutableStateOf(initialReview?.targets?.joinToString(", ") ?: "") }
     var site by rememberSaveable { mutableStateOf(initialReview?.site ?: "") }
@@ -269,6 +269,7 @@ fun ReviewWriteForm(
                             val matchedId = findMatchingSiteId(site, sites)
                             val payloadContent = buildContentText(items)
                             val targets = parseTargets(targetsText)
+                            val targetsSwe = parseTargets(targetsText).map { SweObjUtils.toSweFormat(it) }
 
                             if (isEditMode) {
                                 val idL = initialReview!!.id.toLong()
@@ -277,7 +278,7 @@ fun ReviewWriteForm(
                                     title = title.trim(),
                                     content = payloadContent,
                                     location = site.trim(),
-                                    targets = targets,
+                                    targets = targetsSwe,
                                     equipment = equipment.trim(),
                                     observationDate = date,
                                     score = ratingInt,
@@ -291,7 +292,7 @@ fun ReviewWriteForm(
                                     title = title.trim(),
                                     content = buildContentText(items),
                                     location = site.trim(),
-                                    targets = targets,
+                                    targets = targetsSwe,
                                     equipment = equipment.trim(),
                                     observationDate = date,
                                     score = ratingInt,

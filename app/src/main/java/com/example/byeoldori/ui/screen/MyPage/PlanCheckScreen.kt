@@ -1,5 +1,6 @@
 package com.example.byeoldori.ui.screen.MyPage
 
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -11,11 +12,15 @@ import androidx.compose.ui.graphics.*
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.byeoldori.data.model.dto.PlanDetailDto
 import com.example.byeoldori.ui.components.TopBar
 import com.example.byeoldori.ui.components.mypage.*
 import com.example.byeoldori.ui.theme.Purple500
-import java.time.LocalDateTime
-
+import com.example.byeoldori.viewmodel.Community.PlanViewModel
+import com.example.byeoldori.viewmodel.UiState
+import java.time.*
 
 enum class ObserveTab { Schedule, Review }
 
@@ -25,14 +30,85 @@ fun PlanCheckScreen(
     schedules: List<ScheduleUiModel> = emptyList(),
     onBack: () -> Unit = {},
     onAddSchedule: () -> Unit = {},
-    onEdit: (ScheduleUiModel) -> Unit = {},
-    onDelete: (ScheduleUiModel) -> Unit = {},
-    onWriteReview: (ScheduleUiModel) -> Unit = {},
+    onEdit: (PlanDetailDto) -> Unit = {},
+    onDelete: (PlanDetailDto) -> Unit = {},
+    onWriteReview: (PlanDetailDto) -> Unit = {},
+    planVm: PlanViewModel = hiltViewModel()
 ) {
     var currentTab by remember { mutableStateOf(ObserveTab.Schedule) }
     val bg = Brush.verticalGradient(listOf(Color(0xFF3B2377), Color(0xFF5B2F8F)))
 
     var isInReviewDetail by remember { mutableStateOf(false) } //Detail 진입 여부
+    var showWriteForm by remember { mutableStateOf(false) }
+
+    //오늘 날짜 기준으로 현재 월 데이터 불러오기
+//    val now = remember { LocalDate.now() }
+//    LaunchedEffect(now.year, now.monthValue) {
+//        planVm.loadMonthPlans(now.year, now.monthValue)
+//    }
+
+    val today = remember { LocalDate.now() }
+    var ym by remember { mutableStateOf(YearMonth.of(today.year, today.monthValue)) }
+    var seleted by remember { mutableStateOf(today) }
+
+    LaunchedEffect(ym) { // 현재 ym이 바뀔때마다 해당 월 로딩
+        planVm.loadMonthPlans(ym.year, ym.monthValue)
+    }
+
+    val ui by planVm.monthPlansState.collectAsStateWithLifecycle()
+    val createState by planVm.createState.collectAsState()
+    val updateState by planVm.updateState.collectAsState()
+    val deleteState by planVm.deleteState.collectAsState()
+
+    LaunchedEffect(createState, showWriteForm) {
+        if (!showWriteForm && createState is UiState.Success) {
+            planVm.loadMonthPlans(ym.year, ym.monthValue)
+            planVm.resetCreateState()
+        }
+    }
+
+    LaunchedEffect(updateState, showWriteForm) {
+        if (!showWriteForm && updateState is UiState.Success) {
+            planVm.loadMonthPlans(ym.year, ym.monthValue)
+            planVm.resetUpdateState()
+        } else if (!showWriteForm && updateState is UiState.Error) {
+            planVm.resetUpdateState()
+        }
+    }
+
+    LaunchedEffect(deleteState) {
+        when (deleteState) {
+            is UiState.Success, is UiState.Error -> planVm.resetDeleteState()
+            else -> Unit
+        }
+    }
+
+    var selectedPlan by remember { mutableStateOf<PlanDetailDto?>(null) }
+    var showDetail by remember { mutableStateOf(false) }
+    var confirmDeleteTarget by remember { mutableStateOf<PlanDetailDto?>(null) }
+
+    if (showDetail && selectedPlan != null) {
+        LaunchedEffect(selectedPlan!!.id) {
+            planVm.loadPlanDetail(selectedPlan!!.id)
+        }
+        PlanDetail(
+            plan = selectedPlan!!,
+            onBack = { showDetail = false },
+            planVm = planVm
+        )
+        return
+    }
+    if (showWriteForm) {
+        PlanWriteForm(
+            onBack = {
+                showWriteForm = false
+                planVm.loadMonthPlans(ym.year, ym.monthValue)
+            },
+            planVm = planVm,
+            initialPlan = selectedPlan
+        )
+        return
+    }
 
     Scaffold(
         //하단 네비게이션바 inset제외
@@ -58,11 +134,10 @@ fun PlanCheckScreen(
                 //.background(bg)
                 .padding(top = innerPadding.calculateTopPadding()) //bottom에 패딩 주지 않기
         ) {
-            when(currentTab) {
+            when (currentTab) {
                 ObserveTab.Schedule -> {
                     Column(modifier = Modifier.fillMaxSize()) {
                         Spacer(Modifier.height(8.dp))
-
                         TabRow(
                             selectedTabIndex = currentTab.ordinal,
                             containerColor = Color.Transparent,
@@ -81,7 +156,9 @@ fun PlanCheckScreen(
                                 text = {
                                     Text(
                                         text = "관측 일정",
-                                        style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Medium)
+                                        style = MaterialTheme.typography.titleSmall.copy(
+                                            fontWeight = FontWeight.Medium
+                                        )
                                     )
                                 },
                                 selectedContentColor = Color.White,
@@ -93,7 +170,9 @@ fun PlanCheckScreen(
                                 text = {
                                     Text(
                                         text = "나의 관측 후기",
-                                        style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Medium)
+                                        style = MaterialTheme.typography.titleSmall.copy(
+                                            fontWeight = FontWeight.Medium
+                                        )
                                     )
                                 },
                                 selectedContentColor = Color.White,
@@ -103,7 +182,10 @@ fun PlanCheckScreen(
                         Spacer(Modifier.height(12.dp))
 
                         FilledTonalButton(
-                            onClick = onAddSchedule,
+                            onClick = {
+                                selectedPlan = null
+                                showWriteForm = true
+                            }, //onAddSchedule
                             shape = RoundedCornerShape(14.dp),
                             colors = ButtonDefaults.filledTonalButtonColors(
                                 containerColor = Purple500, //0xFF9B7CFF
@@ -116,63 +198,141 @@ fun PlanCheckScreen(
                         ) { Text("${"관측 계획 추가하기"}  +") }
 
                         Spacer(Modifier.height(8.dp))
+                        MonthNavigator(
+                            ym = ym,
+                            onPrev = { ym = ym.minusMonths(1) },
+                            onNext = { ym = ym.plusMonths(1) },
+                            textColor = Color.White
+                        )
+                        HorizontalDivider(color = Color.White.copy(alpha = 0.60f), thickness = 2.dp, modifier = Modifier.padding(vertical = 8.dp))
+                        Spacer(Modifier.height(8.dp))
 
-                        LazyColumn(modifier = Modifier.fillMaxSize()) {
-                            itemsIndexed(schedules, key = { _, it -> it.id }) { index, item ->
-                                ObserveScheduleCard(
-                                    item = item,
-                                    onEdit = onEdit,
-                                    onDelete = onDelete,
-                                    onWriteReview = onWriteReview,
-                                    modifier = Modifier.fillMaxWidth()
+                        val allplans: List<PlanDetailDto> = when (val s = ui) {
+                            is UiState.Success -> s.data
+                            else -> emptyList()
+                        }
+                        LaunchedEffect(allplans) {
+                            Log.d("PlanScreen", "plans visible=${allplans.map { it.id }}")
+                        }
+
+                        val monthPlans = remember(ym, allplans) {
+                            allplans.filter {
+                                try {
+                                    val start = LocalDateTime.parse(it.startAt)
+                                    YearMonth.from(start.toLocalDate()) == ym
+                                } catch (e: Exception) {
+                                    false
+                                }
+                            }
+                        }
+
+                        when (ui) {
+                            is UiState.Loading -> {
+                                Box(Modifier.fillMaxWidth().padding(16.dp)) {
+                                    CircularProgressIndicator(color = Color.White)
+                                }
+                            }
+                            is UiState.Error -> {
+                                val message = (ui as UiState.Error).message
+                                Text(
+                                    text = message ?: "목록을 불러오지 못했습니다.",
+                                    color = Color.White.copy(alpha = 0.9f),
+                                    modifier = Modifier.padding(16.dp)
                                 )
-                                HorizontalDivider(
-                                    color = Color.White.copy(alpha = 0.60f),
-                                    thickness = 2.dp,
-                                    modifier = Modifier.padding(vertical = 8.dp)
-                                )
+                            }
+                            is UiState.Idle, is UiState.Success -> {
+                                LazyColumn(modifier = Modifier.fillMaxSize()) {
+                                    items(items = monthPlans, key = { it.id }) { dto ->
+                                        ObserveScheduleCard(
+                                            item = dto,
+                                            onEdit = { plan ->           //수정 버튼 누르면
+                                                planVm.resetCreateState()
+                                                planVm.resetUpdateState()
+                                                selectedPlan = plan
+                                                showDetail = false       // 혹시 열려있을 수도 있으니 닫고
+                                                showWriteForm = true     // WriteForm 열기
+                                            },
+                                            onDelete = { plan ->
+                                                confirmDeleteTarget = plan
+                                            },
+                                            onWriteReview = {
+                                                selectedPlan = dto          //선택한 계획 기억
+                                                showDetail = true
+                                            },
+                                            modifier = Modifier.fillMaxWidth()
+                                        )
+                                        HorizontalDivider(color = Color.White.copy(alpha = 0.60f), thickness = 2.dp, modifier = Modifier.padding(vertical = 8.dp))
+                                    }
+                                }
                             }
                         }
                     }
                 }
 
                 ObserveTab.Review -> {
-                   Column(Modifier.fillMaxSize()) {
-                       if(!isInReviewDetail) {
-                           TabRow(
-                               selectedTabIndex = 1,
-                               containerColor = Color.Transparent,
-                               contentColor = Color.White,
-                               indicator = { tabPositions ->
-                                   TabRowDefaults.SecondaryIndicator(
-                                       modifier = Modifier.tabIndicatorOffset(tabPositions[1]),
-                                       color = Color.White
-                                   )
-                               },
-                               divider = {}
-                           ) {
-                               Tab(
-                                   selected = false,
-                                   onClick = { currentTab = ObserveTab.Schedule },
-                                   text = { Text("관측 일정", style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Medium)) },
-                                   selectedContentColor = Color.White,
-                                   unselectedContentColor = Color.White.copy(alpha = 0.6f)
-                               )
-                               Tab(
-                                   selected = true,
-                                   onClick = { },
-                                   text = { Text("나의 관측 후기", style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Medium)) },
-                                   selectedContentColor = Color.White,
-                                   unselectedContentColor = Color.White.copy(alpha = 0.6f)
-                               )
-                           }
-                       }
+                    Column(Modifier.fillMaxSize()) {
+                        if (!isInReviewDetail) {
+                            TabRow(
+                                selectedTabIndex = 1,
+                                containerColor = Color.Transparent,
+                                contentColor = Color.White,
+                                indicator = { tabPositions ->
+                                    TabRowDefaults.SecondaryIndicator(
+                                        modifier = Modifier.tabIndicatorOffset(tabPositions[1]),
+                                        color = Color.White
+                                    )
+                                },
+                                divider = {}
+                            ) {
+                                Tab(
+                                    selected = false,
+                                    onClick = { currentTab = ObserveTab.Schedule },
+                                    text = {
+                                        Text(
+                                            "관측 일정",
+                                            style = MaterialTheme.typography.titleSmall.copy(
+                                                fontWeight = FontWeight.Medium
+                                            )
+                                        )
+                                    },
+                                    selectedContentColor = Color.White,
+                                    unselectedContentColor = Color.White.copy(alpha = 0.6f)
+                                )
+                                Tab(
+                                    selected = true,
+                                    onClick = { },
+                                    text = {
+                                        Text(
+                                            "나의 관측 후기",
+                                            style = MaterialTheme.typography.titleSmall.copy(
+                                                fontWeight = FontWeight.Medium
+                                            )
+                                        )
+                                    },
+                                    selectedContentColor = Color.White,
+                                    unselectedContentColor = Color.White.copy(alpha = 0.6f)
+                                )
+                            }
+                        }
                         MyReviewList(
                             onBack = { currentTab = ObserveTab.Schedule },
                             onDetailModeChange = { isInReviewDetail = it }
                         )
                     }
                 }
+            }
+            if (confirmDeleteTarget != null) {
+                AlertDialog(
+                    onDismissRequest = { confirmDeleteTarget = null },
+                    title = { Text("관측 계획 삭제",color = Color.Black) },
+                    text  = { Text("관측 계획을 삭제할까요?") },
+                    confirmButton = { TextButton(onClick = {
+                        val id = confirmDeleteTarget?.id ?: return@TextButton
+                        confirmDeleteTarget = null
+                        planVm.deletePlan(id, ym.year, ym.monthValue)
+                    }) { Text("삭제") } },
+                    dismissButton = { TextButton(onClick = { confirmDeleteTarget = null }) { Text("취소") } }
+                )
             }
         }
     }

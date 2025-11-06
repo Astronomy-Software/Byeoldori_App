@@ -22,6 +22,7 @@ import com.example.byeoldori.ui.theme.*
 import com.example.byeoldori.domain.Observatory.Review
 import com.example.byeoldori.ui.components.community.EditorItem
 import com.example.byeoldori.ui.components.community.freeboard.formatCreatedAt
+import com.example.byeoldori.utils.SweObjUtils
 import com.example.byeoldori.viewmodel.*
 import com.example.byeoldori.viewmodel.Community.*
 
@@ -74,7 +75,7 @@ fun ReviewDetailResponse.toDomain(author: String? = null): Review = Review(
         images.forEach { add(Content.Image.Url(it)) }
         add(Content.Text(content))
     },
-    targets = review?.targets.orEmpty(),
+    targets = review?.targets?.map { SweObjUtils.toKorean(it) }.orEmpty(),
     site = review?.location.orEmpty(),
     equipment = review?.equipment.orEmpty(),
     date = review?.observationDate.orEmpty(),
