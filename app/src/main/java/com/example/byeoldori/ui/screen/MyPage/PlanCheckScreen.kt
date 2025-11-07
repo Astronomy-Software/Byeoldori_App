@@ -1,6 +1,10 @@
 package com.example.byeoldori.ui.screen.MyPage
 
+import android.content.pm.PackageManager
+import android.os.Build
 import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -9,20 +13,27 @@ import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.graphics.*
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.byeoldori.data.model.dto.PlanDetailDto
 import com.example.byeoldori.ui.components.TopBar
 import com.example.byeoldori.ui.components.mypage.*
 import com.example.byeoldori.ui.theme.Purple500
-import com.example.byeoldori.ui.theme.SuccessGreen
 import com.example.byeoldori.viewmodel.Community.PlanViewModel
 import com.example.byeoldori.viewmodel.UiState
 import java.time.*
 import java.time.format.DateTimeFormatter
+import android.Manifest
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.byeoldori.data.model.dto.EventStatus
+import com.example.byeoldori.data.model.dto.UpdatePlanRequest
+import com.example.byeoldori.ui.components.community.review.ReviewWriteForm
+import com.example.byeoldori.utils.SweObjUtils
+import com.example.byeoldori.viewmodel.Community.ReviewViewModel
 
 private fun parseDateTimeFlexible(raw: String): LocalDateTime {
     runCatching { return ZonedDateTime.parse(raw).toLocalDateTime() }
@@ -44,7 +55,7 @@ fun PlanCheckScreen(
     onEdit: (PlanDetailDto) -> Unit = {},
     onDelete: (PlanDetailDto) -> Unit = {},
     onWriteReview: (PlanDetailDto) -> Unit = {},
-    planVm: PlanViewModel = hiltViewModel()
+    planVm: PlanViewModel
 ) {
     var currentTab by remember { mutableStateOf(ObserveTab.Schedule) }
     val bg = Brush.verticalGradient(listOf(Color(0xFF3B2377), Color(0xFF5B2F8F)))
@@ -54,7 +65,6 @@ fun PlanCheckScreen(
 
     val today = remember { LocalDate.now() }
     var ym by remember { mutableStateOf(YearMonth.of(today.year, today.monthValue)) }
-    var seleted by remember { mutableStateOf(today) }
 
     LaunchedEffect(ym) { // 현재 ym이 바뀔때마다 해당 월 로딩
         planVm.loadMonthPlans(ym.year, ym.monthValue)
@@ -91,6 +101,40 @@ fun PlanCheckScreen(
     var selectedPlan by remember { mutableStateOf<PlanDetailDto?>(null) }
     var showDetail by remember { mutableStateOf(false) }
     var confirmDeleteTarget by remember { mutableStateOf<PlanDetailDto?>(null) }
+    var showReviewForm by remember { mutableStateOf(false) }
+
+    if (showReviewForm && selectedPlan != null) {
+        val plan = selectedPlan!!
+        val start = parseDateTimeFlexible(plan.startAt)
+        val prefillTargets = plan.targets
+            .map { SweObjUtils.toKorean(it) }        // ← 여기서 한국어로 변환
+            .joinToString(", ")
+        val reviewVm: ReviewViewModel = hiltViewModel()
+
+        ReviewWriteForm(
+            author = "me",
+            vm = reviewVm,
+            onCancel = { showReviewForm = false },
+            onSubmit = {
+                selectedPlan?.let { plan ->
+                    planVm.updatePlan(
+                        id = plan.id,
+                        body = UpdatePlanRequest(status = EventStatus.COMPLETED)
+                    )
+                }
+                planVm.loadMonthPlans(ym.year, ym.monthValue)
+                showReviewForm = false
+                currentTab = ObserveTab.Review
+            },
+            onTempSave = {},
+            onMore = {},
+            prefillTitle = plan.title ?: plan.targets.firstOrNull().orEmpty(),
+            prefillTargets = prefillTargets,
+            prefillSite = plan.placeName ?: (plan.observationSiteName ?: ""),
+            prefillDate = "%04d-%02d-%02d".format(start.year, start.monthValue, start.dayOfMonth),
+        )
+        return  // 폼이 열렸을 땐 다른 화면들 렌더링 안 함
+    }
 
     if (showDetail && selectedPlan != null) {
         LaunchedEffect(selectedPlan!!.id) {
@@ -113,6 +157,25 @@ fun PlanCheckScreen(
             initialPlan = selectedPlan
         )
         return
+    }
+
+    val ctx = LocalContext.current
+    var notifGranted by remember {
+        mutableStateOf(
+            if (Build.VERSION.SDK_INT >= 33)
+                ContextCompat.checkSelfPermission(ctx, Manifest.permission.POST_NOTIFICATIONS) ==
+                        PackageManager.PERMISSION_GRANTED
+            else true
+        )
+    }
+    val notifPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        notifGranted = granted
+        if (!granted) {
+            // 원하면 스낵바/토스트 안내 추가 가능
+            android.widget.Toast.makeText(ctx, "알림 권한이 필요합니다.", android.widget.Toast.LENGTH_SHORT).show()
+        }
     }
 
     Scaffold(
@@ -244,8 +307,11 @@ fun PlanCheckScreen(
                             is UiState.Idle, is UiState.Success -> {
                                 LazyColumn(modifier = Modifier.fillMaxSize()) {
                                     items(items = monthPlans, key = { it.id }) { dto ->
+                                        val ctx = LocalContext.current
                                         ObserveScheduleCard(
                                             item = dto,
+                                            minutesBefore = planVm.getAlarmMinutes(dto.id),
+                                            onMinutesChange = { min -> planVm.setAlarmMinutes(dto.id, min) },
                                             onEdit = { plan ->           //수정 버튼 누르면
                                                 planVm.resetCreateState()
                                                 planVm.resetUpdateState()
@@ -258,7 +324,16 @@ fun PlanCheckScreen(
                                             },
                                             onWriteReview = {
                                                 selectedPlan = dto          //선택한 계획 기억
-                                                showDetail = true
+                                                showDetail = false
+                                                showReviewForm = true
+                                            },
+                                            onAlarm = { plan, _ ->
+                                                if (Build.VERSION.SDK_INT >= 33 && !notifGranted) {
+                                                    notifPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+                                                    return@ObserveScheduleCard
+                                                }
+                                                val min = planVm.getAlarmMinutes(plan.id)
+                                                PlanAlarm(ctx, plan, min, autoRequestPermission = true, toastOnResult = true)
                                             },
                                             modifier = Modifier.fillMaxWidth()
                                         )
@@ -372,15 +447,16 @@ private fun demoSchedules(): List<ScheduleUiModel> {
     )
 }
 
-@Preview(showBackground = true, backgroundColor = 0xFF1F1144)
-@Composable
-private fun PlanCheckScreenPreview() {
-    PlanCheckScreen(
-        schedules = demoSchedules(),
-        onBack = {},
-        onAddSchedule = {},
-        onEdit = {},
-        onDelete = {},
-        onWriteReview = {}
-    )
-}
+//@Preview(showBackground = true, backgroundColor = 0xFF1F1144)
+//@Composable
+//private fun PlanCheckScreenPreview() {
+//    PlanCheckScreen(
+//        schedules = demoSchedules(),
+//        onBack = {},
+//        onAddSchedule = {},
+//        onEdit = {},
+//        onDelete = {},
+//        onWriteReview = {},
+//
+//    )
+//}

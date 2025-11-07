@@ -21,6 +21,13 @@ import com.example.byeoldori.ui.theme.*
 import com.example.byeoldori.viewmodel.Community.PlanViewModel
 import com.example.byeoldori.viewmodel.UiState
 import java.time.*
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
+import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun MyPageScreen(
@@ -37,6 +44,24 @@ fun MyPageScreen(
 
     var baseMonth by remember { mutableStateOf(YearMonth.now()) }
     var selectedDate by remember { mutableStateOf(LocalDate.now()) }
+
+    val ctx = LocalContext.current
+    var notifGranted by remember {
+        mutableStateOf(
+            if (Build.VERSION.SDK_INT >= 33)
+                ContextCompat.checkSelfPermission(ctx, Manifest.permission.POST_NOTIFICATIONS) ==
+                        PackageManager.PERMISSION_GRANTED
+            else true
+        )
+    }
+    val notifPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        notifGranted = granted
+        if (!granted) {
+            android.widget.Toast.makeText(ctx, "알림 권한이 필요합니다.", android.widget.Toast.LENGTH_SHORT).show()
+        }
+    }
 
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
@@ -157,6 +182,22 @@ fun MyPageScreen(
             onWriteReview = {
                 showPlanSheet = false
                 onOpenSchedule()
+            },
+            getAlarmMinutes = { planId -> planVm.getAlarmMinutes(planId) },
+            setAlarmMinutes = { planId, minutes -> planVm.setAlarmMinutes(planId, minutes) },
+
+            onAlarm = { plan, minutes ->
+                if (Build.VERSION.SDK_INT >= 33 && !notifGranted) {
+                    notifPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                    return@PlanBottomSheet
+                }
+                PlanAlarm(
+                    context = ctx,
+                    plan = plan,
+                    minBefore = minutes,
+                    autoRequestPermission = true,   // 정확 알람 허용 없으면 설정으로 유도
+                    toastOnResult = true            // 결과 토스트는 내부에서 처리
+                )
             }
         )
     }

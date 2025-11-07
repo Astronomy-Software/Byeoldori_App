@@ -21,7 +21,10 @@ fun PlanBottomSheet(
     onOpenScheduleScreen: () -> Unit, // 전체 보기 이동용
     onEdit: (PlanDetailDto) -> Unit,
     onDelete: (PlanDetailDto) -> Unit,
-    onWriteReview: (PlanDetailDto) -> Unit
+    onWriteReview: (PlanDetailDto) -> Unit,
+    getAlarmMinutes: (planId: Long) -> Int,
+    setAlarmMinutes: (planId: Long, minutes: Int) -> Unit,
+    onAlarm: (PlanDetailDto, Int) -> Unit
 ) {
 
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -83,7 +86,10 @@ fun PlanBottomSheet(
                             onEdit = onEdit,
                             onDelete = onDelete,
                             onWriteReview = onWriteReview,
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.fillMaxWidth(),
+                            minutesBefore = getAlarmMinutes(dto.id),
+                            onMinutesChange = { min -> setAlarmMinutes(dto.id, min) },
+                            onAlarm = { plan, _ -> onAlarm(plan, getAlarmMinutes(plan.id)) }
                         )
                         if (idx != plans.lastIndex) {
                             HorizontalDivider(
