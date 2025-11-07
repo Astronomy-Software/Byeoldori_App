@@ -64,3 +64,10 @@ data class EducationDetailResponse(
     val updatedAt: String,
     val liked: Boolean
 )
+
+data class FeedbackRequest(
+    val programId: String,
+    val rating: Int,
+    val good: String,
+    val bad: String
+)

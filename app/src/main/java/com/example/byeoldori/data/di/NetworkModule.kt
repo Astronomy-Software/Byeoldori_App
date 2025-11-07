@@ -8,6 +8,7 @@ import coil.ImageLoader
 import com.example.byeoldori.BuildConfig
 import com.example.byeoldori.data.api.AuthApi
 import com.example.byeoldori.data.api.CommunityApi
+import com.example.byeoldori.data.api.EducationApi
 import com.example.byeoldori.data.api.FileUploadApi
 import com.example.byeoldori.data.api.ObservationSiteApi
 import com.example.byeoldori.data.api.RefreshApi
@@ -221,6 +222,10 @@ object NetworkModule {
     @Provides @Singleton
     fun provideFileUploadApi(@AuthedRetrofit retrofit: Retrofit): FileUploadApi =
         retrofit.create(FileUploadApi::class.java)
+
+    @Provides @Singleton
+    fun provideEducationApi(@AuthedRetrofit retrofit: Retrofit): EducationApi =
+        retrofit.create(EducationApi::class.java)
 
     @Provides @Singleton
     fun provideImageLoader(

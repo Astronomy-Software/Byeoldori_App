@@ -16,7 +16,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.byeoldori.eduprogram.EduState
 import com.example.byeoldori.ui.theme.TextHighlight
 
 // ===============================================================
@@ -36,6 +35,9 @@ fun EduOverlayUI() {
     val autoPlay by vm.autoPlay.collectAsState()
     val state by vm.state.collectAsState()
 
+    val feedbackvm : EduFeedbackViewModel = hiltViewModel()
+    val goFeedback by feedbackvm.goFeedback.collectAsState()
+
     Box(Modifier.fillMaxSize()) {
 
         if (state is EduState.Ready) {
@@ -44,9 +46,36 @@ fun EduOverlayUI() {
             }
         }
 
+        if (state is EduState.Ended) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(24.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+
+                    Button(onClick = { feedbackvm.requestFeedback() }) {
+                        Text("교육 프로그램 평가하기")
+                    }
+
+                    Button(onClick = { vm.start() }) {
+                        Text("다시 보기")
+                    }
+
+                    Button(onClick = { vm.eduClose() }) {
+                        Text("종료")
+                    }
+                }
+            }
+        }
+
         Text(
             "$programTitle - $sectionTitle",
-            style = MaterialTheme.typography.titleLarge,
+            style = MaterialTheme.typography.titleMedium,
             color = TextHighlight,
             modifier = Modifier
                 .align(Alignment.TopStart)
@@ -93,5 +122,9 @@ fun EduOverlayUI() {
             Button(onClick = { vm.prev() }) { Text("이전") }
             Button(onClick = { vm.next() }) { Text("다음") }
         }
+    }
+
+    if(goFeedback){
+        EduFeedbackScreen()
     }
 }

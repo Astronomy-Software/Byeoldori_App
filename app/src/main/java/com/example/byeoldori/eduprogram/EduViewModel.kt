@@ -50,8 +50,9 @@ class EduViewModel @Inject constructor(
     fun closeProgram() = viewModelScope.launch {
         engine.stop()
         Live2DControllerViewModel.chat("교육을 종료할게! 다음에 또 보자 ✨", Emotion.Happy)
-        delay(2500)
         Live2DControllerViewModel.playExitMotion()
+        delay(3000)
+        eduClose()
     }
 
     // 교육 완료시
@@ -72,5 +73,9 @@ class EduViewModel @Inject constructor(
             delay(3500)
             Live2DControllerViewModel.playExitMotion()
         }
+    }
+
+    fun eduClose(){
+        _viewEduProgram.value = false
     }
 }
