@@ -75,3 +75,8 @@ data class UpdatePlanRequest(
     val addImageUrls: List<String> = emptyList(),
     val removeImageIds: List<Long> = emptyList()
 )
+
+@JsonClass(generateAdapter = true)
+data class ObservationCountDto(
+    val observationCount: Int
+)

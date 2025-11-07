@@ -78,14 +78,17 @@ fun MyPageScreen(
         }
     }
 
+    var showProfile by remember { mutableStateOf(false) }
+    var showProfileEdit by remember { mutableStateOf(false) }
     val userVm: UserViewModel = hiltViewModel()
     LaunchedEffect(Unit) {
         userVm.getMyProfile()
+        planVm.loadObservationCount()
     }
 
     val me = userVm.userProfile.collectAsState().value
     val profileName = me?.nickname?.takeIf { it.isNotBlank() } ?: "익명"
-    val observeCount = 0  //TODO: 이것도 연결해야 함
+    val observationCount by planVm.observationCount.collectAsStateWithLifecycle()
 
     //현재 월이 바뀔 때마다 월간 일정 로딩
     LaunchedEffect(baseMonth) {
@@ -139,6 +142,26 @@ fun MyPageScreen(
         }
     }
 
+    if (showProfileEdit) {
+        ProfileEditCard(
+            onSaved = {
+                // 저장 후 프로필 상세로 이동하거나 마이페이지로 복귀 등 원하는 흐름 선택
+                showProfileEdit = false
+                showProfile = true
+            },
+            onBack = { showProfileEdit = false }
+        )
+        return
+    }
+
+    if (showProfile) {
+        // 프로필 상세 화면
+        MyProfileContent(
+            onBack = { showProfile = false }
+        )
+        return
+    }
+
     Background(modifier = Modifier.fillMaxSize()) {
         Spacer(Modifier.height(20.dp))
         MyPageContent(
@@ -150,8 +173,10 @@ fun MyPageScreen(
                 selectedDate = date
                 showPlanSheet = true
             },
+            onOpenProfile = { showProfile = true },
+            onEditProfile = { showProfileEdit = true },
             profileName = profileName,
-            observationCount = observeCount,
+            observationCount = observationCount,
             onOpenLikes = onOpenLikes,
             onOpenMyBoards = onOpenMyBoards,
             onOpenMyPrograms = onOpenMyPrograms,
@@ -211,6 +236,7 @@ private fun MyPageContent(
     onNextMonth: () -> Unit,
     onSelectDate: (LocalDate) -> Unit,
     onEditProfile: () -> Unit = {},
+    onOpenProfile: () -> Unit,
     onOpenSettings: () -> Unit = {},
     profileName: String,
     observationCount: Int,
@@ -223,8 +249,9 @@ private fun MyPageContent(
     singleBadges: Map<LocalDate, Color>,
     ranges: List<ColoredRange>
 ) {
-    var showDaySheet by remember { mutableStateOf(false) }
-    var sheetDate by remember { mutableStateOf<LocalDate?>(null) }
+
+    val me = userVm.userProfile.collectAsState().value
+    val profileName = me?.nickname ?: "익명"
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -237,7 +264,7 @@ private fun MyPageContent(
                 name = profileName,
                 observationCount = observationCount,
                 onEditProfile = onEditProfile,
-                onOpenSettings = onOpenSettings
+                onOpenProfile = onOpenProfile
             )
             Spacer(Modifier.height(12.dp))
         }
@@ -302,26 +329,27 @@ private fun sampleRanges(ym: YearMonth) = listOf(
     ColoredRange(ym.atDay(10), ym.atDay(11), ErrorRed),
 )
 
-@Preview(showBackground = true, backgroundColor = 0xFF2B184F, widthDp = 360, heightDp = 800)
-@Composable
-private fun PreviewMyPageContent() {
-    Background {
-        MyPageContent(
-            baseMonth = YearMonth.of(2025, 10),
-            selectedDate = LocalDate.of(2025, 10, 22),
-            onPrevMonth = {},
-            onNextMonth = {},
-            onSelectDate = {},
-            profileName = "별도리",
-            observationCount = 123,
-            onOpenLikes = {},
-            onOpenMyBoards = {},
-            onOpenMyPrograms = {},
-            onOpenMyComments = {},
-            onOpenSchedule = {},
-            onOpenSettings = {},
-            singleBadges = mapOf(YearMonth.of(2025, 10).atDay(1) to SuccessGreen),
-            ranges = listOf(ColoredRange(YearMonth.of(2025, 10).atDay(10), YearMonth.of(2025, 10).atDay(11), ErrorRed))
-        )
-    }
-}
+//@Preview(showBackground = true, backgroundColor = 0xFF2B184F, widthDp = 360, heightDp = 800)
+//@Composable
+//private fun PreviewMyPageContent() {
+//    Background {
+//        MyPageContent(
+//            baseMonth = YearMonth.of(2025, 10),
+//            selectedDate = LocalDate.of(2025, 10, 22),
+//            onPrevMonth = {},
+//            onNextMonth = {},
+//            onSelectDate = {},
+//            profileName = "별도리",
+//            observationCount = 123,
+//            onOpenLikes = {},
+//            onOpenMyBoards = {},
+//            onOpenMyPrograms = {},
+//            onOpenMyComments = {},
+//            onOpenSchedule = {},
+//            onOpenSettings = {},
+//            singleBadges = mapOf(YearMonth.of(2025, 10).atDay(1) to SuccessGreen),
+//            ranges = listOf(ColoredRange(YearMonth.of(2025, 10).atDay(10), YearMonth.of(2025, 10).atDay(11), ErrorRed)),
+//
+//        )
+//    }
+//}

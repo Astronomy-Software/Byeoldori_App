@@ -41,17 +41,15 @@ fun MyComment(
     myNickname: String?
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                group.postTitle,
-                color = TextHighlight,
-                style = MaterialTheme.typography.titleMedium.copy(
-                    fontWeight = FontWeight.ExtraBold, fontSize = 25.sp
-                )
+        SourceBadge(group.source)
+        Spacer(Modifier.height(6.dp))
+        Text(
+            group.postTitle,
+            color = TextHighlight,
+            style = MaterialTheme.typography.titleMedium.copy(
+                fontWeight = FontWeight.ExtraBold, fontSize = 25.sp
             )
-            Spacer(Modifier.width(10.dp))
-            SourceBadge(group.source)
-        }
+        )
         Spacer(Modifier.height(6.dp))
         Row(
             verticalAlignment = Alignment.CenterVertically,

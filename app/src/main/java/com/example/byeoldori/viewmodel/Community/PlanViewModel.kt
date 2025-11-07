@@ -41,6 +41,9 @@ class PlanViewModel @Inject constructor(
     private val pendingDeleteIds = mutableSetOf<Long>() //삭제 진행 중인 ID를 기억
     private var monthReqSeq = 0
 
+    private val _observationCount = MutableStateFlow<Int>(0)
+    val observationCount: StateFlow<Int> = _observationCount
+
     private companion object {
         const val ALARM_MINUTES_KEY = "alarm_minutes_map"
     }
@@ -164,6 +167,32 @@ class PlanViewModel @Inject constructor(
                         lastPlans.filterNot { it.id in pendingDeleteIds }
                     )
                 }
+        }
+    }
+    fun loadObservationCount() {
+        viewModelScope.launch {
+            runCatching { repo.getObservationCount() }
+                .onSuccess { _observationCount.value = it }
+                .onFailure { /* 필요하면 로그만 */ }
+        }
+    }
+
+    fun completePlan(id: Long, observedAt: java.time.OffsetDateTime? = null) {
+        viewModelScope.launch {
+            runCatching {
+                repo.completeEvent(
+                    id,
+                    observedAt?.toString() // ISO-8601 "2025-11-07T15:47:32Z"
+                )
+            }.onSuccess { updated ->
+                // 목록/상태 갱신
+                lastPlans = lastPlans.map { if (it.id == updated.id) updated else it }
+                _monthPlansState.value = UiState.Success(lastPlans.filterNot { it.id in pendingDeleteIds })
+                // 완료되었으니 카운트도 갱신
+                loadObservationCount()
+            }.onFailure {
+                // TODO: 에러 처리(스낵바/로그)
+            }
         }
     }
 

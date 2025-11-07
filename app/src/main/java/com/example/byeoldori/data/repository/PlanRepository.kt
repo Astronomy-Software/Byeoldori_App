@@ -53,4 +53,16 @@ class PlanRepository @Inject constructor(
         val response = api.deletePlan(id)
         if(!response.success) throw IllegalStateException(response.message ?: "관측 계획 삭제 실패")
     }
+
+    suspend fun getObservationCount(): Int {
+        val res = api.getObservationCount()
+        if (!res.success) throw IllegalStateException(res.message ?: "관측 횟수 조회 실패")
+        return res.data.observationCount
+    }
+
+    suspend fun completeEvent(id: Long, observedAt: String? = null): PlanDetailDto {
+        val res = api.completeEvent(id, observedAt)
+        if (!res.success) throw IllegalStateException(res.message ?: "완료 처리 실패")
+        return res.data
+    }
 }
