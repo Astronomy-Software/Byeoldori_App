@@ -8,8 +8,8 @@
       "constellation": false,
       "equatorialGrid": false,
       "azimuthalGrid": false,
-      "atmosphere": true,
-      "landscape": true
+      "atmosphere": false,
+      "landscape": false
     }
   },
   "scenario": [
