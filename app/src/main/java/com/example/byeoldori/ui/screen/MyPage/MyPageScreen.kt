@@ -252,6 +252,7 @@ private fun MyPageContent(
 
     val me = userVm.userProfile.collectAsState().value
     val profileName = me?.nickname ?: "익명"
+    val ui by userVm.uiState.collectAsState()
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -308,16 +309,46 @@ private fun MyPageContent(
         item { Spacer(Modifier.height(12.dp)) }
 
         item {
-            Divider(
-                color = Color.White.copy(alpha = 0.3f),
-                thickness = 1.dp,
-                modifier = Modifier.padding(vertical = 8.dp)
-            )
-        }
+            var showResignConfirm by remember { mutableStateOf(false) }
 
-        item {
-            TestUserScreen(vm = userVm)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                OutlinedButton(
+                    onClick = { userVm.logOut() },
+                    modifier = Modifier.weight(1f)
+                ) { Text("로그아웃") }
+
+                Button(
+                    onClick = { showResignConfirm = true },
+                    colors = ButtonDefaults.buttonColors(containerColor = ErrorRed),
+                    modifier = Modifier.weight(1f)
+                ) { Text("회원 탈퇴", color = Color.White) }
+            }
+
+            if (showResignConfirm) {
+                AlertDialog(
+                    onDismissRequest = { showResignConfirm = false },
+                    title = { Text("회원 탈퇴", color = Color.Black) },
+                    text  = { Text("정말로 탈퇴하시겠어요? 이 작업은 되돌릴 수 없습니다.") },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            showResignConfirm = false
+                            userVm.resign()
+                        }) {
+                            Text("탈퇴")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showResignConfirm = false }) {
+                            Text("취소")
+                        }
+                    }
+                )
+            }
         }
+        item { Spacer(Modifier.height(20.dp)) }
     }
 }
 
