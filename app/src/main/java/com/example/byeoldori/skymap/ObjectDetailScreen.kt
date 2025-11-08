@@ -10,20 +10,22 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.byeoldori.data.UserViewModel
 import com.example.byeoldori.data.model.dto.*
+import com.example.byeoldori.domain.Community.EduProgram
 import com.example.byeoldori.domain.Observatory.Review
 import com.example.byeoldori.skymap.components.*
 import com.example.byeoldori.skymap.viewmodel.ObjectDetailViewModel
 import com.example.byeoldori.ui.components.TopBar
+import com.example.byeoldori.ui.components.community.program.EduProgramDetail
+import com.example.byeoldori.ui.components.community.program.toEduProgram
 import com.example.byeoldori.ui.components.community.review.ReviewDetail
 import com.example.byeoldori.ui.theme.Background
 import com.example.byeoldori.utils.SweObjUtils
-import com.example.byeoldori.viewmodel.Community.CommentsViewModel
-import com.example.byeoldori.viewmodel.Community.ReviewViewModel
+import com.example.byeoldori.viewmodel.Community.*
 
 @Composable
 fun ObjectDetailScreen(
     viewModel: ObjectDetailViewModel = hiltViewModel(),
-    onOpenReviewDetail: (Triple<Review, ReviewResponse?, ReviewDetailResponse?>) -> Unit = {}
+    //onOpenReviewDetail: (Triple<Review, ReviewResponse?, ReviewDetailResponse?>) -> Unit = {}
 ) {
     val detail by viewModel.selectedObject.collectAsState()
     val realtimeItems by viewModel.realtimeItems.collectAsState()
@@ -36,8 +38,10 @@ fun ObjectDetailScreen(
 
     if (!isVisible) return
     var selectedReviewTriple by remember { mutableStateOf<Triple<Review, ReviewResponse?, ReviewDetailResponse?>?>(null) }
+    var selectedProgram by remember { mutableStateOf<EduProgram?>(null) }
 
     val reviewVm: ReviewViewModel = hiltViewModel()
+    val eduVm: EducationViewModel = hiltViewModel()
     val commentsVm: CommentsViewModel = hiltViewModel()
 
     selectedReviewTriple?.let { triple ->
@@ -61,6 +65,21 @@ fun ObjectDetailScreen(
                 vm = reviewVm,
                 commentsVm = commentsVm,
                 onEdit = true,
+            )
+        }
+        return
+    }
+
+    selectedProgram?.let { program ->
+        Background(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.85f))
+        ) {
+            EduProgramDetail(
+                program = program,
+                onBack = { selectedProgram = null },
+                vm = eduVm
             )
         }
         return
@@ -103,6 +122,15 @@ fun ObjectDetailScreen(
                         objectName = detail!!.name,
                         onReviewClick = { triple ->
                             selectedReviewTriple = triple
+                        }
+                    )
+
+                    //교육 프로그램들
+                    ObjectProgramCard(
+                        objectName = detail!!.name,
+                        onProgramClick = { programResp: EducationResponse ->
+                            // EducationResponse -> EduProgram 변환
+                            selectedProgram = programResp.toEduProgram()
                         }
                     )
                 } else {

@@ -46,7 +46,8 @@ fun EduProgram.asReview(): Review =
         equipment = "",
         siteScore = 0,
         contentItems =  contentItems,
-        liked = liked
+        liked = liked,
+        thumbnail = thumbnail
     )
 
 
@@ -56,14 +57,15 @@ fun EducationResponse.toEduProgram(): EduProgram {
         title = title,
         author = authorNickname ?: "익명",
         authorId = authorId,
-        rating = 0f, // 교육에는 별점이 없으므로 0 기본값
+        rating = (score ?: 0).toFloat(),
         likeCount = likeCount,
         commentCount = commentCount,
         viewCount = viewCount,
         profile = R.drawable.profile1,
         createdAt = formatCreatedAt(createdAt),
         contentItems = listOf(Content.Text(contentSummary.orEmpty())),
-        liked = liked
+        liked = liked,
+        thumbnail = thumbnail
     )
 }
 

@@ -79,9 +79,7 @@ fun ObjectReviewCard(
                     },
                     onToggleLike = {}
                 )
-
             }
-
         }
         else -> Unit
     }
