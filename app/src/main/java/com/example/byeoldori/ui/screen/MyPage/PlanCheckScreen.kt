@@ -317,6 +317,7 @@ fun PlanCheckScreen(
                                                 planVm.resetUpdateState()
                                                 selectedPlan = plan
                                                 showDetail = false       // 혹시 열려있을 수도 있으니 닫고
+                                                showReviewForm = false
                                                 showWriteForm = true     // WriteForm 열기
                                             },
                                             onDelete = { plan ->
@@ -325,6 +326,7 @@ fun PlanCheckScreen(
                                             onWriteReview = {
                                                 selectedPlan = dto          //선택한 계획 기억
                                                 showDetail = false
+                                                showWriteForm = false
                                                 showReviewForm = true
                                             },
                                             onAlarm = { plan, _ ->
@@ -334,6 +336,12 @@ fun PlanCheckScreen(
                                                 }
                                                 val min = planVm.getAlarmMinutes(plan.id)
                                                 PlanAlarm(ctx, plan, min, autoRequestPermission = true, toastOnResult = true)
+                                            },
+                                            onOpenDetail = { plan ->
+                                                selectedPlan = plan
+                                                showWriteForm = false
+                                                showReviewForm = false
+                                                showDetail = true
                                             },
                                             modifier = Modifier.fillMaxWidth()
                                         )

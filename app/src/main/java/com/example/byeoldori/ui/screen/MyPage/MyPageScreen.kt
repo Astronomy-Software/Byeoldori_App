@@ -208,6 +208,10 @@ fun MyPageScreen(
                 showPlanSheet = false
                 onOpenSchedule()
             },
+            onOpenDetail = {
+                showPlanSheet = false
+                onOpenSchedule()
+            },
             getAlarmMinutes = { planId -> planVm.getAlarmMinutes(planId) },
             setAlarmMinutes = { planId, minutes -> planVm.setAlarmMinutes(planId, minutes) },
 
@@ -249,11 +253,6 @@ private fun MyPageContent(
     singleBadges: Map<LocalDate, Color>,
     ranges: List<ColoredRange>
 ) {
-
-    val me = userVm.userProfile.collectAsState().value
-    val profileName = me?.nickname ?: "익명"
-    val ui by userVm.uiState.collectAsState()
-
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(14.dp),

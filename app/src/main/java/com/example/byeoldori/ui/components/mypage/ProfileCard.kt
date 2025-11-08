@@ -158,13 +158,13 @@ fun MyProfileContent(
                 LabeledActionRow(label = "이메일", value = me?.email ?: "—")
                 LabeledActionRow(label = "전화번호", value = me?.phone ?: "—")
                 LabeledActionRow(label = "생년월일", value = me?.birthdate ?: "—")
-                LabeledActionRow(
-                    label = "권한",
-                    value = (me?.roles ?: emptyList()).joinToString(", ").ifBlank { "—" }
-                )
-                LabeledActionRow(label = "마지막 로그인", value = me?.lastLoginAt ?: "—")
-                LabeledActionRow(label = "가입일", value = me?.createdAt ?: "—")
-                LabeledActionRow(label = "정보 수정일", value = me?.updatedAt ?: "—")
+//                LabeledActionRow(
+//                    label = "권한",
+//                    value = (me?.roles ?: emptyList()).joinToString(", ").ifBlank { "—" }
+//                )
+//                LabeledActionRow(label = "마지막 로그인", value = me?.lastLoginAt ?: "—")
+//                LabeledActionRow(label = "가입일", value = me?.createdAt ?: "—")
+//                LabeledActionRow(label = "정보 수정일", value = me?.updatedAt ?: "—")
             }
         }
     }
