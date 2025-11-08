@@ -86,7 +86,7 @@ fun MyReviewList(
                     onDelete = { id ->
                         vm.deletePost(id) {
                             selectedReview = null
-                            vm.loadPosts()
+                            reviewVm.loadPosts()
                         }
                     },
                     vm = reviewVm,

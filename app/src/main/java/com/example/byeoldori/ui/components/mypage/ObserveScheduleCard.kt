@@ -1,23 +1,35 @@
 package com.example.byeoldori.ui.components.mypage
 
+import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.ArrowDropDown
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.*
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.byeoldori.data.model.dto.PlanDetailDto
-import java.time.LocalDateTime
-import java.time.OffsetDateTime
-import java.time.ZonedDateTime
+import java.time.*
 import java.time.format.DateTimeFormatter
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import com.example.byeoldori.R
+import com.example.byeoldori.data.model.dto.EventStatus
+import com.example.byeoldori.ui.theme.Purple500
 import com.example.byeoldori.utils.SweObjUtils
 
 data class ScheduleUiModel(
@@ -35,7 +47,7 @@ private val timeFmt = DateTimeFormatter.ofPattern("HH:mm")
 
 
 /** 서버 문자열을 유연하게 LocalDateTime으로 파싱 */
-private fun parseDateTimeFlexible(raw: String): LocalDateTime {
+fun parseDateTimeFlexible(raw: String): LocalDateTime {
     // 1) ISO_ZONED/OFFSET 시도
     runCatching { return ZonedDateTime.parse(raw).toLocalDateTime() }
     runCatching { return OffsetDateTime.parse(raw).toLocalDateTime() }
@@ -56,7 +68,10 @@ fun ObserveScheduleCard(
     onEdit: (PlanDetailDto) -> Unit,
     onDelete: (PlanDetailDto) -> Unit,
     onWriteReview: (PlanDetailDto) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onAlarm: (PlanDetailDto, Int) -> Unit = { _, _ -> },
+    minutesBefore: Int,
+    onMinutesChange: (Int) -> Unit,
 ) {
     val labelColor = Color.White.copy(alpha = 0.68f)
     val valueColor = Color.White
@@ -89,15 +104,20 @@ fun ObserveScheduleCard(
             .padding(horizontal = 12.dp, vertical = 6.dp)
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
-
             Box(modifier = Modifier.fillMaxWidth()) {
-
                 Column(
                     modifier = Modifier
                         .align(Alignment.TopStart)
                         .padding(end = 72.dp)
                         .clickable { onWriteReview(item) }
                 ) {
+                    Text(
+                        text = item.title ?: targets ?: "제목 없음",
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                        color = Color.White
+                    )
+                    Spacer(Modifier.height(12.dp))
+
                     Text("관측 일자", style = MaterialTheme.typography.labelSmall, color = labelColor)
                     Spacer(Modifier.height(2.dp))
                     //val dateStr = item.start.format(dateFmt)
@@ -134,9 +154,7 @@ fun ObserveScheduleCard(
                     )
                 }
             }
-
             Spacer(Modifier.height(8.dp))
-
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -159,22 +177,89 @@ fun ObserveScheduleCard(
                     verticalArrangement = Arrangement.Bottom,
                     horizontalAlignment = Alignment.End
                 ) {
-                    FilledTonalButton(
-                        onClick = { onWriteReview(item) },
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.filledTonalButtonColors(
-                            containerColor = Color(0xFF9B7CFF),
-                            contentColor = Color.White
-                        ),
-                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Rounded.Edit,
-                            contentDescription = "리뷰 작성",
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(Modifier.width(6.dp))
-                        Text("리뷰 작성")
+                    if(isPast) {
+                        val isCompleted = item.status == EventStatus.COMPLETED
+                        val buttonContainer = if (isCompleted) Color.White else Purple500
+                        val buttonTextColor = if (isCompleted) Color.Black else Color.White
+                        val buttonLabel = if (isCompleted) "리뷰 작성 완료" else "리뷰 작성"
+
+                        Button(
+                            onClick = {  if (!isCompleted) onWriteReview(item) },
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.filledTonalButtonColors(
+                                containerColor = buttonContainer.copy(alpha = 1f),
+                                contentColor = buttonTextColor
+                            ),
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+                            enabled = !isCompleted
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.Edit,
+                                contentDescription = "리뷰 작성",
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(Modifier.width(6.dp))
+                            Text(buttonLabel)
+                        }
+                    } else {
+                        var menuExpanded by remember { mutableStateOf(false) }
+                       // var minutesBefore by rememberSaveable(item.id) { mutableStateOf(60) } //기본 1시간 전
+                        val context = LocalContext.current
+                        fun labelFor(min: Int) = when (min) {
+                            5 -> "5분 전 알림"
+                            60 -> "1시간 전 알림"
+                            120 -> "2시간 전 알림"
+                            1440 -> "하루 전 알림"
+                            else -> "${min}분 전 알림"
+                        }
+                        Box {
+                            FilledTonalButton(
+                                onClick = {
+                                    onAlarm(item, minutesBefore) //즉시 예약
+                                },
+                                shape = RoundedCornerShape(12.dp),
+                                colors = ButtonDefaults.filledTonalButtonColors(
+                                    containerColor = Purple500,
+                                    contentColor = Color.White
+                                ),
+                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
+                            ) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_alarm),
+                                    contentDescription = "알림 설정",
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Spacer(Modifier.width(6.dp))
+                                Text(labelFor(minutesBefore))
+
+                                Spacer(Modifier.width(4.dp))
+                                IconButton(
+                                    onClick = { menuExpanded = true },
+                                    modifier = Modifier.size(24.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Rounded.ArrowDropDown,
+                                        contentDescription = "다른 알림 선택",
+                                        tint = Color.White
+                                    )
+                                }
+                            }
+
+                            DropdownMenu(
+                                expanded = menuExpanded,
+                                onDismissRequest = { menuExpanded = false },
+                                modifier = Modifier.background(Purple500)
+                            ) {
+                                fun pick(min: Int) {
+                                    onMinutesChange(min)   //ViewModel에 반영
+                                    menuExpanded = false
+                                }
+                                DropdownMenuItem(text = { Text("5분 전 알림") },    onClick = { pick(5) })
+                                DropdownMenuItem(text = { Text("1시간 전 알림") },  onClick = { pick(60) })
+                                DropdownMenuItem(text = { Text("2시간 전 알림") },  onClick = { pick(120) })
+                                DropdownMenuItem(text = { Text("하루 전 알림") },   onClick = { pick(1440) })
+                            }
+                        }
                     }
                 }
             }

@@ -61,21 +61,25 @@ fun ReviewWriteForm(
     now: () -> Long = { System.currentTimeMillis() },
     vm: ReviewViewModel? = null,
     initialReview: Review? = null,
-    observatoryVm: ObservatoryMapViewModel = hiltViewModel()
+    observatoryVm: ObservatoryMapViewModel = hiltViewModel(),
+    prefillTitle: String? = null,
+    prefillTargets: String? = null,
+    prefillSite: String? = null,
+    prefillDate: String? = null,
 ) {
     // --- 상태들 ---
     val isEditMode = initialReview != null
     var showCancelDialog by remember { mutableStateOf(false) }
     var showValidationDialog by remember { mutableStateOf(false) }
 
-    var title by rememberSaveable { mutableStateOf( initialReview?.title ?: "") }
+    var title by rememberSaveable {  mutableStateOf(initialReview?.title ?: prefillTitle.orEmpty()) }
     var ratingInt by rememberSaveable { mutableStateOf(initialReview?.rating ?: 0) }
     var rating by rememberSaveable { mutableStateOf(if (ratingInt > 0) "$ratingInt/5" else "") }
 
-    var targetsText by rememberSaveable { mutableStateOf(initialReview?.targets?.joinToString(", ") ?: "") }
-    var site by rememberSaveable { mutableStateOf(initialReview?.site ?: "") }
+    var targetsText by rememberSaveable { mutableStateOf(initialReview?.targets?.joinToString(", ") ?: prefillTargets.orEmpty()) }
+    var site by rememberSaveable { mutableStateOf(initialReview?.site ?: prefillSite.orEmpty()) }
     var equipment by rememberSaveable { mutableStateOf(initialReview?.equipment ?: "") }
-    var date by rememberSaveable { mutableStateOf(initialReview?.date ?: "") }
+    var date by rememberSaveable { mutableStateOf(initialReview?.date ?: prefillDate.orEmpty() ) }
     var startTime by rememberSaveable { mutableStateOf("") }
     var endTime by rememberSaveable { mutableStateOf("") }
     var showRatingPicker by remember { mutableStateOf(false) }

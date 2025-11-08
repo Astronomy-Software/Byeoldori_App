@@ -39,4 +39,13 @@ interface PlanApi {
     suspend fun deletePlan(
         @Path("id") id: Long
     ): BaseResponse<Any?>
+
+    @GET("calendar/events/count")
+    suspend fun getObservationCount(): BaseResponse<ObservationCountDto>
+
+    @POST("calendar/events/{id}/complete")
+    suspend fun completeEvent(
+        @Path("id") id: Long,
+        @Query("observedAt") observedAt: String? = null // 예: "2025-11-07T15:47:32Z" 또는 로컬 ISO
+    ): BaseResponse<PlanDetailDto>
 }

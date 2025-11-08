@@ -1,6 +1,7 @@
 package com.example.byeoldori.viewmodel.Community
 
 import android.util.Log
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.lifecycle.*
 import com.example.byeoldori.data.model.dto.*
 import com.example.byeoldori.data.repository.PlanRepository
@@ -14,7 +15,8 @@ import kotlin.coroutines.cancellation.CancellationException
 
 @HiltViewModel
 class PlanViewModel @Inject constructor(
-    private val repo: PlanRepository
+    private val repo: PlanRepository,
+    private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
     private val _monthSummaryState = MutableStateFlow<UiState<List<MonthDaySummaryDto>>>(UiState.Idle)
@@ -38,6 +40,26 @@ class PlanViewModel @Inject constructor(
     private var lastPlans: List<PlanDetailDto> = emptyList()
     private val pendingDeleteIds = mutableSetOf<Long>() //삭제 진행 중인 ID를 기억
     private var monthReqSeq = 0
+
+    private val _observationCount = MutableStateFlow<Int>(0)
+    val observationCount: StateFlow<Int> = _observationCount
+
+    private companion object {
+        const val ALARM_MINUTES_KEY = "alarm_minutes_map"
+    }
+    private val alarmMinutesMap = mutableStateMapOf<Long, Int>().apply {
+        // 복원: Map<String, Int> 형태로 저장해두고 Long으로 변환
+        val restored: Map<String, Int>? = savedStateHandle[ALARM_MINUTES_KEY]
+        restored?.forEach { (k, v) -> put(k.toLongOrNull() ?: return@forEach, v) }
+    }
+
+    fun getAlarmMinutes(planId: Long): Int = alarmMinutesMap[planId] ?: 60
+    fun setAlarmMinutes(planId: Long, min: Int) {
+        alarmMinutesMap[planId] = min
+        // 저장: Long 키를 String으로 바꿔서 저장
+        val toSave: Map<String, Int> = alarmMinutesMap.mapKeys { it.key.toString() }
+        savedStateHandle[ALARM_MINUTES_KEY] = toSave
+    }
 
     fun loadMonthSummary(year: Int, month: Int) {
         _monthSummaryState.value = UiState.Loading
@@ -145,6 +167,32 @@ class PlanViewModel @Inject constructor(
                         lastPlans.filterNot { it.id in pendingDeleteIds }
                     )
                 }
+        }
+    }
+    fun loadObservationCount() {
+        viewModelScope.launch {
+            runCatching { repo.getObservationCount() }
+                .onSuccess { _observationCount.value = it }
+                .onFailure { /* 필요하면 로그만 */ }
+        }
+    }
+
+    fun completePlan(id: Long, observedAt: java.time.OffsetDateTime? = null) {
+        viewModelScope.launch {
+            runCatching {
+                repo.completeEvent(
+                    id,
+                    observedAt?.toString() // ISO-8601 "2025-11-07T15:47:32Z"
+                )
+            }.onSuccess { updated ->
+                // 목록/상태 갱신
+                lastPlans = lastPlans.map { if (it.id == updated.id) updated else it }
+                _monthPlansState.value = UiState.Success(lastPlans.filterNot { it.id in pendingDeleteIds })
+                // 완료되었으니 카운트도 갱신
+                loadObservationCount()
+            }.onFailure {
+                // TODO: 에러 처리(스낵바/로그)
+            }
         }
     }
 
