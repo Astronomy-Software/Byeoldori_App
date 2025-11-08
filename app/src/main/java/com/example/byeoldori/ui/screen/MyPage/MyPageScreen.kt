@@ -13,9 +13,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.*
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.byeoldori.data.TestUserScreen
 import com.example.byeoldori.data.UserViewModel
-import com.example.byeoldori.data.model.dto.PlanDetailDto
 import com.example.byeoldori.ui.components.mypage.*
 import com.example.byeoldori.ui.theme.*
 import com.example.byeoldori.viewmodel.Community.PlanViewModel
@@ -39,7 +37,7 @@ fun MyPageScreen(
     onOpenMyComments: () -> Unit = {},
     onOpenSupport: () -> Unit = {},
     onOpenSettings: () -> Unit = {},
-    planVm: PlanViewModel = hiltViewModel()
+    planVm: PlanViewModel = hiltViewModel(),
 ) {
 
     var baseMonth by remember { mutableStateOf(YearMonth.now()) }
@@ -104,30 +102,52 @@ fun MyPageScreen(
     //단일 관측일 때
     val singleBadges = remember(baseMonth, plans) {
         val today = LocalDate.now()
-        plans
-            .mapNotNull { runCatching { parseDateTimeFlexible(it.startAt).toLocalDate() }.getOrNull() }
-            .filter { YearMonth.from(it) == baseMonth }
-            .distinct()
-            .associateWith { date ->
-                if (date.isBefore(today)) SuccessGreen    // 과거 일정 → 초록
-                else WarningYellow                        // 오늘 이후 일정 → 노랑
+        buildMap<LocalDate, Color> {
+            plans.forEach { p ->
+                val s = runCatching { parseDateTimeFlexible(p.startAt).toLocalDate() }.getOrNull()
+                val e = runCatching { parseDateTimeFlexible(p.endAt).toLocalDate() }.getOrNull()
+
+                // 하루짜리 일정만 해당 달에 표시
+                if (s != null && e != null && s == e && YearMonth.from(s) == baseMonth) {
+                    val isCompleted = (p.status?.name == "COMPLETED")
+                    val color = when {
+                        s.isBefore(today) && !isCompleted -> ErrorRed    // 과거 + 리뷰 미작성
+                        s.isBefore(today) -> SuccessGreen                 // 과거 + 완료
+                        else -> WarningYellow                             // 미래
+                    }
+
+                    // 같은 날짜에 여러 일정이 있을 경우: 빨강 > 초록 > 노랑
+                    val prev = this[s]
+                    this[s] = when {
+                        prev == ErrorRed || color == ErrorRed -> ErrorRed
+                        prev == SuccessGreen || color == SuccessGreen -> SuccessGreen
+                        else -> WarningYellow
+                    }
+                }
             }
+        }
     }
 
     //자정을 넘길 때
     val ranges = remember(baseMonth, plans) {
         val today = LocalDate.now()
-        plans.mapNotNull { p->
+        plans.mapNotNull { p ->
             val s = runCatching { parseDateTimeFlexible(p.startAt).toLocalDate() }.getOrNull()
             val e = runCatching { parseDateTimeFlexible(p.endAt).toLocalDate() }.getOrNull()
-            if(s != null && e != null && s != e) {
-                val color = if(e.isBefore(today)) SuccessGreen else WarningYellow
+
+            if (s != null && e != null && s != e) {
+                val isCompleted = (p.status?.name == "COMPLETED")
+                val color = when {
+                    e.isBefore(today) && !isCompleted -> ErrorRed   // 과거 + 리뷰 미작성
+                    e.isBefore(today) -> SuccessGreen               // 과거 + 완료
+                    else -> WarningYellow                           // 미래
+                }
                 ColoredRange(s, e, color)
             } else null
         }.filter { r ->
             val a = YearMonth.from(r.start)
             val b = YearMonth.from(r.end)
-            a == baseMonth || baseMonth == b
+            a == baseMonth || b == baseMonth
         }
     }
 

@@ -35,7 +35,7 @@ import com.example.byeoldori.ui.components.community.review.ReviewWriteForm
 import com.example.byeoldori.utils.SweObjUtils
 import com.example.byeoldori.viewmodel.Community.ReviewViewModel
 
-private fun parseDateTimeFlexible(raw: String): LocalDateTime {
+fun parseDateTimeFlexible(raw: String): LocalDateTime {
     runCatching { return ZonedDateTime.parse(raw).toLocalDateTime() }
     runCatching { return OffsetDateTime.parse(raw).toLocalDateTime() }
     runCatching { return LocalDateTime.parse(raw) }

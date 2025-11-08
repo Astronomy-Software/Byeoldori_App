@@ -44,7 +44,11 @@ fun MainRoot() {
             startDestination = Root.Home.route,
             modifier = Modifier.padding(inner)
         ) {
-            composable(Root.Home.route)        { HomeScreen() }
+            composable(Root.Home.route)        {
+                HomeScreen(
+                    onOpenSchedule = { nav.navigate("mypage/myschedule") }
+                )
+            }
             composable(Root.StarMap.route)     { StellariumScreen() }
             composable(Root.Observatory.route) { ObservatoryScreen() }
             navigation(startDestination = "community/home", route = Root.Community.route) {
