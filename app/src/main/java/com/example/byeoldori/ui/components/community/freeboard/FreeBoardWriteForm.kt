@@ -133,6 +133,13 @@ fun FreeBoardWriteForm (
         )
     }
 
+    LaunchedEffect(items) {
+        // items에 남아 있는 Photo만 서버 전송용 URL로 유지
+        uploadedImageUrls = items
+            .filterIsInstance<EditorItem.Photo>()
+            .mapNotNull { it.model as? String }
+    }
+
     //업로드 성공 시 URL을 items/리스트에 반영
     val uploadState by fileUploadVm.uploadState.collectAsState()
     LaunchedEffect(uploadState) {

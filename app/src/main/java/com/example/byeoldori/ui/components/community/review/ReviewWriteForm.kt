@@ -190,6 +190,12 @@ fun ReviewWriteForm(
                 ?: emptyList()
         )
     }
+    LaunchedEffect(items) {
+        // items에 남아 있는 Photo만 서버 전송용 URL로 유지
+        uploadedImageUrls = items
+            .filterIsInstance<EditorItem.Photo>()
+            .mapNotNull { it.model as? String }
+    }
 
     fun buildContentText(items: List<EditorItem>): String =
         items.joinToString("\n") {
