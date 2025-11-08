@@ -245,21 +245,6 @@ fun ReviewWriteForm(
             .filter { it.isNotEmpty() }
 
     Box(Modifier.fillMaxSize()) {
-        SnackbarHost(
-            hostState = snackbar,
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(16.dp)
-        ) { data ->
-            Snackbar(
-                containerColor = Purple600,
-                contentColor = Color.White,
-                shape = RoundedCornerShape(12.dp),
-                modifier = Modifier.padding(horizontal = 16.dp)
-            ) {
-                Text(data.visuals.message)
-            }
-        }
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -360,6 +345,21 @@ fun ReviewWriteForm(
                     onCheck = { scope.launch { snackbar.showSnackbar("아직 준비중인 기능입니다",duration = SnackbarDuration.Short)} },
                     onChecklist = { scope.launch { snackbar.showSnackbar("아직 준비중인 기능입니다",duration = SnackbarDuration.Short)} },
                 )
+            }
+        }
+        SnackbarHost(
+            hostState = snackbar,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(16.dp)
+        ) { data ->
+            Snackbar(
+                containerColor = Purple600,
+                contentColor = Color.White,
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.padding(horizontal = 16.dp)
+            ) {
+                Text(data.visuals.message)
             }
         }
 

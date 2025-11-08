@@ -11,11 +11,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.byeoldori.ui.theme.Blue800
+import com.example.byeoldori.ui.theme.ErrorRed
+import java.lang.Error
 
 data class MenuItem(
     val title: String,
     val onClick: () -> Unit = {},
-    val trailing: (@Composable () -> Unit)? = null // 스위치, 텍스트 등
+    val trailing: (@Composable () -> Unit)? = null, // 스위치, 텍스트 등
+    val color: Color = Color.White
 )
 
 @Composable
@@ -46,7 +49,7 @@ fun MenuGroupCard(
                 ) {
                     Text(
                         item.title,
-                        color = Color.White,
+                        color = item.color,
                         style = MaterialTheme.typography.bodyLarge,
                         modifier = Modifier.weight(1f)
                     )
@@ -72,13 +75,15 @@ private fun PreviewMenuGroupCard() {
     MenuGroupCard(
         containerColor = Blue800,
         items = listOf(
-            MenuItem("관측 일정 및 나의 관측 후기") {},
-            MenuItem("찜") {},
-            MenuItem("좋아요") {},
-            MenuItem("내가 작성한 자유게시글") {},
-            MenuItem("내가 작성한 교육 프로그램") {},
-            MenuItem("내가 작성한 댓글") {},
-            MenuItem("고객 센터") {},
+            MenuItem("관측 일정 및 나의 관측 후기",color = Color.White),
+            MenuItem("찜",color = Color.White) ,
+            MenuItem("좋아요",color = Color.White) ,
+            MenuItem("내가 작성한 자유게시글",color = Color.White),
+            MenuItem("내가 작성한 교육 프로그램",color = Color.White),
+            MenuItem("내가 작성한 댓글",color = Color.White),
+            MenuItem("고객 센터",color = Color.White),
+            MenuItem("로그아웃", color = ErrorRed), // 노랑
+            MenuItem("회원 탈퇴", color = ErrorRed)
         )
     )
 }

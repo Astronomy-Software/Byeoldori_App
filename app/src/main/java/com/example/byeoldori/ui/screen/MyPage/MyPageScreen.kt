@@ -24,8 +24,11 @@ import android.content.pm.PackageManager
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.Alignment
 import androidx.core.content.ContextCompat
 import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.launch
 
 @Composable
 fun MyPageScreen(
@@ -273,101 +276,114 @@ private fun MyPageContent(
     singleBadges: Map<LocalDate, Color>,
     ranges: List<ColoredRange>
 ) {
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(14.dp),
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)
-    ) {
-        item { Spacer(Modifier.height(20.dp)) }
-        item{
-            ProfileCard(
-                name = profileName,
-                observationCount = observationCount,
-                onEditProfile = onEditProfile,
-                onOpenProfile = onOpenProfile
-            )
-            Spacer(Modifier.height(12.dp))
-        }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
-        item {
-            Text(
-                text = "관측 캘린더",
-                style = MaterialTheme.typography.titleMedium.copy(
-                    fontWeight = FontWeight.ExtraBold,
-                    color = Color.White
+    Box(modifier = Modifier.fillMaxSize()) {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)
+        ) {
+            item { Spacer(Modifier.height(20.dp)) }
+            item {
+                ProfileCard(
+                    name = profileName,
+                    observationCount = observationCount,
+                    onEditProfile = onEditProfile,
+                    onOpenProfile = onOpenProfile
                 )
-            )
-        }
-        item {
-            CalendarCard(
-                yearMonth = baseMonth,
-                selected = selectedDate,
-                singleBadges = singleBadges,
-                ranges = ranges,
-                onSelect =  { date ->
-                    onSelectDate(date)
-                },
-                onPrev = onPrevMonth,
-                onNext = onNextMonth
-            )
-        }
-        item {
-            MenuGroupCard(
-                containerColor = Color(0xFF3D2A79),
-                items = listOf(
-                    MenuItem(title = "관측 일정 및 나의 관측 후기", onClick = onOpenSchedule),
-                    MenuItem(title = "좋아요", onClick = onOpenLikes),
-                    MenuItem(title = "내가 작성한 자유게시글", onClick = onOpenMyBoards),
-                    MenuItem(title = "내가 작성한 교육 프로그램", onClick = onOpenMyPrograms),
-                    MenuItem(title = "내가 작성한 댓글", onClick = onOpenMyComments),
-                    MenuItem(title = "고객 센터", onClick = {}), // onOpenSupport
-                    MenuItem(title = "설정", onClick = onOpenSettings),
-                )
-            )
-        }
-        item { Spacer(Modifier.height(12.dp)) }
-
-        item {
-            var showResignConfirm by remember { mutableStateOf(false) }
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                OutlinedButton(
-                    onClick = { userVm.logOut() },
-                    modifier = Modifier.weight(1f)
-                ) { Text("로그아웃") }
-
-                Button(
-                    onClick = { showResignConfirm = true },
-                    colors = ButtonDefaults.buttonColors(containerColor = ErrorRed),
-                    modifier = Modifier.weight(1f)
-                ) { Text("회원 탈퇴", color = Color.White) }
+                Spacer(Modifier.height(12.dp))
             }
 
-            if (showResignConfirm) {
-                AlertDialog(
-                    onDismissRequest = { showResignConfirm = false },
-                    title = { Text("회원 탈퇴", color = Color.Black) },
-                    text  = { Text("정말로 탈퇴하시겠어요? 이 작업은 되돌릴 수 없습니다.") },
-                    confirmButton = {
-                        TextButton(onClick = {
-                            showResignConfirm = false
-                            userVm.resign()
-                        }) {
-                            Text("탈퇴")
-                        }
+            item {
+                Text(
+                    text = "관측 캘린더",
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.ExtraBold,
+                        color = Color.White
+                    )
+                )
+            }
+            item {
+                CalendarCard(
+                    yearMonth = baseMonth,
+                    selected = selectedDate,
+                    singleBadges = singleBadges,
+                    ranges = ranges,
+                    onSelect = { date ->
+                        onSelectDate(date)
                     },
-                    dismissButton = {
-                        TextButton(onClick = { showResignConfirm = false }) {
-                            Text("취소")
-                        }
-                    }
+                    onPrev = onPrevMonth,
+                    onNext = onNextMonth
                 )
             }
+            item {
+                var showResignConfirm by remember { mutableStateOf(false) }
+                MenuGroupCard(
+                    containerColor = Color(0xFF3D2A79),
+                    items = listOf(
+                        MenuItem(title = "관측 일정 및 나의 관측 후기", onClick = onOpenSchedule),
+                        MenuItem(title = "좋아요", onClick = onOpenLikes),
+                        MenuItem(title = "내가 작성한 자유게시글", onClick = onOpenMyBoards),
+                        MenuItem(title = "내가 작성한 교육 프로그램", onClick = onOpenMyPrograms),
+                        MenuItem(title = "내가 작성한 댓글", onClick = onOpenMyComments),
+                        MenuItem(title = "고객 센터", onClick = {
+                            scope.launch {
+                                snackbarHostState.showSnackbar(
+                                    message = "아직 준비중인 기능입니다",
+                                    duration = SnackbarDuration.Short
+                                )
+                            }
+                        }), // onOpenSupport
+                        MenuItem(title = "설정", onClick = onOpenSettings),
+                        MenuItem(title = "로그아웃", onClick = { userVm.logOut() }, color = ErrorRed),
+                        MenuItem(
+                            title = "회원 탈퇴",
+                            onClick = { showResignConfirm = true },
+                            color = ErrorRed
+                        )
+                    )
+                )
+                if (showResignConfirm) {
+                    AlertDialog(
+                        onDismissRequest = { showResignConfirm = false },
+                        title = { Text("회원 탈퇴", color = Color.Black) },
+                        text = { Text("정말로 탈퇴하시겠어요? 이 작업은 되돌릴 수 없습니다.") },
+                        confirmButton = {
+                            TextButton(onClick = {
+                                showResignConfirm = false
+                                userVm.resign()
+                            }) {
+                                Text("탈퇴")
+                            }
+                        },
+                        dismissButton = {
+                            TextButton(onClick = { showResignConfirm = false }) {
+                                Text("취소")
+                            }
+                        }
+                    )
+                }
+            }
+
+            item { Spacer(Modifier.height(20.dp)) }
         }
-        item { Spacer(Modifier.height(20.dp)) }
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp)
+                .align(Alignment.BottomCenter)
+        ) { data ->
+            Snackbar(
+                snackbarData = data,
+                containerColor = Purple500,
+                contentColor = Color.White,
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
+        }
     }
 }
 
