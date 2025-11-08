@@ -24,7 +24,6 @@ import javax.inject.Inject
 fun loadJsonFromAssets(context: Context, path: String): String {
     return context.assets.open(path).bufferedReader().use { it.readText() }
 }
-
 // ===============================================================
 // ✅ 상태 FSM
 // ===============================================================
@@ -323,6 +322,30 @@ class EduEngine @Inject constructor() {
             _currentStepDuration.value = 0L
             _log.value = "🛑 시나리오 중단됨"
             _state.value = EduState.Ready
+        }
+    }
+
+    fun resetStateOnlyAndRestart() {
+        scope.launch {
+            // 실행 중이던 job 종료
+            runningJob?.cancel()
+            timerJob?.cancel()
+
+            currentSectionIndex = 0
+            currentStepIndex = -1
+
+            _currentSection.value = 0
+            _currentTitle.value = ""
+            _timerRemaining.value = 0L
+            _currentStepDuration.value = 0L
+            _log.value = "처음부터 다시 시작합니다!"
+
+            _state.value = EduState.Started
+            Live2DControllerViewModel.playAppearanceMotion()
+            Live2DControllerViewModel.chat("처음부터 다시 갈게!", Emotion.Happy)
+            delay(2000)
+            // ✅ 첫 스텝으로 이동
+            nextStep()
         }
     }
 }

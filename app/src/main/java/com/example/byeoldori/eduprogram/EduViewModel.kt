@@ -32,8 +32,6 @@ class EduViewModel @Inject constructor(
     val sectionIndex = engine.currentSection
     val totalSections = engine.totalSections
     val autoPlay = engine.autoPlay
-
-
     fun preloadScenario(context: Context) = viewModelScope.launch {
         engine.loadScenarioWithLoading {
             loadJsonFromAssets(context, "edu/Cygnus.json")
@@ -78,4 +76,6 @@ class EduViewModel @Inject constructor(
     fun eduClose(){
         _viewEduProgram.value = false
     }
+
+    fun resetStateOnlyAndRestart() = engine.resetStateOnlyAndRestart()
 }

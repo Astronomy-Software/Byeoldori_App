@@ -65,7 +65,7 @@ fun EduOverlayUI() {
                         Text("교육 프로그램 평가하기")
                     }
 
-                    Button(onClick = { vm.start() }) {
+                    Button(onClick = { vm.resetStateOnlyAndRestart() }) {
                         Text("다시 보기")
                     }
                 }
