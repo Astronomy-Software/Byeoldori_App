@@ -22,6 +22,7 @@ fun PlanBottomSheet(
     onEdit: (PlanDetailDto) -> Unit,
     onDelete: (PlanDetailDto) -> Unit,
     onWriteReview: (PlanDetailDto) -> Unit,
+    onOpenDetail: (PlanDetailDto) -> Unit,
     getAlarmMinutes: (planId: Long) -> Int,
     setAlarmMinutes: (planId: Long, minutes: Int) -> Unit,
     onAlarm: (PlanDetailDto, Int) -> Unit
@@ -86,6 +87,7 @@ fun PlanBottomSheet(
                             onEdit = onEdit,
                             onDelete = onDelete,
                             onWriteReview = onWriteReview,
+                            onOpenDetail = onOpenDetail,
                             modifier = Modifier.fillMaxWidth(),
                             minutesBefore = getAlarmMinutes(dto.id),
                             onMinutesChange = { min -> setAlarmMinutes(dto.id, min) },

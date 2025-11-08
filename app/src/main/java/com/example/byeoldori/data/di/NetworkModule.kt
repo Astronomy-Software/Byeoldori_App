@@ -12,6 +12,7 @@ import com.example.byeoldori.data.api.FileUploadApi
 import com.example.byeoldori.data.api.ObservationSiteApi
 import com.example.byeoldori.data.api.PlanApi
 import com.example.byeoldori.data.api.RefreshApi
+import com.example.byeoldori.data.api.StarApi
 import com.example.byeoldori.data.api.UserApi
 import com.example.byeoldori.data.api.WeatherApi
 import com.example.byeoldori.data.local.datastore.TokenDataStore
@@ -236,4 +237,8 @@ object NetworkModule {
     @Provides @Singleton
     fun providePlanApi(@AuthedRetrofit retrofit: Retrofit): PlanApi =
         retrofit.create(PlanApi::class.java)
+
+    @Provides @Singleton
+    fun provideStarApi(@AuthedRetrofit retrofit: Retrofit): StarApi =
+        retrofit.create(StarApi::class.java)
 }

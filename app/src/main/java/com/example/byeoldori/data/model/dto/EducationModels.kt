@@ -23,7 +23,6 @@ data class EducationDto(
     val averageScore: Double? = 0.0
 )
 
-
 @JsonClass(generateAdapter = true)
 data class EducationResponse(
     val id: Long,
@@ -36,7 +35,9 @@ data class EducationResponse(
     val likeCount: Int,
     val commentCount: Int,
     val createdAt: String,
-    val liked: Boolean
+    val liked: Boolean,
+    val score: Int? = null,
+    val thumbnail: String? = null
 )
 
 @JsonClass(generateAdapter = true)

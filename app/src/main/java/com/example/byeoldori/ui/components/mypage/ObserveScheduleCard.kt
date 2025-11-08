@@ -68,6 +68,7 @@ fun ObserveScheduleCard(
     onEdit: (PlanDetailDto) -> Unit,
     onDelete: (PlanDetailDto) -> Unit,
     onWriteReview: (PlanDetailDto) -> Unit,
+    onOpenDetail: (PlanDetailDto) -> Unit,
     modifier: Modifier = Modifier,
     onAlarm: (PlanDetailDto, Int) -> Unit = { _, _ -> },
     minutesBefore: Int,
@@ -102,6 +103,7 @@ fun ObserveScheduleCard(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 12.dp, vertical = 6.dp)
+            .clickable { onOpenDetail(item) }
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             Box(modifier = Modifier.fillMaxWidth()) {
@@ -109,7 +111,7 @@ fun ObserveScheduleCard(
                     modifier = Modifier
                         .align(Alignment.TopStart)
                         .padding(end = 72.dp)
-                        .clickable { onWriteReview(item) }
+                       // .clickable { onWriteReview(item) }
                 ) {
                     Text(
                         text = item.title ?: targets ?: "제목 없음",

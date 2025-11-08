@@ -16,5 +16,6 @@ data class EduProgram (
     val contentItems: List<Content>,
     val liked: Boolean,
     val targets: List<String>? = null,
-    val averageScore: Double? = 0.0
+    val averageScore: Double? = 0.0,
+    val thumbnail: String? = null
 )

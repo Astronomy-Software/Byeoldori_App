@@ -62,7 +62,7 @@ fun ReviewWriteForm(
     vm: ReviewViewModel? = null,
     initialReview: Review? = null,
     observatoryVm: ObservatoryMapViewModel = hiltViewModel(),
-    prefillTitle: String? = null,
+    prefillTitle: String? = null, //마이페이지에서 관측 후기 남길 때 자동채워짐
     prefillTargets: String? = null,
     prefillSite: String? = null,
     prefillDate: String? = null,
@@ -83,6 +83,8 @@ fun ReviewWriteForm(
     var startTime by rememberSaveable { mutableStateOf("") }
     var endTime by rememberSaveable { mutableStateOf("") }
     var showRatingPicker by remember { mutableStateOf(false) }
+    var showErrorDialog by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
 
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -292,6 +294,7 @@ fun ReviewWriteForm(
                                     onSubmit() // 상위 완료 처리(알림, 다이얼로그 등)
                                 }
                             } else {
+                                showValidationDialog = true
                                 vm?.createReview(
                                     title = title.trim(),
                                     content = buildContentText(items),
@@ -368,7 +371,7 @@ fun ReviewWriteForm(
                         onSubmit()
                     }
                 }
-                is UiState.Error -> { Text(s.message ?: "작성 실패", color = Color.Red) }
+                is UiState.Error -> {  }
                 UiState.Idle -> Unit
             }
         }

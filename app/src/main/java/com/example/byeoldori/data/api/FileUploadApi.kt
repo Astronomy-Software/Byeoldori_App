@@ -8,9 +8,8 @@ import retrofit2.http.POST
 import retrofit2.http.Part
 
 interface FileUploadApi {
-
     @Multipart //파일+텍스트를 동시에 전송할 때 사용(요청이 여러 부분으로 구성)
-    @POST("files")
+    @POST("files/image")
     suspend fun uploadImage(
         @Part file: MultipartBody.Part,
         @Header("Authorization") authorization: String? = null //요청 헤더에 토큰 추가
