@@ -11,27 +11,32 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.byeoldori.data.model.dto.PostDetailResponse
-import com.example.byeoldori.domain.Community.EduProgram
-import com.example.byeoldori.domain.Community.FreePost
+import com.example.byeoldori.domain.Community.*
 import com.example.byeoldori.domain.Observatory.Review
 import com.example.byeoldori.ui.components.community.HomeSection
 import com.example.byeoldori.ui.components.community.freeboard.*
 import com.example.byeoldori.ui.components.community.program.*
 import com.example.byeoldori.ui.components.community.review.*
+import com.example.byeoldori.ui.components.mypage.*
 import com.example.byeoldori.ui.components.observatory.CurrentWeatherSection
 import com.example.byeoldori.ui.home.GetLocation
-import com.example.byeoldori.ui.theme.TextHighlight
+import com.example.byeoldori.ui.screen.MyPage.parseDateTimeFlexible
+import com.example.byeoldori.ui.theme.*
 import com.example.byeoldori.viewmodel.Community.*
 import com.example.byeoldori.viewmodel.Observatory.*
 import com.example.byeoldori.viewmodel.UiState
+import java.time.*
 
 @Composable
 fun HomeScreen(
     vm: NaverMapViewModel = hiltViewModel(),
     reviewVm: ReviewViewModel = hiltViewModel(),
     eduVm: EducationViewModel = hiltViewModel(),
-    communityVm: CommunityViewModel = hiltViewModel()
+    communityVm: CommunityViewModel = hiltViewModel(),
+    planVm: PlanViewModel = hiltViewModel(),
+    onOpenSchedule: () -> Unit = {}
 ) {
     val locationState = GetLocation(vm)
     var suitability by remember { mutableStateOf<Int?>(null) }
@@ -53,6 +58,59 @@ fun HomeScreen(
     var selectedReview by remember { mutableStateOf<Review?>(null) }
     var selectedEduProgram by remember { mutableStateOf<EduProgram?>(null) }
     var selectedPost by remember { mutableStateOf<FreePost?>(null) }
+
+    var calYearMonth by remember { mutableStateOf(YearMonth.now()) }
+    var calSelected by remember { mutableStateOf(LocalDate.now()) }
+
+    LaunchedEffect(calYearMonth) {
+        planVm.loadMonthPlans(calYearMonth.year, calYearMonth.monthValue)
+    }
+
+    val monthUi by planVm.monthPlansState.collectAsStateWithLifecycle()
+    val plans = when(val s = monthUi) {
+        is UiState.Success -> s.data
+        else -> emptyList()
+    }
+
+    var showPlanSheet by remember { mutableStateOf(false) }
+
+    val plansForSelectedDay = remember(calSelected, plans) {
+        plans.filter { p ->
+            val s = runCatching { parseDateTimeFlexible(p.startAt).toLocalDate() }.getOrNull()
+            val e = runCatching { parseDateTimeFlexible(p.endAt).toLocalDate() }.getOrNull()
+            if (s == null || e == null) return@filter false
+            !calSelected.isBefore(s) && !calSelected.isAfter(e)
+        }
+    }
+
+    val singleBadges = remember(calYearMonth, plans) {
+        val today = LocalDate.now()
+        plans
+            .mapNotNull { runCatching { parseDateTimeFlexible(it.startAt).toLocalDate() }.getOrNull() }
+            .filter { YearMonth.from(it) == calYearMonth }
+            .distinct()
+            .associateWith { date ->
+                if (date.isBefore(today)) SuccessGreen    // 과거 일정 → 초록
+                else WarningYellow                        // 오늘 이후 일정 → 노랑
+            }
+    }
+
+    //자정을 넘길 때
+    val ranges = remember(calYearMonth, plans) {
+        val today = LocalDate.now()
+        plans.mapNotNull { p->
+            val s = runCatching { parseDateTimeFlexible(p.startAt).toLocalDate() }.getOrNull()
+            val e = runCatching { parseDateTimeFlexible(p.endAt).toLocalDate() }.getOrNull()
+            if(s != null && e != null && s != e) {
+                val color = if(e.isBefore(today)) SuccessGreen else WarningYellow
+                ColoredRange(s, e, color)
+            } else null
+        }.filter { r ->
+            val a = YearMonth.from(r.start)
+            val b = YearMonth.from(r.end)
+            a == calYearMonth || calYearMonth == b
+        }
+    }
 
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
@@ -165,20 +223,41 @@ fun HomeScreen(
         contentPadding = PaddingValues(vertical = 20.dp) // 위/아래 여백만
     ) {
         item {
+            Spacer(Modifier.height(8.dp))
+            Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
+                Spacer(Modifier.height(10.dp))
+                Text("관측 캘린더", style = MaterialTheme.typography.titleLarge, color = TextHighlight)
+                Spacer(Modifier.height(12.dp))
+
+                CalendarCard(
+                    yearMonth = calYearMonth,
+                    selected = calSelected,
+                    singleBadges = singleBadges,
+                    ranges = ranges,
+                    onSelect = { picked ->
+                        calSelected = picked
+                        showPlanSheet = true            //날짜 탭 시 시트 오픈
+                    },
+                    onPrev = { calYearMonth = calYearMonth.minusMonths(1) },
+                    onNext = { calYearMonth = calYearMonth.plusMonths(1) },
+                    containerColor = Purple100,
+                    textColor = Purple900
+                )
+            }
+        }
+
+        item {
             Spacer(Modifier.height(16.dp))
             Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
-                Text("홈화면이에요", fontSize = 28.sp, color = TextHighlight)
-                Spacer(Modifier.height(16.dp))
-
-                if (locationState.lat != null && locationState.lon != null) {
-                    Text("위도(Lat): ${"%.5f".format(locationState.lat)}", fontSize = 16.sp, color = TextHighlight)
-                    Text("경도(Lon): ${"%.5f".format(locationState.lon)}", fontSize = 16.sp, color = TextHighlight)
-                }
-                if (locationState.address.isNotBlank()) {
-                    Spacer(Modifier.height(8.dp))
-                    Text("주소: ${locationState.address}", fontSize = 16.sp, color = TextHighlight)
-                }
-                Spacer(Modifier.height(24.dp))
+//                if (locationState.lat != null && locationState.lon != null) {
+//                    Text("위도(Lat): ${"%.5f".format(locationState.lat)}", fontSize = 16.sp, color = TextHighlight)
+//                    Text("경도(Lon): ${"%.5f".format(locationState.lon)}", fontSize = 16.sp, color = TextHighlight)
+//                }
+//                if (locationState.address.isNotBlank()) {
+//                    Spacer(Modifier.height(8.dp))
+//                    Text("주소: ${locationState.address}", fontSize = 16.sp, color = TextHighlight)
+//                }
+//                Spacer(Modifier.height(24.dp))
 
                 when {
                     locationState.isLoading -> {
@@ -231,5 +310,34 @@ fun HomeScreen(
             )
         }
         item { Spacer(Modifier.height(8.dp)) }
+    }
+    if (showPlanSheet) {
+        PlanBottomSheet(
+            date = calSelected,
+            plans = plansForSelectedDay,
+            onDismiss = { showPlanSheet = false },
+            onOpenScheduleScreen = {
+                showPlanSheet = false
+                onOpenSchedule()        //일정 화면으로 이동
+            },
+            onOpenDetail = { _ ->
+                showPlanSheet = false
+                onOpenSchedule()
+            },
+            onEdit = { _ ->
+                showPlanSheet = false
+                onOpenSchedule()
+            },
+            onDelete = { _ ->
+                showPlanSheet = false
+                onOpenSchedule()
+            },
+            onWriteReview = { _ -> showPlanSheet = false },
+
+            // 알람 분/설정(PlanViewModel 그대로 사용)
+            getAlarmMinutes = { planId -> planVm.getAlarmMinutes(planId) },
+            setAlarmMinutes = { _, _ -> /* no-op: 홈에서는 수정 불가 */ },
+            onAlarm = { _, _ -> /* no-op: 홈에서는 버튼 눌러도 반응 없음 */ }
+        )
     }
 }

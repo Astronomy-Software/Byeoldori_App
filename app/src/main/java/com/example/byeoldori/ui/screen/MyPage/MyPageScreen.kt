@@ -13,9 +13,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.*
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.byeoldori.data.TestUserScreen
 import com.example.byeoldori.data.UserViewModel
-import com.example.byeoldori.data.model.dto.PlanDetailDto
 import com.example.byeoldori.ui.components.mypage.*
 import com.example.byeoldori.ui.theme.*
 import com.example.byeoldori.viewmodel.Community.PlanViewModel
@@ -39,7 +37,7 @@ fun MyPageScreen(
     onOpenMyComments: () -> Unit = {},
     onOpenSupport: () -> Unit = {},
     onOpenSettings: () -> Unit = {},
-    planVm: PlanViewModel = hiltViewModel()
+    planVm: PlanViewModel = hiltViewModel(),
 ) {
 
     var baseMonth by remember { mutableStateOf(YearMonth.now()) }
