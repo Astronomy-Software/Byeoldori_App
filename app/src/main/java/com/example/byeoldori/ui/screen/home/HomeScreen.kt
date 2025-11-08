@@ -27,6 +27,7 @@ import com.example.byeoldori.ui.theme.*
 import com.example.byeoldori.viewmodel.Community.*
 import com.example.byeoldori.viewmodel.Observatory.*
 import com.example.byeoldori.viewmodel.UiState
+import androidx.compose.ui.graphics.Color
 import java.time.*
 
 @Composable
@@ -85,30 +86,48 @@ fun HomeScreen(
 
     val singleBadges = remember(calYearMonth, plans) {
         val today = LocalDate.now()
-        plans
-            .mapNotNull { runCatching { parseDateTimeFlexible(it.startAt).toLocalDate() }.getOrNull() }
-            .filter { YearMonth.from(it) == calYearMonth }
-            .distinct()
-            .associateWith { date ->
-                if (date.isBefore(today)) SuccessGreen    // 과거 일정 → 초록
-                else WarningYellow                        // 오늘 이후 일정 → 노랑
+        buildMap<LocalDate, Color> {
+            plans.forEach { p ->
+                val s = runCatching { parseDateTimeFlexible(p.startAt).toLocalDate() }.getOrNull()
+                val e = runCatching { parseDateTimeFlexible(p.endAt).toLocalDate() }.getOrNull()
+                if (s != null && e != null && s == e && YearMonth.from(s) == calYearMonth) {
+                    val isCompleted = (p.status?.name == "COMPLETED")
+                    val color = when {
+                        s.isBefore(today) && !isCompleted -> ErrorRed     // 과거 + 미작성
+                        s.isBefore(today) -> SuccessGreen                  // 과거 + 완료
+                        else -> WarningYellow                              // 미래
+                    }
+                    // 같은 날짜에 여러 일정이 있으면 우선순위: 빨강 > 초록 > 노랑
+                    val prev = this[s]
+                    this[s] = when {
+                        prev == ErrorRed || color == ErrorRed -> ErrorRed
+                        prev == SuccessGreen || color == SuccessGreen -> SuccessGreen
+                        else -> WarningYellow
+                    }
+                }
             }
+        }
     }
 
     //자정을 넘길 때
     val ranges = remember(calYearMonth, plans) {
         val today = LocalDate.now()
-        plans.mapNotNull { p->
+        plans.mapNotNull { p ->
             val s = runCatching { parseDateTimeFlexible(p.startAt).toLocalDate() }.getOrNull()
             val e = runCatching { parseDateTimeFlexible(p.endAt).toLocalDate() }.getOrNull()
-            if(s != null && e != null && s != e) {
-                val color = if(e.isBefore(today)) SuccessGreen else WarningYellow
+            if (s != null && e != null && s != e) {
+                val isCompleted = (p.status?.name == "COMPLETED")
+                val color = when {
+                    e.isBefore(today) && !isCompleted -> ErrorRed        // 과거 + 미작성
+                    e.isBefore(today) -> SuccessGreen                    // 과거 + 완료
+                    else -> WarningYellow                                // 미래
+                }
                 ColoredRange(s, e, color)
             } else null
         }.filter { r ->
             val a = YearMonth.from(r.start)
             val b = YearMonth.from(r.end)
-            a == calYearMonth || calYearMonth == b
+            a == calYearMonth || b == calYearMonth
         }
     }
 
