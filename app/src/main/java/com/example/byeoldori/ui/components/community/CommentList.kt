@@ -10,7 +10,7 @@ import com.example.byeoldori.domain.Community.ReviewComment
 //여기서는 댓글 추가와 대댓글 관리
 @Composable
 fun CommentList(
-    postId: String,
+    postId: Long,
     currentUserId: Long?,
     currentUserNickname: String?,
     comments: List<ReviewComment>,
@@ -18,9 +18,9 @@ fun CommentList(
     onReply: (ReviewComment) -> Unit,
     onEdit: (ReviewComment) -> Unit,
     onDelete: (ReviewComment) -> Unit,
-    liked: Set<String>, //사용자가 좋아요를 누른 댓글들의 id값의 집합
-    onLikedChange: (Set<String>) -> Unit,
-    editingId: String? = null,
+    liked: Set<Long>, //사용자가 좋아요를 누른 댓글들의 id값의 집합
+    onLikedChange: (Set<Long>) -> Unit,
+    editingId: Long? = null,
     onSubmitEditInline: (comment: ReviewComment, newText: String) -> Unit = { _, _ -> },
     onCancelEditInline: () -> Unit = {}
 ) {

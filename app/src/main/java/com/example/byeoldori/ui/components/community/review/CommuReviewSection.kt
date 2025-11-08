@@ -22,6 +22,7 @@ import com.example.byeoldori.ui.theme.*
 import com.example.byeoldori.domain.Observatory.Review
 import com.example.byeoldori.ui.components.community.EditorItem
 import com.example.byeoldori.ui.components.community.freeboard.formatCreatedAt
+import com.example.byeoldori.utils.SweObjUtils
 import com.example.byeoldori.viewmodel.*
 import com.example.byeoldori.viewmodel.Community.*
 
@@ -49,7 +50,7 @@ fun ReviewResponse.toReview(): Review {
         // 목록에서는 요약만 있으므로 가볍게 파라그래프 하나로 구성
         contentItems = listOf(Content.Text(contentSummary.orEmpty())),
         // 아래 필드는 상세 조회 시 채워넣을 수 있음
-        target = "",
+        targets = emptyList(),
         site = "",
         equipment = "",
         date = "",
@@ -74,7 +75,7 @@ fun ReviewDetailResponse.toDomain(author: String? = null): Review = Review(
         images.forEach { add(Content.Image.Url(it)) }
         add(Content.Text(content))
     },
-    target = review?.target.orEmpty(),
+    targets = review?.targets?.map { SweObjUtils.toKorean(it) }.orEmpty(),
     site = review?.location.orEmpty(),
     equipment = review?.equipment.orEmpty(),
     date = review?.observationDate.orEmpty(),

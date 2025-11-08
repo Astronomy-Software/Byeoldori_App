@@ -25,6 +25,7 @@ import com.example.byeoldori.domain.Observatory.Review
 import com.example.byeoldori.ui.mapper.toUi
 import com.example.byeoldori.ui.theme.Purple500
 import com.example.byeoldori.ui.theme.Purple600
+import com.example.byeoldori.utils.SweObjUtils
 import com.example.byeoldori.viewmodel.Community.FileUploadViewModel
 import com.example.byeoldori.viewmodel.Community.ReviewViewModel
 import com.example.byeoldori.viewmodel.Observatory.ObservatoryMapViewModel
@@ -60,23 +61,30 @@ fun ReviewWriteForm(
     now: () -> Long = { System.currentTimeMillis() },
     vm: ReviewViewModel? = null,
     initialReview: Review? = null,
-    observatoryVm: ObservatoryMapViewModel = hiltViewModel()
+    observatoryVm: ObservatoryMapViewModel = hiltViewModel(),
+    prefillTitle: String? = null, //마이페이지에서 관측 후기 남길 때 자동채워짐
+    prefillTargets: String? = null,
+    prefillSite: String? = null,
+    prefillDate: String? = null,
 ) {
     // --- 상태들 ---
     val isEditMode = initialReview != null
     var showCancelDialog by remember { mutableStateOf(false) }
     var showValidationDialog by remember { mutableStateOf(false) }
 
-    var title by rememberSaveable { mutableStateOf( initialReview?.title ?: "") }
+    var title by rememberSaveable {  mutableStateOf(initialReview?.title ?: prefillTitle.orEmpty()) }
     var ratingInt by rememberSaveable { mutableStateOf(initialReview?.rating ?: 0) }
     var rating by rememberSaveable { mutableStateOf(if (ratingInt > 0) "$ratingInt/5" else "") }
-    var target by rememberSaveable { mutableStateOf(initialReview?.target ?: "") }
-    var site by rememberSaveable { mutableStateOf(initialReview?.site ?: "") }
+
+    var targetsText by rememberSaveable { mutableStateOf(initialReview?.targets?.joinToString(", ") ?: prefillTargets.orEmpty()) }
+    var site by rememberSaveable { mutableStateOf(initialReview?.site ?: prefillSite.orEmpty()) }
     var equipment by rememberSaveable { mutableStateOf(initialReview?.equipment ?: "") }
-    var date by rememberSaveable { mutableStateOf(initialReview?.date ?: "") }
+    var date by rememberSaveable { mutableStateOf(initialReview?.date ?: prefillDate.orEmpty() ) }
     var startTime by rememberSaveable { mutableStateOf("") }
     var endTime by rememberSaveable { mutableStateOf("") }
     var showRatingPicker by remember { mutableStateOf(false) }
+    var showErrorDialog by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
 
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -193,7 +201,7 @@ fun ReviewWriteForm(
 
     fun validateRequirement(): Boolean {
         return title.isNotBlank() &&
-                target.isNotBlank() &&
+                targetsText.isNotBlank() &&
                 site.isNotBlank() &&
                 equipment.isNotBlank() &&
                 date.isNotBlank() &&
@@ -231,6 +239,11 @@ fun ReviewWriteForm(
         }
     }
 
+    fun parseTargets(raw: String): List<String> =
+        raw.split(',')
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+
     Box(Modifier.fillMaxSize()) {
         SnackbarHost(
             hostState = snackbar,
@@ -261,6 +274,8 @@ fun ReviewWriteForm(
                         if(validateRequirement()) {
                             val matchedId = findMatchingSiteId(site, sites)
                             val payloadContent = buildContentText(items)
+                            val targets = parseTargets(targetsText)
+                            val targetsSwe = parseTargets(targetsText).map { SweObjUtils.toSweFormat(it) }
 
                             if (isEditMode) {
                                 val idL = initialReview!!.id.toLong()
@@ -269,7 +284,7 @@ fun ReviewWriteForm(
                                     title = title.trim(),
                                     content = payloadContent,
                                     location = site.trim(),
-                                    target = target.trim(),
+                                    targets = targetsSwe,
                                     equipment = equipment.trim(),
                                     observationDate = date,
                                     score = ratingInt,
@@ -279,11 +294,12 @@ fun ReviewWriteForm(
                                     onSubmit() // 상위 완료 처리(알림, 다이얼로그 등)
                                 }
                             } else {
+                                showValidationDialog = true
                                 vm?.createReview(
                                     title = title.trim(),
                                     content = buildContentText(items),
                                     location = site.trim(),
-                                    target = target.trim(),
+                                    targets = targetsSwe,
                                     equipment = equipment.trim(),
                                     observationDate = date,
                                     score = ratingInt,
@@ -315,8 +331,8 @@ fun ReviewWriteForm(
             }
             item {
                 ReviewInput(
-                    target = target,
-                    onTargetChange = { target = it },
+                    target = targetsText,
+                    onTargetChange = { targetsText = it },
                     site = site,
                     onSiteChange = { site = it },
                     equipment = equipment,
@@ -355,7 +371,7 @@ fun ReviewWriteForm(
                         onSubmit()
                     }
                 }
-                is UiState.Error -> { Text(s.message ?: "작성 실패", color = Color.Red) }
+                is UiState.Error -> {  }
                 UiState.Idle -> Unit
             }
         }

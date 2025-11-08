@@ -53,7 +53,7 @@ fun FreeBoardDetail (
     vm: CommunityViewModel? = null,
     onSyncFreeLikeCount: (id: String, liked: Boolean, next: Int) -> Unit = { _, _, _ -> },
     onEdit: Boolean = true,
-    onDelete: (postId: String) -> Unit = {},
+    onDelete: (postId: Long) -> Unit = {},
     onEditPost: (FreePost) -> Unit = {}
 ) {
     var input by rememberSaveable { mutableStateOf("") }
@@ -64,6 +64,9 @@ fun FreeBoardDetail (
 
     var parent by remember { mutableStateOf<ReviewComment?>(null) }
     val commentsVm: CommentsViewModel = hiltViewModel() //화면에 연결된 CommentsViewModel 인스턴스 주입
+    LaunchedEffect(post.id) {
+        commentsVm.start(post.id)
+    }
     val commentsState by commentsVm.comments.collectAsState()
     val commentCounts by commentsVm.commentCounts.collectAsState()
 
@@ -73,13 +76,17 @@ fun FreeBoardDetail (
     val currentUserId = me?.id
     val currentUserNickname = me?.nickname
 
-    //댓글 개수 계산
-    val commentCountUi = commentCounts[post.id] ?: when (val s = commentsState) {
-        is UiState.Success -> s.data.size
-        else -> 0
-    }
     //상태 변화 즉시 리스트 갱신
     val commentList: List<ReviewComment> = (commentsState as? UiState.Success)?.data ?: emptyList()
+    val nonDeletedCount = remember(commentList) { commentList.count { !it.deleted } }
+
+    LaunchedEffect(post.id, nonDeletedCount) {
+        vm?.overrideFreeCommentCount(post.id, nonDeletedCount)
+    }
+    val commentCountUi =
+        commentCounts[post.id]
+            ?: nonDeletedCount.takeIf { it > 0 }
+            ?: (apiPost?.commentCount ?: post.commentCount)
 
     var moreMenu by remember { mutableStateOf(false) }
     var showDeleted by remember { mutableStateOf(false) }
@@ -95,23 +102,12 @@ fun FreeBoardDetail (
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-    var likedCommentIds by remember { mutableStateOf<Set<String>>(emptySet()) }
-
-    val detailState by (vm?.postDetail?.collectAsState()
-        ?: remember { mutableStateOf<UiState<PostDetailResponse>>(UiState.Idle) })
-    val listState by (vm?.postsState?.collectAsState()
-        ?: remember { mutableStateOf<UiState<List<FreePostResponse>>>(UiState.Idle) })
-
-    val apiDetail = (detailState as? UiState.Success)?.data ?: apiPost
-
+    var likedCommentIds by remember { mutableStateOf<Set<Long>>(emptySet()) }
     val currentDetail = (vm?.postDetail?.collectAsState()?.value as? UiState.Success)?.data
     val likeCount = currentDetail?.likeCount ?: post.likeCount
     val liked = currentDetail?.liked ?: post.liked
 
-
-    LaunchedEffect(commentList) {
-        likedCommentIds = commentList.filter { it.liked }.map { it.id }.toSet()
-    }
+    LaunchedEffect(commentList) { likedCommentIds = commentList.filter { it.liked }.map { it.id }.toSet() }
 
     LaunchedEffect(requestKeyboard) {
         if (requestKeyboard) {
@@ -121,7 +117,6 @@ fun FreeBoardDetail (
         }
     }
 
-    LaunchedEffect(post.id) { commentsVm.start(post.id) }
     LaunchedEffect(currentUserId, currentUserNickname) { Log.d("CommentCheck", "FreeBoardDetail 진입: meId=$currentUserId, meNick=$currentUserNickname") }
 
     Scaffold(
@@ -222,7 +217,7 @@ fun FreeBoardDetail (
                         if (t.isEmpty()) return@CommentInput
 
                         if (editingTarget != null) {   //수정 모드
-                            val targetId = editingTarget!!.id.toLongOrNull()
+                            val targetId = editingTarget!!.id
                             val postId = post.id.toLongOrNull()
                             if (targetId != null && postId != null) {
                                 commentsVm.update(
@@ -237,7 +232,7 @@ fun FreeBoardDetail (
                                 }
                             }
                         } else {   //일반 댓글 작성
-                            val parentIdStr = parent?.id
+                            val parentIdStr = parent?.id.toString()
                             commentsVm.submit(content = t, parentId = parentIdStr) {
                                 input = ""
                                 parent = null
@@ -334,25 +329,19 @@ fun FreeBoardDetail (
                 LikeCommentBar(
                     likeCount = likeCount,
                     liked = liked,
-                    onToggle = {
-                        post.id.toLongOrNull()?.let { id ->
-                            vm?.toggleLike(id)
-                        }
-                    },
+                    onToggle = { post.id.toLongOrNull()?.let { id -> vm?.toggleLike(id) } },
                     onSyncLikeCount = {},
                     commentCount = commentCountUi
                 )
 
                 //댓글 + 대댓글
                 CommentList(
-                    postId = post.id,
+                    postId = post.id.toLong(),
                     currentUserId = currentUserId,
                     currentUserNickname = currentUserNickname,
                     comments = commentList,
                     onLike = { tapped ->
-                        tapped.id.toLongOrNull()?.let { cid ->
-                            commentsVm.toggleLike(cid)
-                        }
+                        commentsVm.toggleLike(tapped.id)
                     },
                     onLikedChange = {},
                     onReply = { target ->
@@ -372,8 +361,8 @@ fun FreeBoardDetail (
                     editingId = editingTarget?.id,
                     onSubmitEditInline = { target, newText ->
                         val postId = post.id.toLongOrNull()
-                        val cid = target.id.toLongOrNull()
-                        if (postId != null && cid != null && newText.isNotBlank()) {
+                        val cid = target.id
+                        if (postId != null && newText.isNotBlank()) {
                             commentsVm.update(
                                 postId = postId,
                                 commentId = cid,
@@ -399,7 +388,7 @@ fun FreeBoardDetail (
                     onClick = {
                         showDeleted = false
                         moreMenu = false
-                        onDelete(post.id)
+                        onDelete(post.id.toLong())
                     }
                 ) { Text("삭제") }
             },
@@ -419,14 +408,9 @@ fun FreeBoardDetail (
             confirmButton = {
                 TextButton(
                     onClick = {
-                        val cid = deleteTarget!!.id.toLongOrNull()
-                        if (cid != null) {
-                            commentsVm.delete(cid) {
-                                // 성공 시 닫기
-                                showDeleteDialog = false
-                                deleteTarget = null
-                            }
-                        } else {
+                        val cid = deleteTarget!!.id
+                        commentsVm.delete(cid) {
+                            // 성공 시 닫기
                             showDeleteDialog = false
                             deleteTarget = null
                         }

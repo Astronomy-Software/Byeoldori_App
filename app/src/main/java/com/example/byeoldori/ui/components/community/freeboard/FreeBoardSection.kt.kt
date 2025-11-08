@@ -64,7 +64,7 @@ fun FreePost.asReview(): Review =
         profile = R.drawable.profile1,
         viewCount = viewCount,
         createdAt = createdAt,
-        target = "",
+        targets = emptyList(),
         site = "",
         date = "",
         equipment = "",
@@ -87,6 +87,7 @@ fun FreePostResponse.toFreePost(): FreePost {
         id = id.toString(),
         title = title,
         author = authorNickname ?: "익명",
+        authorId = authorId,
         likeCount = likeCount,
         commentCount = commentCount,
         viewCount = viewCount,
@@ -105,7 +106,7 @@ fun FreeBoardSection(
     onClickPost: (String) -> Unit = {},
     currentSort: SortBy,
     onChangeSort: (SortBy) -> Unit = {},
-    vm: CommunityViewModel? = null
+    vm: CommunityViewModel = hiltViewModel()
 ){
     var searchText by remember { mutableStateOf("") } //초기값이 빈 문자열인 변할 수 있는 상태 객체
     var sort by remember { mutableStateOf(FreeBoardSort.Latest) }
@@ -116,9 +117,11 @@ fun FreeBoardSection(
 
     val posts: List<FreePost> = when (val s = vmPostsState) {
         is UiState.Success -> s.data.map { it.toFreePost() }   // <-- 최신 값
-        else -> freeBoardsAll                                   // <-- fallback
+        else -> emptyList()
     }
 
+    //val commentCountsByVm by vm.commentCounts.collectAsState()
+    //val commentOverrides by vm.freeCommentOverrides.collectAsState()
     val commentsVm: CommentsViewModel = hiltViewModel()
     val commentCounts by commentsVm.commentCounts.collectAsState()
 
@@ -152,7 +155,7 @@ fun FreeBoardSection(
                 .fillMaxSize()
                 .padding(horizontal = 12.dp, vertical = 10.dp)
         ) {
-            com.example.byeoldori.ui.components.community.SearchBar(
+            SearchBar(
                 searchQuery = searchText,
                 onSearch = { searchText = it }
             )
@@ -185,8 +188,8 @@ fun FreeBoardSection(
                 modifier = Modifier.fillMaxSize()
             ) {
                 items(filtered, key = { it.id }) { post ->
+                    //val uiCommentCount = commentOverrides[post.id] ?: post.commentCount
                     val uiCommentCount = commentCounts[post.id] ?: post.commentCount
-
                     Column {
                         FreeBoardItem(
                             post = post,
@@ -194,11 +197,9 @@ fun FreeBoardSection(
                             likeCount = post.likeCount,
                             isLiked = post.liked,
                             onClick = { onClickPost(post.id) },
-                            onLikeClick = { vm?.toggleLike(post.id.toLong()) }
+                            onLikeClick = { vm.toggleLike(post.id.toLong()) }
                         )
-                        Divider(
-                            color = Color.White.copy(alpha = 0.8f),
-                            thickness = 1.dp)
+                        Divider(color = Color.White.copy(alpha = 0.8f), thickness = 1.dp)
                     }
                 }
             }
@@ -209,7 +210,10 @@ fun FreeBoardSection(
                 .align(Alignment.BottomEnd)
                 .offset(x = -(24.dp), y= -(10.dp))
                 .size(56.dp)
-                .clickable(onClick = onWriteClick)
+                .clickable {
+                    vm.clearCreateState()
+                    onWriteClick()
+                }
                 .background(Blue800, shape = CircleShape) // 보라색 배경
                 .border(2.dp, Color.White, CircleShape),
             contentAlignment = Alignment.Center
@@ -264,8 +268,7 @@ private fun Preview_FreeBoardSection_Empty() {
             onWriteClick = {},
             onClickPost = {},
             currentSort = SortBy.LATEST,
-            onChangeSort = {},
-            vm = null
+            onChangeSort = {}
         )
     }
 }

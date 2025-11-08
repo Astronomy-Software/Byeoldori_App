@@ -1,24 +1,17 @@
 package com.example.byeoldori.ui.components.mypage
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.composed
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.*
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.*
 import com.example.byeoldori.ui.theme.ErrorRed
 import java.time.LocalDate
 
@@ -39,39 +32,80 @@ fun DayCell(
     val fgDefault = textColor.copy(alpha = baseAlpha)
     val hasRange = rangeRole != null && rangeColor != null
 
+    val pillShape = when (rangeRole) {
+        RangeRole.START -> RoundedCornerShape(topStart = 999.dp, bottomStart = 999.dp)
+        RangeRole.MIDDLE -> RoundedCornerShape(0.dp)
+        RangeRole.END -> RoundedCornerShape(topEnd = 999.dp, bottomEnd = 999.dp)
+        else -> RoundedCornerShape(0.dp)
+    }
+
+    val bg = when {
+        rangeRole != null -> rangeColor ?: Color.Transparent
+        singleColor != null -> singleColor
+        else -> Color.Transparent
+    }
+
     Box(
         modifier = Modifier
             .size(size)
+            //.then(badgeBorderModifier)
             .noRippleClickable(enabled = date != null, onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
-        if (date == null) { } else {
+        if (date != null) {
             val dayText = date.dayOfMonth.toString()
+
+            if(hasRange) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .fillMaxWidth()
+                        .height(28.dp)
+                        .clip(pillShape)
+                        .background(rangeColor!!)
+                )
+            }
+            val badgeBorderModifier = if (isSelected) {
+                Modifier.border(2.dp, Color.Black, CircleShape)
+            } else {
+                Modifier
+            }
 
             when {
                 isToday -> CircularBadge(
                     text = dayText,
                     backgroundColor = MaterialTheme.colorScheme.primary,
-                    textColor = MaterialTheme.colorScheme.onPrimary
-                )
-
-                isSelected -> CircularBadge(
-                    text = dayText,
-                    backgroundColor = MaterialTheme.colorScheme.secondaryContainer,
-                    textColor = MaterialTheme.colorScheme.onSecondaryContainer
+                    textColor = MaterialTheme.colorScheme.onPrimary,
+                    modifier = badgeBorderModifier
                 )
 
                 hasRange && rangeColor != null -> CircularBadge(
                     text = dayText,
                     backgroundColor = rangeColor,
-                    textColor = Color.White
+                    textColor = Color.White,
+                    modifier = badgeBorderModifier
                 )
 
                 singleColor != null -> CircularBadge(
                     text = dayText,
                     backgroundColor = singleColor,
-                    textColor = Color.White
+                    textColor = Color.White,
+                    modifier = badgeBorderModifier
                 )
+
+                isSelected -> Box(
+                    modifier = Modifier
+                        .size(28.dp)
+                        .clip(CircleShape)
+                        .border(2.dp, Color.Black, CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = dayText,
+                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                        color = fgDefault
+                    )
+                }
 
                 // 기본 텍스트
                 else -> Text(
@@ -88,10 +122,11 @@ fun DayCell(
 private fun CircularBadge(
     text: String,
     backgroundColor: Color,
-    textColor: Color
+    textColor: Color,
+    modifier: Modifier = Modifier
 ) {
     Box(
-        modifier = Modifier
+        modifier = modifier
             .size(28.dp)
             .clip(CircleShape)
             .background(backgroundColor),

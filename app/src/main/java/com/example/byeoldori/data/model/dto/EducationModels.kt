@@ -19,7 +19,7 @@ data class EducationDto(
     val difficulty: Difficulty? = null,
     val tags: String? = null,
     val status: EduStatus? = null,
-    val target: String? = null,
+    val targets: List<String>? = null,
     val averageScore: Double? = 0.0,
     val contentUrl: String? = null,
 )
@@ -37,7 +37,9 @@ data class EducationResponse(
     val likeCount: Int,
     val commentCount: Int,
     val createdAt: String,
-    val liked: Boolean
+    val liked: Boolean,
+    val score: Int? = null,
+    val thumbnail: String? = null
 )
 
 @JsonClass(generateAdapter = true)

@@ -14,8 +14,9 @@ data class UserDto(
 
 @JsonClass(generateAdapter = true)
 data class UpdateUserProfile(
-    val nickname: String?,
-    val birthdate: String? // yyyy-MM-dd
+    val nickname: String? = null,
+    val phone: String? = null,
+    val birthdate: String? = null // yyyy-MM-dd
 )
 
 

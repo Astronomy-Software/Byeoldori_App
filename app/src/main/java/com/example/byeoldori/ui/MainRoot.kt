@@ -3,23 +3,23 @@ package com.example.byeoldori.ui
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.navigation
+import androidx.navigation.compose.*
 import androidx.navigation.compose.rememberNavController
 import com.example.byeoldori.data.UserViewModel
 import com.example.byeoldori.skymap.SkyMode
 import com.example.byeoldori.skymap.StellariumScreen
 import com.example.byeoldori.ui.components.NavBar
-import com.example.byeoldori.ui.components.mypage.LikeSection
-import com.example.byeoldori.ui.screen.Community.CommunityScreen
-import com.example.byeoldori.ui.screen.Community.CommunityTab
+import com.example.byeoldori.ui.components.mypage.*
+import com.example.byeoldori.ui.screen.Community.*
 import com.example.byeoldori.ui.screen.MyPage.MyPageScreen
+import com.example.byeoldori.ui.screen.MyPage.PlanCheckScreen
 import com.example.byeoldori.ui.screen.Observatory.ObservatoryScreen
 import com.example.byeoldori.ui.screen.home.HomeScreen
 import com.example.byeoldori.ui.theme.BackgroundScaffold
+import com.example.byeoldori.viewmodel.Community.PlanViewModel
 
 sealed class Root(val route: String, val label: String) {
     data object Home        : Root("home", "홈")
@@ -45,6 +45,11 @@ fun MainRoot() {
             startDestination = Root.Home.route,
             modifier = Modifier.padding(inner)
         ) {
+            composable(Root.Home.route)        {
+                HomeScreen(
+                    onOpenSchedule = { nav.navigate("mypage/myschedule") }
+                )
+            }
             composable(Root.Home.route)        { HomeScreen() }
             composable(Root.StarMap.route)     { StellariumScreen(SkyMode.OBSERVATION) }
             composable(Root.Observatory.route) { ObservatoryScreen() }
@@ -55,8 +60,36 @@ fun MainRoot() {
                 composable("community/program")   { CommunityScreen(tab = CommunityTab.Program,   onSelectTab = { t -> nav.navigate("community/$t") }, userVm = userVm) }
             }
             navigation(startDestination = "mypage/home", route = Root.MyPage.route) {
-                composable("mypage/home") { MyPageScreen(onOpenLikes = { nav.navigate("mypage/likes") }) }
+                composable("mypage/home") { backStackEntry ->
+                    val parentEntry = remember(backStackEntry) {
+                        nav.getBackStackEntry(Root.MyPage.route) // <- "mypage"
+                    }
+                    val planVm: PlanViewModel = hiltViewModel(parentEntry)
+                    MyPageScreen(
+                        onOpenLikes = { nav.navigate("mypage/likes") },
+                        onOpenMyBoards = { nav.navigate("mypage/myboards") },
+                        onOpenMyPrograms = { nav.navigate("mypage/myprograms") },
+                        onOpenMyComments = { nav.navigate("mypage/mycomments") },
+                        onOpenSchedule = { nav.navigate("mypage/myschedule") },
+                        onOpenSettings = { nav.navigate("mypage/settings") },
+                        planVm = planVm
+                    )
+                }
                 composable("mypage/likes") { LikeSection(onBack = { nav.popBackStack() }) }
+                composable("mypage/myboards") { MyBoardList(onBack = { nav.popBackStack() }) }
+                composable("mypage/myprograms") { MyProgramList(onBack = { nav.popBackStack() }) }
+                composable("mypage/mycomments") { MyCommentList(onBack = { nav.popBackStack() }) }
+                composable("mypage/myschedule") { backStackEntry ->
+                    val parentEntry = remember(backStackEntry) {
+                        nav.getBackStackEntry(Root.MyPage.route)
+                    }
+                    val planVm: PlanViewModel = hiltViewModel(parentEntry)
+                    PlanCheckScreen(
+                        onBack = { nav.popBackStack() },
+                        planVm = planVm                           //같은 인스턴스 주입
+                    )
+                }
+                composable("mypage/settings") { SettingList(onBack = { nav.popBackStack() }) }
             }
         }
     }

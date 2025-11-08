@@ -14,7 +14,8 @@ import com.example.byeoldori.ui.theme.Blue800
 
 data class MenuItem(
     val title: String,
-    val onClick: () -> Unit
+    val onClick: () -> Unit = {},
+    val trailing: (@Composable () -> Unit)? = null // 스위치, 텍스트 등
 )
 
 @Composable
@@ -49,11 +50,15 @@ fun MenuGroupCard(
                         style = MaterialTheme.typography.bodyLarge,
                         modifier = Modifier.weight(1f)
                     )
-                    Icon(
-                        Icons.Rounded.ChevronRight,
-                        contentDescription = null,
-                        tint = Color.White.copy(alpha = 0.7f)
-                    )
+                    if(item.trailing != null) {
+                        item.trailing.invoke()
+                    } else {
+                        Icon(
+                            Icons.Rounded.ChevronRight,
+                            contentDescription = null,
+                            tint = Color.White.copy(alpha = 0.9f)
+                        )
+                    }
                 }
                 if (i != items.lastIndex) Divider(color = Color.White.copy(alpha = 0.4f))
             }

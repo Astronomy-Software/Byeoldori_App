@@ -13,6 +13,7 @@ import com.example.byeoldori.data.model.dto.FeedbackRequest
 import com.example.byeoldori.data.model.dto.LikeToggleResponse
 import com.example.byeoldori.data.model.dto.SearchBy
 import com.example.byeoldori.data.model.dto.SortBy
+import com.example.byeoldori.utils.SweObjUtils
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 
@@ -22,6 +23,9 @@ class EducationRepository @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
     private val TAG = "EducationRepository"
+
+    private fun List<String>?.toSwe(): List<String>? =
+        this?.map { SweObjUtils.toSweFormat(it) }
 
     // 목록 불러오기
     suspend fun getAllEducations(
@@ -52,9 +56,11 @@ class EducationRepository @Inject constructor(
         difficulty: Difficulty,
         tags: String,
         status: EduStatus,
-        imageUrls: List<String> = emptyList()
+        imageUrls: List<String> = emptyList(),
+        targets: List<String>? = null,
     ): Long {
         val sanitized = imageUrls.filter { it.startsWith("http://") || it.startsWith("https://") }
+        val targetsSwe: List<String>? = targets.toSwe()
 
         val req = CreateEducationRequest(
             title = title,
@@ -64,7 +70,7 @@ class EducationRepository @Inject constructor(
                 difficulty = difficulty,
                 tags = tags,
                 status = status,
-                target = "",
+                targets = targetsSwe ?: emptyList(),
                 averageScore = 0.0
             ),
             imageUrls = sanitized.ifEmpty { null }

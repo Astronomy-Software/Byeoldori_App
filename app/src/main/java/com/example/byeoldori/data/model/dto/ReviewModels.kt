@@ -14,7 +14,7 @@ data class CreateReviewRequest( // REVIEW 게시판용
 data class ReviewDto(
     val location: String,
     val observationSiteId: Long? = null,
-    val target: String,
+    val targets: List<String>? = null,
     val equipment: String,
     val observationDate: String,
     val score: Int

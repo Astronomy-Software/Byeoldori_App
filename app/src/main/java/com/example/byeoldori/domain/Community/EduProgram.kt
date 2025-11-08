@@ -6,6 +6,7 @@ data class EduProgram (
     val id: String,
     val title: String,
     val author: String,
+    val authorId: Long,
     val profile: Int?,
     val rating: Float,
     val likeCount: Int,
@@ -14,6 +15,7 @@ data class EduProgram (
     val createdAt: String, //작성 시점
     val contentItems: List<Content>,
     val liked: Boolean,
-    val target: String? = null,
-    val averageScore: Double? = 0.0
+    val targets: List<String>? = null,
+    val averageScore: Double? = 0.0,
+    val thumbnail: String? = null
 )
