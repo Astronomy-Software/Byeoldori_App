@@ -1,25 +1,10 @@
 package com.example.byeoldori.data
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import android.content.Context
+import android.net.Uri
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -27,15 +12,18 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.byeoldori.data.local.datastore.TokenDataStore
 import com.example.byeoldori.data.model.common.ApiResponse
-import com.example.byeoldori.data.model.dto.UpdateUserProfile
-import com.example.byeoldori.data.model.dto.UserProfile
+import com.example.byeoldori.data.model.dto.*
 import com.example.byeoldori.data.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.*
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
 import javax.inject.Inject
+import java.io.*
+import okhttp3.RequestBody
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 
 // UI 상태 정의
 sealed class UserUiState {
@@ -116,6 +104,37 @@ class UserViewModel @Inject constructor(
             _uiState.value = UserUiState.Error(e.message ?: "로그아웃 실패")
         }
     }
+
+    private suspend fun uriToPart(ctx: Context, uri: Uri): MultipartBody.Part =
+        withContext(Dispatchers.IO) {
+            val contentResolver = ctx.contentResolver
+            val type = contentResolver.getType(uri) ?: "image/*"
+            val fileName = "profile_${System.currentTimeMillis()}.jpg"
+            val cacheFile = File(ctx.cacheDir, fileName)
+            contentResolver.openInputStream(uri)?.use { input ->
+                FileOutputStream(cacheFile).use { output -> input.copyTo(output) }
+            }
+            val body: RequestBody = cacheFile.asRequestBody(type.toMediaTypeOrNull())
+            MultipartBody.Part.createFormData("image", fileName, body)
+        }
+
+    fun uploadProfileImage(ctx: Context, uri: Uri) = viewModelScope.launch {
+        _uiState.value = UserUiState.Loading
+        try {
+            val part = uriToPart(ctx, uri)
+            val res = repo.uploadProfileImage(part)
+            if (res.success) {
+                // 최신 프로필 다시 조회해서 UI 갱신
+                getMyProfile()
+                _uiState.value = UserUiState.Success("프로필 이미지 업로드 성공")
+            } else {
+                _uiState.value = UserUiState.Error(res.message)
+            }
+        } catch (e: Exception) {
+            _uiState.value = UserUiState.Error(e.message ?: "업로드 실패")
+        }
+    }
+
 }
 
 @Composable
