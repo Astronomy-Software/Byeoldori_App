@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.ContextWrapper
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.offset
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
@@ -13,15 +12,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.live2d.live2dview.LAppDelegate
 
-/**
- * Context에서 Activity를 찾기 위한 헬퍼 함수입니다.
- * LAppDelegate.onStart(Activity) 호출에 필요합니다.
- */
+// Context에서 Activity를 찾는 헬퍼
 private fun Context.findActivity(): Activity? = when (this) {
     is Activity -> this
     is ContextWrapper -> baseContext.findActivity()
@@ -29,18 +26,20 @@ private fun Context.findActivity(): Activity? = when (this) {
 }
 
 /**
- * Jetpack Compose 환경에서 Live2D 모델을 렌더링하는 Composable View입니다.
- * AndroidView와 Compose의 라이프사이클 관리를 사용하여 Live2D 뷰를 통합합니다.
+ * Jetpack Compose에서 Live2D 캐릭터를 표시하는 Composable.
+ * 이제 전역 싱글톤 기반 ViewModel을 직접 참조함.
  */
 @Composable
-fun Live2DScreen(
-    vm: Live2DControllerViewModel = hiltViewModel()
-) {
+fun Live2DScreen() {
     val context = LocalContext.current
+    val density = LocalDensity.current
     val activity = context.findActivity()
-        ?: throw IllegalStateException("Live2DComposeView must be used within an Activity context.")
+        ?: throw IllegalStateException("Live2DScreen은 Activity 컨텍스트 내에서만 사용 가능합니다.")
 
-    val controller = vm.controller
+    // 전역 Live2D 컨트롤러 접근
+    val controller = Live2DControllerViewModel.controller
+
+    // Live2D View 생성 및 attach
     val live2DView = remember {
         Live2DGLSurfaceView(context).apply {
             controller.attachView(this)
@@ -53,16 +52,28 @@ fun Live2DScreen(
     val align by controller.alignment.collectAsState()
     val modifier by controller.viewModifier.collectAsState()
     val bubbleYOffset by controller.bubbleYOffset.collectAsState()
-    val isVisible by controller.isVisible.collectAsState() // ✅ 추가된 visibility 상태
+    val isVisible by controller.isVisible.collectAsState()
 
+    // 꼬리 위치에 따른 가로 오프셋 계산
     val xOffset = when (tail) {
         TailPosition.Left -> 40.dp
         TailPosition.Right -> (-40).dp
         TailPosition.Center -> 0.dp
     }
 
+    // DP → 픽셀 변환
+    val pixelOffset = remember(xOffset, bubbleYOffset, density) {
+        with(density) {
+            IntOffset(
+                x = xOffset.roundToPx(),
+                y = bubbleYOffset.roundToPx()
+            )
+        }
+    }
+
+    // 본문 UI
     Box(modifier) {
-        // AndroidView를 사용하여 Live2DGLSurfaceView를 Compose 트리에 통합합니다.
+        // Live2DGLSurfaceView를 Compose 트리에 삽입
         AndroidView(
             modifier = Modifier.fillMaxSize(),
             factory = {
@@ -72,29 +83,25 @@ fun Live2DScreen(
             }
         )
 
-        // Compose Lifecycle 관리 (onResume, onPause, onDestroy)
+        // 생명주기 관리
         DisposableEffect(Unit) {
-            // Composable이 화면에 표시될 때 (onStart/onResume 상당)
             live2DView.onResume()
-
             onDispose {
-                // Composable이 화면에서 제거될 때 (onPause/onDestroy 상당)
-                live2DView.onPause() // GLSurfaceView의 렌더링 스레드를 일시 중지
-
-                // LAppDelegate의 종료 로직 실행
+                live2DView.onPause()
                 LAppDelegate.getInstance().onStop()
                 LAppDelegate.getInstance().onDestroy()
                 LAppDelegate.releaseInstance()
             }
         }
-        // ✅ 캐릭터가 보일 때만 말풍선 출력
+
+        // 말풍선 표시
         if (isVisible) {
             CharacterSpeechBubble(
                 text = speech,
                 tailPosition = tail,
+                alignment = align,
+                pixelOffset = pixelOffset,
                 modifier = Modifier
-                    .align(align)
-                    .offset(x = xOffset, y = bubbleYOffset)
             )
         }
     }

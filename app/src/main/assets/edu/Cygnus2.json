@@ -1,0 +1,194 @@
+{
+  "init": {
+    "programTitle": "백조자리 이야기",
+    "mode": "education",
+    "fov": 60,
+    "view": { "yaw": 30, "pitch": 25 },
+    "toggles": {
+      "constellation": false,
+      "equatorialGrid": false,
+      "azimuthalGrid": false,
+      "atmosphere": true,
+      "landscape": true
+    }
+  },
+
+  "scenario": [
+    {
+      "title": "북극성 찾기",
+      "steps": [
+        {
+          "live2d": { "text": "안녕! 오늘은 큰 여행을 떠날 거야. 먼저 북극성부터 찾아보자!", "emotion": "Happy" },
+          "sky": { "object": "NAME Polaris", "camera": { "yaw": 10, "pitch": 35 }, "fov": 45 },
+          "duration": 9000
+        },
+        {
+          "live2d": { "text": "북극성은 늘 같은 자리를 지키는 별이야. 그래서 옛사람들이 길을 찾을 때 큰 도움을 받았지!", "emotion": "Happy" },
+          "duration": 8000
+        }
+      ]
+    },
+    {
+      "title": "백조자리 찾아가기",
+      "steps": [
+        {
+          "live2d": { "text": "이제 백조자리를 향해 이동해볼게!", "emotion": "Idle" },
+          "sky": { "camera": { "yaw": 40, "pitch": 25 } },
+          "duration": 7000
+        },
+        {
+          "live2d": { "text": "백조자리는 은하수 한가운데에 길게 펼쳐져 있어. 정말 아름다운 자리야.", "emotion": "Idle" },
+          "sky": { "object": "NAME Deneb" },
+          "duration": 9000
+        }
+      ]
+    },
+    {
+      "title": "백조자리 구조",
+      "steps": [
+        {
+          "live2d": { "text": "백조자리는 전체적으로 십자 모양을 하고 있어. 이제 하나씩 볼까?", "emotion": "Idle" },
+          "sky": { "object": "NAME Deneb" },
+          "duration": 9000
+        },
+
+        {
+          "live2d": { "text": "여기가 백조의 꼬리 부분이자 가장 밝은 별, 데네브야.", "emotion": "Idle" },
+          "sky": { "object": "NAME Deneb" },
+          "duration": 8000
+        },
+
+        {
+          "live2d": { "text": "그리고 이 길게 이어진 라인이 백조의 몸통이야. 은하수를 따라 흐르듯 놓여 있어!", "emotion": "Happy" },
+          "duration": 8000
+        },
+
+        {
+          "live2d": { "text": "이쪽 끝이 백조의 머리! 바로 알비레오지.", "emotion": "Her" },
+          "sky": { "object": "NAME Albireo" },
+          "duration": 9000
+        },
+
+        {
+          "live2d": { "text": "이제 백조자리 그림을 켜볼게! 더 쉽게 보일 거야!", "emotion": "Happy" },
+          "sky": { "toggles": { "constellation": true } },
+          "duration": 6000
+        }
+      ]
+    },
+    {
+      "title": "백조자리 데네브",
+      "steps": [
+        {
+          "live2d": { "text": "데네브는 백조자리에서 가장 밝고, 지구에서 정말 멀리 떨어져 있어!", "emotion": "Idle" },
+          "sky": { "object": "NAME Deneb" },
+          "duration": 9000
+        },
+        {
+          "live2d": { "text": "‘데네브’는 아랍어로 ‘꼬리’라는 뜻이야. 이름도 백조의 꼬리에 딱 맞지?", "emotion": "Happy" },
+          "duration": 9000
+        }
+      ]
+    },
+    {
+      "title": "알비레오의 색",
+      "steps": [
+        {
+          "live2d": { "text": "백조의 머리에는 신비한 이중성, 알비레오가 있어!", "emotion": "Idle" },
+          "sky": { "object": "NAME Albireo" },
+          "duration": 8000
+        },
+        {
+          "live2d": { "text": "망원경으로 보면 파란색과 주황색이 나란히 보이거든? 그래서 ‘눈탱이 밤탱이별’이라는 재미있는 별명도 있어!", "emotion": "Her" },
+          "duration": 10000
+        }
+      ]
+    },
+    {
+      "title": "백조자리 신화 – 제우스와 레다",
+      "steps": [
+        {
+          "live2d": {
+            "text": "이제 백조자리가 하늘에 올라오게 된 가장 유명한 신화를 이야기해볼게.",
+            "emotion": "Idle"
+          },
+          "duration": 9000
+        },
+
+        {
+          "live2d": {
+            "text": "그리스 신 제우스는 아름다운 스파르타의 여왕 레다에게 한눈에 반했어.",
+            "emotion": "Her"
+          },
+          "duration": 10000
+        },
+
+        {
+          "live2d": {
+            "text": "하지만 그대로 다가가면 두려움을 줄까 걱정한 제우스는…",
+            "emotion": "Idle"
+          },
+          "duration": 6000
+        },
+
+        {
+          "live2d": {
+            "text": "장엄하고 아름다운 ‘백조’의 모습으로 변신했어!",
+            "emotion": "Happy"
+          },
+          "sky": { "camera": { "yaw": 70, "pitch": 20 } },
+          "duration": 9000
+        },
+
+        {
+          "live2d": {
+            "text": "폭풍을 피해 날아온 상처입은 백조를 본 레다는 따뜻하게 품에 안아 보호해주었지.",
+            "emotion": "Sad"
+          },
+          "duration": 11000
+        },
+
+        {
+          "live2d": {
+            "text": "그 순간, 레다는 백조의 고요한 아름다움과 신비로움에 완전히 매료되었대.",
+            "emotion": "Idle"
+          },
+          "duration": 9000
+        },
+
+        {
+          "live2d": {
+            "text": "이 따뜻한 장면이 하늘에 영원히 남은 것이 바로 백조자리야!",
+            "emotion": "Happy"
+          },
+          "sky": {
+            "toggles": { "constellation": true },
+            "object": "NAME Deneb",
+            "fov": 40
+          },
+          "duration": 10000
+        }
+      ]
+    },
+    {
+      "title": "마무리",
+      "steps": [
+        {
+          "live2d": {
+            "text": "오늘은 북극성부터 백조자리의 구조, 데네브와 알비레오, 그리고 제우스 신화까지 알아봤어!",
+            "emotion": "Happy"
+          },
+          "duration": 9000
+        },
+        {
+          "live2d": {
+            "text": "다음에도 나랑 같이 멋진 별자리 여행 떠나자! 안녕~!",
+            "emotion": "Idle"
+          },
+          "duration": 7000
+        }
+      ]
+    }
+
+  ]
+}

@@ -70,13 +70,13 @@ private fun LoginContent(
     onLogin: (String, String) -> Unit,
     onSignUp: () -> Unit,
     onFindEmail: () -> Unit,
-    onResetPassword : () -> Unit,
-    mascotVM: Live2DControllerViewModel = hiltViewModel(),
+    onResetPassword : () -> Unit
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
     val context = LocalContext.current
+    val mascotVM = Live2DControllerViewModel  // ✅ 싱글톤 직접 참조
     val mascotController = mascotVM.controller
 
     LaunchedEffect(Unit) {

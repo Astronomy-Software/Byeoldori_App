@@ -2,10 +2,10 @@
 import android.content.Context
 import android.util.Log
 import android.webkit.JavascriptInterface
+import com.example.byeoldori.skymap.ObjectDetailViewModel
+import com.example.byeoldori.skymap.ObjectItem
 import com.example.byeoldori.skymap.SkyCameraController
-import com.example.byeoldori.skymap.viewmodel.ObjectDetailViewModel
-import com.example.byeoldori.skymap.viewmodel.ObjectItem
-import com.example.byeoldori.skymap.viewmodel.SkyObjectDetail
+import com.example.byeoldori.skymap.SkyObjectDetail
 import org.json.JSONObject
 
 class AppBridge(
@@ -20,6 +20,12 @@ class AppBridge(
             val type = json.optString("type")
 
             when (type) {
+
+                // ✅ 초기화 완료 이벤트
+                "stel_ready" -> {
+                    Log.i("AppBridge", "✅ Stellarium Web Engine 초기화 완료 신호 수신")
+                    viewModel.onSweEngineReady()
+                }
 
                 // 👁️ Eye Tracking
                 "eye_tracking_toggle" -> {

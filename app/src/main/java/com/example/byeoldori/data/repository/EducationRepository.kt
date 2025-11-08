@@ -8,8 +8,8 @@ import com.example.byeoldori.data.model.dto.Difficulty
 import com.example.byeoldori.data.model.dto.EduStatus
 import com.example.byeoldori.data.model.dto.EducationDetailResponse
 import com.example.byeoldori.data.model.dto.EducationDto
-import com.example.byeoldori.data.model.dto.EducationPostResponse
 import com.example.byeoldori.data.model.dto.EducationResponse
+import com.example.byeoldori.data.model.dto.FeedbackRequest
 import com.example.byeoldori.data.model.dto.LikeToggleResponse
 import com.example.byeoldori.data.model.dto.SearchBy
 import com.example.byeoldori.data.model.dto.SortBy
@@ -97,4 +97,19 @@ class EducationRepository @Inject constructor(
         }
     }
 
+    suspend fun submitFeedback(postId: Long, request: FeedbackRequest) {
+        return try {
+            val res = api.evaluationsEduPost(postId, request)
+            Log.d(TAG, "피드백 전송 성공")
+            res
+        } catch (e: retrofit2.HttpException) {
+            val code = e.code()
+            val body = e.response()?.errorBody()?.string()
+            Log.e(TAG, "피드백 전송 실패 (HTTP): code=$code, body=$body", e)
+            throw e
+        } catch (e: Exception) {
+            Log.e(TAG, "피드백 전송 실패 (예외): ${e.message}", e)
+            throw e
+        }
+    }
 }

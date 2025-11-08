@@ -25,26 +25,33 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import com.example.byeoldori.ui.theme.Background
-
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupProperties
+import com.example.byeoldori.ui.theme.TextHighlight
 
 enum class TailPosition {
-    Left,   // 왼쪽 말풍선 (고정 오프셋)
-    Right,  // 오른쪽 말풍선 (고정 오프셋)
-    Center  // 중앙 말풍선
+    Left, Right, Center
 }
 
+/**
+ * 💬 CharacterBubbleShape (꼬리 고정)
+ * - 꼬리는 고정된 위치에 유지
+ * - 말풍선은 폭이 늘어날 때 꼬리 반대 방향으로 이동
+ */
 class CharacterBubbleShape(
     private val tailPosition: TailPosition,
     private val cornerRadius: Dp = 32.dp,
     private val tailWidth: Dp = 32.dp,
     private val tailHeight: Dp = 16.dp,
-    private val tailOffset: Dp = 40.dp // ← 꼬리 위치 고정 오프셋
+    private val tailOffset: Dp = 40.dp
 ) : Shape {
     override fun createOutline(size: Size, layoutDirection: LayoutDirection, density: Density): Outline {
         val cornerRadiusPx = with(density) { cornerRadius.toPx() }
@@ -56,59 +63,50 @@ class CharacterBubbleShape(
         val mainBottomY = size.height - tailHeightPx
         val path = Path()
 
-        // 꼬리 base 위치 계산
+        // ✅ 꼬리는 항상 고정된 기준 위치
         val baseX = when (tailPosition) {
             TailPosition.Left -> tailOffsetPx
             TailPosition.Right -> width - tailOffsetPx
             TailPosition.Center -> width / 2f
         }
+
         val baseLeftX = baseX - tailWidthPx / 2
         val baseRightX = baseX + tailWidthPx / 2
 
-        // 말풍선 Path
+        // ===============================
+        //  Path 그리기
+        // ===============================
         path.moveTo(cornerRadiusPx, 0f)
 
         // 상단 → 오른쪽 위 코너
         path.lineTo(width - cornerRadiusPx, 0f)
         if (cornerRadiusPx > 0) {
-            path.arcTo(
-                Rect(width - 2 * cornerRadiusPx, 0f, width, 2 * cornerRadiusPx),
-                270f, 90f, false
-            )
+            path.arcTo(Rect(width - 2 * cornerRadiusPx, 0f, width, 2 * cornerRadiusPx), 270f, 90f, false)
         }
 
-        // 오른쪽 변 → 오른쪽 아래
+        // 오른쪽 변
         path.lineTo(width, mainBottomY - cornerRadiusPx)
         if (cornerRadiusPx > 0) {
-            path.arcTo(
-                Rect(width - 2 * cornerRadiusPx, mainBottomY - 2 * cornerRadiusPx, width, mainBottomY),
-                0f, 90f, false
-            )
+            path.arcTo(Rect(width - 2 * cornerRadiusPx, mainBottomY - 2 * cornerRadiusPx, width, mainBottomY), 0f, 90f, false)
         }
 
-        // 아래 변 (꼬리 전까지)
+        // 아래 변 (꼬리 시작 전까지)
         path.lineTo(baseRightX, mainBottomY)
 
-        // 꼬리 삼각형
+        // 꼬리
         path.lineTo(baseX, size.height)
         path.lineTo(baseLeftX, mainBottomY)
 
-        // 나머지 아래변
+        // 나머지 아래 변
         path.lineTo(cornerRadiusPx, mainBottomY)
         if (cornerRadiusPx > 0) {
-            path.arcTo(
-                Rect(0f, mainBottomY - 2 * cornerRadiusPx, 2 * cornerRadiusPx, mainBottomY),
-                90f, 90f, false
-            )
+            path.arcTo(Rect(0f, mainBottomY - 2 * cornerRadiusPx, 2 * cornerRadiusPx, mainBottomY), 90f, 90f, false)
         }
 
         // 왼쪽 변
         path.lineTo(0f, cornerRadiusPx)
         if (cornerRadiusPx > 0) {
-            path.arcTo(
-                Rect(0f, 0f, 2 * cornerRadiusPx, 2 * cornerRadiusPx),
-                180f, 90f, false
-            )
+            path.arcTo(Rect(0f, 0f, 2 * cornerRadiusPx, 2 * cornerRadiusPx), 180f, 90f, false)
         }
 
         path.close()
@@ -120,12 +118,79 @@ class CharacterBubbleShape(
 fun CharacterSpeechBubble(
     text: String,
     tailPosition: TailPosition,
+    alignment: Alignment,
+    pixelOffset: IntOffset,
     modifier: Modifier = Modifier,
-    backgroundColor: Color = Color(0xFFF8BBD0).copy(alpha = 0.85f),
+    backgroundColor: Color = TextHighlight.copy(alpha = 0.70f),
     cornerRadius: Dp = 16.dp,
     tailWidth: Dp = 24.dp,
     tailHeight: Dp = 16.dp,
-    tailOffset: Dp = 40.dp // ← 꼬리 위치 고정
+    tailOffset: Dp = 40.dp
+) {
+    val density = LocalDensity.current
+    var bubbleHeightPx by remember { mutableStateOf(0) }
+    var bubbleWidthPx by remember { mutableStateOf(0f) }
+
+    // 💡 기준 폭
+    val baseWidthPx = with(density) { (120+32).dp.toPx() } // 내용과 패딩 합쳐야함
+
+    // 💡 말풍선 크기 측정
+    val modifierWithSize = modifier.onGloballyPositioned { coordinates ->
+        bubbleHeightPx = coordinates.size.height
+        bubbleWidthPx = coordinates.size.width.toFloat()
+    }
+
+    // 💡 폭 차이에 따른 이동 보정값
+    val widthDelta = (bubbleWidthPx - baseWidthPx).coerceAtLeast(0f)
+    val shiftX = when (tailPosition) {
+        TailPosition.Left -> widthDelta / 2f     // 폭이 커질수록 오른쪽으로 이동
+        TailPosition.Right -> -widthDelta / 2f    // 폭이 커질수록 왼쪽으로 이동
+        TailPosition.Center -> 0f
+    }
+
+    val adjustedOffset = remember(pixelOffset, bubbleHeightPx, shiftX) {
+        IntOffset(
+            pixelOffset.x + shiftX.toInt(),
+            pixelOffset.y - (bubbleHeightPx / 2)
+        )
+    }
+
+    Popup(
+        alignment = alignment,
+        offset = adjustedOffset,
+        properties = PopupProperties(
+            focusable = false,
+            dismissOnBackPress = false,
+            dismissOnClickOutside = false,
+            clippingEnabled = false,
+            excludeFromSystemGesture = true
+        )
+    ) {
+        Box(modifier = modifierWithSize) {
+            BubbleContent(
+                text = text,
+                tailPosition = tailPosition,
+                modifier = Modifier,
+                backgroundColor = backgroundColor,
+                cornerRadius = cornerRadius,
+                tailWidth = tailWidth,
+                tailHeight = tailHeight,
+                tailOffset = tailOffset
+            )
+        }
+    }
+}
+
+@Composable
+private fun BubbleContent(
+    text: String,
+    tailPosition: TailPosition,
+    modifier: Modifier = Modifier,
+    backgroundColor: Color,
+    cornerRadius: Dp,
+    tailWidth: Dp,
+    tailHeight: Dp,
+    tailOffset: Dp
 ) {
     val shape = CharacterBubbleShape(tailPosition, cornerRadius, tailWidth, tailHeight, tailOffset)
     val alignment = when (tailPosition) {
@@ -133,49 +198,28 @@ fun CharacterSpeechBubble(
         TailPosition.Center -> Alignment.BottomCenter
         TailPosition.Right -> Alignment.BottomEnd
     }
+
     Box(
         modifier = modifier
             .wrapContentSize(align = alignment)
             .background(backgroundColor, shape)
-            .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = tailHeight+12.dp)
-            .widthIn(min = 120.dp, max = 280.dp) // 범위 제한
+            .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = tailHeight + 12.dp)
+            .widthIn(min = 120.dp, max = 330.dp)
     ) {
         Text(text, style = MaterialTheme.typography.bodyMedium, color = Color.Black)
-    }
-}
-
-@Preview(showBackground = true, widthDp = 400)
-@Composable
-fun EditableSpeechBubbleDemo() {
-    var text by remember { mutableStateOf("수정 가능한 말풍선!") }
-    Background{
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            TextField(
-                value = text,
-                onValueChange = { text = it },
-                label = { Text("텍스트 입력") }
-            )
-            CharacterSpeechBubble(text, TailPosition.Left, Modifier ,Color(0xFFFFFFFF).copy(alpha=0.5f))
-            CharacterSpeechBubble(text, TailPosition.Center,Modifier ,Color(0xFFFFF176).copy(alpha=0.8f))
-            CharacterSpeechBubble(text, TailPosition.Right, Modifier,Color(0xFFA5D6A7).copy(alpha=0.8f))
-        }
     }
 }
 
 @Preview(showBackground = true, widthDp = 400, heightDp = 600)
 @Composable
 fun SpeechBubbleTestScreen() {
-    var inputText by remember { mutableStateOf("여기에 텍스트 입력!") }
+    var inputText by remember { mutableStateOf("말풍선 크기에 따라 이동 테스트!") }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFECEFF1)) // 테스트용 배경
+            .background(Color(0xFFECEFF1))
     ) {
-        // 입력창 (상단 고정)
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -189,35 +233,37 @@ fun SpeechBubbleTestScreen() {
                 label = { Text("말풍선 텍스트 입력") },
                 modifier = Modifier.fillMaxWidth()
             )
-            Text("입력한 텍스트가 아래 말풍선에 반영됩니다!", style = MaterialTheme.typography.bodySmall)
+            Text("폭이 늘어나면 꼬리 반대 방향으로 이동합니다.", style = MaterialTheme.typography.bodySmall)
         }
 
-        // 왼쪽 꼬리 → 화면 왼쪽 하단
+        // 왼쪽 꼬리
         CharacterSpeechBubble(
             text = inputText,
             tailPosition = TailPosition.Left,
+            alignment = Alignment.BottomStart,
+            pixelOffset = IntOffset(0, 0),
             backgroundColor = Color(0xFF81D4FA).copy(alpha = 0.9f),
-            modifier = Modifier
-                .align(Alignment.BottomStart)
-                .padding(16.dp)
+            cornerRadius = 16.dp, tailWidth = 24.dp, tailHeight = 16.dp, tailOffset = 40.dp
         )
 
-        // 중앙 꼬리 → 화면 중앙
+        // 중앙 꼬리
         CharacterSpeechBubble(
             text = inputText,
             tailPosition = TailPosition.Center,
+            alignment = Alignment.Center,
+            pixelOffset = IntOffset(0, 0),
             backgroundColor = Color(0xFFFFF176).copy(alpha = 0.9f),
-            modifier = Modifier.align(Alignment.Center)
+            cornerRadius = 16.dp, tailWidth = 24.dp, tailHeight = 16.dp, tailOffset = 40.dp
         )
 
-        // 오른쪽 꼬리 → 화면 오른쪽 하단
+        // 오른쪽 꼬리
         CharacterSpeechBubble(
             text = inputText,
             tailPosition = TailPosition.Right,
+            alignment = Alignment.TopEnd,
+            pixelOffset = IntOffset(0, 0),
             backgroundColor = Color(0xFFA5D6A7).copy(alpha = 0.9f),
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(16.dp)
+            cornerRadius = 16.dp, tailWidth = 24.dp, tailHeight = 16.dp, tailOffset = 40.dp
         )
     }
 }

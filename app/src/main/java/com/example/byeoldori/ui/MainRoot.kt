@@ -9,6 +9,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.*
 import androidx.navigation.compose.rememberNavController
 import com.example.byeoldori.data.UserViewModel
+import com.example.byeoldori.skymap.SkyMode
 import com.example.byeoldori.skymap.StellariumScreen
 import com.example.byeoldori.ui.components.NavBar
 import com.example.byeoldori.ui.components.mypage.*
@@ -49,7 +50,8 @@ fun MainRoot() {
                     onOpenSchedule = { nav.navigate("mypage/myschedule") }
                 )
             }
-            composable(Root.StarMap.route)     { StellariumScreen() }
+            composable(Root.Home.route)        { HomeScreen() }
+            composable(Root.StarMap.route)     { StellariumScreen(SkyMode.OBSERVATION) }
             composable(Root.Observatory.route) { ObservatoryScreen() }
             navigation(startDestination = "community/home", route = Root.Community.route) {
                 composable("community/home") { CommunityScreen(tab = CommunityTab.Home, onSelectTab = { t -> nav.navigate("community/$t") }, userVm = userVm) }

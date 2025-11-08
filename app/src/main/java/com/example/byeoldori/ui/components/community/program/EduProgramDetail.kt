@@ -1,33 +1,87 @@
 package com.example.byeoldori.ui.components.community.program
 
-import androidx.compose.foundation.layout.*
+import androidx.activity.compose.LocalActivity
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.*
-import androidx.compose.ui.*
-import androidx.compose.ui.focus.*
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.*
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.ViewModelStoreOwner
 import com.example.byeoldori.R
 import com.example.byeoldori.data.UserViewModel
-import com.example.byeoldori.data.model.dto.*
-import com.example.byeoldori.domain.Community.*
-import com.example.byeoldori.ui.components.community.*
+import com.example.byeoldori.data.model.dto.EducationDetailResponse
+import com.example.byeoldori.data.model.dto.EducationResponse
+import com.example.byeoldori.domain.Community.EduProgram
+import com.example.byeoldori.domain.Community.ReviewComment
+import com.example.byeoldori.eduprogram.EduViewModel
+import com.example.byeoldori.ui.components.community.CommentInput
+import com.example.byeoldori.ui.components.community.CommentList
+import com.example.byeoldori.ui.components.community.ContentInput
+import com.example.byeoldori.ui.components.community.EditorItem
+import com.example.byeoldori.ui.components.community.LikeCommentBar
 import com.example.byeoldori.ui.components.community.freeboard.formatCreatedAt
-import com.example.byeoldori.ui.components.community.review.*
+import com.example.byeoldori.ui.components.community.review.advancedImePadding
+import com.example.byeoldori.ui.components.community.toShortDate
 import com.example.byeoldori.ui.mapper.toUi
-import com.example.byeoldori.ui.theme.*
+import com.example.byeoldori.ui.theme.Purple600
+import com.example.byeoldori.ui.theme.Purple700
+import com.example.byeoldori.ui.theme.TextDisabled
+import com.example.byeoldori.ui.theme.TextHighlight
 import com.example.byeoldori.utils.SweObjUtils
-import com.example.byeoldori.viewmodel.*
 import com.example.byeoldori.viewmodel.Community.CommentsViewModel
 import com.example.byeoldori.viewmodel.Community.EducationViewModel
+import com.example.byeoldori.viewmodel.UiState
+import com.example.byeoldori.viewmodel.dummyPrograms
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -44,6 +98,13 @@ fun EduProgramDetail(
     onEditProgram: (EduProgram) -> Unit = {}
 ) {
     val userVm: UserViewModel = hiltViewModel()
+    val activity = LocalActivity.current as? ViewModelStoreOwner
+    val eduVm: EduViewModel = if (activity != null) {
+        hiltViewModel(activity)
+    } else {
+        hiltViewModel()
+    }
+
     LaunchedEffect(Unit) { userVm.getMyProfile() }
     val me = userVm.userProfile.collectAsState().value
     val myId = me?.id
@@ -269,29 +330,29 @@ fun EduProgramDetail(
                 Text(text = apiPost?.title ?: program.title, fontSize = 24.sp, color = TextHighlight) //제목
                 Spacer(Modifier.height(10.dp))
 
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    val profilePainter = program.profile
-                        ?.let { painterResource(id = it) }
-                        ?: painterResource(id = R.drawable.profile1)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        val profilePainter = program.profile
+                            ?.let { painterResource(id = it) }
+                            ?: painterResource(id = R.drawable.profile1)
 
-                    Icon(
-                        painter = profilePainter,
-                        contentDescription = "프로필",
-                        tint = Color.Unspecified,
-                        modifier = Modifier.size(50.dp)
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Column { //작성자
-                        Text(text = apiPost?.authorNickname ?: program.author, fontSize = 17.sp, color = TextHighlight)
-                        Spacer(Modifier.height(4.dp))
-                        Text( //작성일
-                            text =  createdText,
-                            style = MaterialTheme.typography.bodySmall.copy(color = TextDisabled),
-                            fontSize = 17.sp
+                        Icon(
+                            painter = profilePainter,
+                            contentDescription = "프로필",
+                            tint = Color.Unspecified,
+                            modifier = Modifier.size(50.dp)
                         )
+                        Spacer(Modifier.width(8.dp))
+                        Column { //작성자
+                            Text(text = apiPost?.authorNickname ?: program.author, fontSize = 17.sp, color = TextHighlight)
+                            Spacer(Modifier.height(4.dp))
+                            Text( //작성일
+                                text =  createdText,
+                                style = MaterialTheme.typography.bodySmall.copy(color = TextDisabled),
+                                fontSize = 17.sp
+                            )
+                        }
                     }
-                }
-                Spacer(Modifier.height(16.dp))
+                    Spacer(Modifier.height(16.dp))
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
@@ -299,7 +360,7 @@ fun EduProgramDetail(
                         Spacer(Modifier.height(6.dp))
                         val targetDisplay = apiDetail?.education?.targets
                             ?.filter { it.isNotBlank() }
-                            ?.map {SweObjUtils.toKorean(it) }
+                            ?.map { SweObjUtils.toKorean(it) }
                             ?.joinToString(" , ")
                             ?: program.targets?.joinToString(" , ")
                             ?: "-"
@@ -307,175 +368,189 @@ fun EduProgramDetail(
                         Text(text = targetDisplay, style = MaterialTheme.typography.bodyLarge.copy(color = Color.White))
                     }
 
-                    Column(Modifier.weight(1f)) {
-                        Text(text = "평점", style = MaterialTheme.typography.labelLarge.copy(color = TextDisabled))
-                        Spacer(Modifier.height(6.dp))
+                        Column(Modifier.weight(1f)) {
+                            Text(text = "평점", style = MaterialTheme.typography.labelLarge.copy(color = TextDisabled))
+                            Spacer(Modifier.height(6.dp))
+                            Text(
+                                text = (apiDetail?.education?.averageScore ?: program.averageScore ?: 0.0).toString(),
+                                style = MaterialTheme.typography.bodyLarge.copy(color = Color.White)
+                            )
+                        }
+                    }
+                    Spacer(Modifier.height(10.dp))
+
+                    apiDetail?.education?.summary?.let { summary ->
                         Text(
-                            text = (apiDetail?.education?.averageScore ?: program.averageScore ?: 0.0).toString(),
-                            style = MaterialTheme.typography.bodyLarge.copy(color = Color.White)
+                            text = summary,
+                            style = MaterialTheme.typography.bodyLarge.copy(color = Color.White),
+                            modifier = Modifier.padding(vertical = 8.dp)
                         )
                     }
-                }
-                Spacer(Modifier.height(10.dp))
+                    ContentInput( //내용 입력(텍스트 + 이미지)
+                        items = when {
+                            apiDetail?.content != null -> listOf(
+                                EditorItem.Paragraph(
+                                    value = TextFieldValue(apiDetail.content)
+                                )
+                            )
+                            else -> program.contentItems.toUi()
+                        },
+                        onItemsChange = {},
+                        onPickImages = {},
+                        onCheck = {},
+                        onChecklist = {},
+                        readOnly = true
+                    )
+                    Spacer(Modifier.height(16.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Button(
+                            onClick = {
+                                val id = program.id.toLongOrNull() ?: return@Button
+                                val url = apiDetail?.education?.contentUrl
 
-                apiDetail?.education?.summary?.let { summary ->
-                    Text(
-                        text = summary,
-                        style = MaterialTheme.typography.bodyLarge.copy(color = Color.White),
-                        modifier = Modifier.padding(vertical = 8.dp)
+                                if (url.isNullOrEmpty()) {
+                                    scope.launch {
+                                        snackbar.showSnackbar("교육 콘텐츠 URL이 존재하지 않습니다.")
+                                    }
+                                    return@Button
+                                }
+                                eduVm.openProgram(programId = id, url = url)
+                            } ,
+                            modifier = Modifier
+                                .width(350.dp)
+                                .height(50.dp),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = Purple700)
+                        ) {
+                            Text(
+                                text = "지금 바로 교육 시청하기",
+                                color = TextHighlight,
+                                fontSize = 20.sp
+                            )
+                        }
+                    }
+                    Spacer(Modifier.height(16.dp))
+                    //좋아요 + 댓글바
+                    LikeCommentBar(
+                        likeCount = likeCount,
+                        liked = liked,
+                        onToggle = {
+                            program.id.toLongOrNull()?.let { pid ->
+                                vm?.toggleLike(pid) { res ->
+                                    liked = res.liked// 상세 즉시 반영
+                                    likeCount = res.likes.toInt()
+                                }
+                            }
+                        },
+                        onSyncLikeCount = {},
+                        commentCount = commentCountUi
+                    )
+                    //댓글 + 대댓글
+                    CommentList(
+                        postId = program.id.toLong(),
+                        currentUserId = myId,
+                        currentUserNickname = myNick,
+                        comments = commentList,
+                        liked = likedCommentIds,
+                        onLikedChange = {},
+                        onLike = { tapped ->
+                            commentsVm.toggleLike(tapped.id)
+                        },
+                        onReply = { target ->
+                            parent = target
+                            requestKeyboard = true
+                        },
+                        onEdit = { target ->
+                            editingTarget = target
+                            requestKeyboard = true
+                        },
+                        onDelete = { target ->
+                            deleteTarget = target
+                            showDeleteDialog = true
+                        },
+                        editingId = editingTarget?.id,
+                        onSubmitEditInline = { target, newText ->
+                            val postId = program.id.toLongOrNull()
+                            val cid = target.id
+                            if (postId !=  null && newText.isNotBlank()) {
+                                commentsVm.update(
+                                    postId = postId,
+                                    commentId = cid,
+                                    content = newText
+                                ) {
+                                    editingTarget = null   // 저장 후 편집 종료
+                                    parent = null
+                                }
+                            }
+                        },
+                        onCancelEditInline = { editingTarget = null }
                     )
                 }
-                ContentInput( //내용 입력(텍스트 + 이미지)
-                    items = when {
-                        apiDetail?.content != null -> listOf(
-                            EditorItem.Paragraph(
-                                value = TextFieldValue(apiDetail.content)
-                            )
-                        )
-                        else -> program.contentItems.toUi()
-                    },
-                    onItemsChange = {},
-                    onPickImages = {},
-                    onCheck = {},
-                    onChecklist = {},
-                    readOnly = true
-                )
-                Spacer(Modifier.height(16.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Button(
-                        onClick = onStartProgram,
-                        modifier = Modifier.width(350.dp).height(50.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Purple700)
-                    ) {
-                        Text(
-                            text = "지금 바로 교육 시청하기",
-                            color = TextHighlight,
-                            fontSize = 20.sp
-                        )
-                    }
-                }
-                Spacer(Modifier.height(16.dp))
-                //좋아요 + 댓글바
-                LikeCommentBar(
-                    likeCount = likeCount,
-                    liked = liked,
-                    onToggle = {
-                        program.id.toLongOrNull()?.let { pid ->
-                            vm?.toggleLike(pid) { res ->
-                                liked = res.liked// 상세 즉시 반영
-                                likeCount = res.likes.toInt()
-                            }
-                        }
-                    },
-                    onSyncLikeCount = {},
-                    commentCount = commentCountUi
-                )
-                //댓글 + 대댓글
-                CommentList(
-                    postId = program.id.toLong(),
-                    currentUserId = myId,
-                    currentUserNickname = myNick,
-                    comments = commentList,
-                    liked = likedCommentIds,
-                    onLikedChange = {},
-                    onLike = { tapped ->
-                        commentsVm.toggleLike(tapped.id)
-                    },
-                    onReply = { target ->
-                        parent = target
-                        requestKeyboard = true
-                    },
-                    onEdit = { target ->
-                        editingTarget = target
-                        requestKeyboard = true
-                    },
-                    onDelete = { target ->
-                        deleteTarget = target
-                        showDeleteDialog = true
-                    },
-                    editingId = editingTarget?.id,
-                    onSubmitEditInline = { target, newText ->
-                        val postId = program.id.toLongOrNull()
-                        val cid = target.id
-                        if (postId != null && newText.isNotBlank()) {
-                            commentsVm.update(
-                                postId = postId,
-                                commentId = cid,
-                                content = newText
-                            ) {
-                                editingTarget = null   // 저장 후 편집 종료
-                                parent = null
-                            }
-                        }
-                    },
-                    onCancelEditInline = { editingTarget = null }
-                )
             }
         }
-    }
-    if (showDeleted) {
-        AlertDialog(
-            onDismissRequest = { showDeleted = false },
-            title = { Text("교욱 프로그램 삭제",color = Color.Black) },
-            text = { Text("정말로 이 교육 프로그램을 삭제하시겠어요?") },
-            confirmButton = {
-                TextButton(
-                    onClick = {
+        if (showDeleted) {
+            AlertDialog(
+                onDismissRequest = { showDeleted = false },
+                title = { Text("교욱 프로그램 삭제",color = Color.Black) },
+                text = { Text("정말로 이 교육 프로그램을 삭제하시겠어요?") },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            showDeleted = false
+                            moreMenu = false
+                            onDelete(program.id.toLong())
+                        }
+                    ) { Text("삭제") }
+                },
+                dismissButton = {
+                    TextButton(onClick = {
                         showDeleted = false
                         moreMenu = false
-                        onDelete(program.id.toLong())
-                    }
-                ) { Text("삭제") }
-            },
-            dismissButton = {
-                TextButton(onClick = {
-                    showDeleted = false
-                    moreMenu = false
-                }) { Text("취소") }
-            }
-        )
-    }
-    if (showDeleteDialog && deleteTarget != null) {
-        AlertDialog(
-            onDismissRequest = { showDeleteDialog = false; deleteTarget = null },
-            title = { Text("댓글 삭제", color = Color.Black) },
-            text  = { Text("이 댓글을 삭제할까요?") },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        val cid = deleteTarget!!.id
-                        commentsVm.delete(cid) {
-                            // 성공 시 닫고, 목록/카운트 갱신 트리거
-                            showDeleteDialog = false
-                            deleteTarget = null
-                            // vm?.loadPosts()
-                        }
-                    }
-                ) { Text("삭제") }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false; deleteTarget = null }) {
-                    Text("취소")
+                    }) { Text("취소") }
                 }
-            }
+            )
+        }
+        if (showDeleteDialog && deleteTarget != null) {
+            AlertDialog(
+                onDismissRequest = { showDeleteDialog = false; deleteTarget = null },
+                title = { Text("댓글 삭제", color = Color.Black) },
+                text  = { Text("이 댓글을 삭제할까요?") },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            val cid = deleteTarget!!.id
+                                commentsVm.delete(cid) {
+                                    // 성공 시 닫고, 목록/카운트 갱신 트리거
+                                    showDeleteDialog = false
+                                    deleteTarget = null
+                                   // vm?.loadPosts()
+
+                            }
+                        }
+                    ) { Text("삭제") }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDeleteDialog = false; deleteTarget = null }) {
+                        Text("취소")
+                    }
+                }
+            )
+        }
+    }
+
+    @Preview(showBackground = true, backgroundColor = 0xFF241860, widthDp = 500, heightDp = 1000)
+    @Composable
+    private fun Preview_EduProgramDetail() {
+        val sample = remember { dummyPrograms.first() }
+        EduProgramDetail(
+            program = sample,
+            onBack = {},
+            onShare = {},
+            currentUser = "astro_user",
+            onStartProgram = {},
+            vm = null
         )
     }
-}
-
-@Preview(showBackground = true, backgroundColor = 0xFF241860, widthDp = 500, heightDp = 1000)
-@Composable
-private fun Preview_EduProgramDetail() {
-    val sample = remember { dummyPrograms.first() }
-    EduProgramDetail(
-        program = sample,
-        onBack = {},
-        onShare = {},
-        currentUser = "astro_user",
-        onStartProgram = {},
-        vm = null
-    )
-}

@@ -15,7 +15,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.byeoldori.skymap.viewmodel.ObjectItem
+import com.example.byeoldori.skymap.ObjectItem
 import com.example.byeoldori.ui.theme.Purple800
 import com.example.byeoldori.ui.theme.TextHighlight
 

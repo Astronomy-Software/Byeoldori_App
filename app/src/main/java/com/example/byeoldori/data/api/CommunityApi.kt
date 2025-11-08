@@ -9,13 +9,12 @@ import com.example.byeoldori.data.model.dto.CreateReviewRequest
 import com.example.byeoldori.data.model.dto.CreatedPostId
 import com.example.byeoldori.data.model.dto.EducationDetailResponse
 import com.example.byeoldori.data.model.dto.EducationPostResponse
-import com.example.byeoldori.data.model.dto.FreePostResponse
+import com.example.byeoldori.data.model.dto.FeedbackRequest
 import com.example.byeoldori.data.model.dto.LikeToggleResponse
 import com.example.byeoldori.data.model.dto.PostDetailResponse
 import com.example.byeoldori.data.model.dto.PostResponse
 import com.example.byeoldori.data.model.dto.ReviewDetailResponse
 import com.example.byeoldori.data.model.dto.ReviewPostResponse
-import com.example.byeoldori.data.model.dto.ReviewResponse
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
@@ -130,5 +129,11 @@ interface CommunityApi {
     suspend fun updatePost(
         @Path("postId") postId: Long,
         @Body body: CreateFreeRequest
+    )
+
+    @POST("community/posts/{postId}/evaluations")
+    suspend fun evaluationsEduPost(
+        @Path("postId") postId: Long,
+        @Body body: FeedbackRequest
     )
 }
