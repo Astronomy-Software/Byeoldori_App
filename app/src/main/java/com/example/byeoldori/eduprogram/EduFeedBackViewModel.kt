@@ -3,9 +3,11 @@ package com.example.byeoldori.eduprogram
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.byeoldori.data.model.dto.FeedbackRequest
-import com.example.byeoldori.data.repository.EduRepository
+import com.example.byeoldori.data.repository.EducationRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -22,7 +24,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class EduFeedbackViewModel @Inject constructor(
-    private val repository: EduRepository
+    private val repository: EducationRepository
 ) : ViewModel() {
     private val _goFeedback = MutableStateFlow(false)
     val goFeedback = _goFeedback
@@ -40,11 +42,18 @@ class EduFeedbackViewModel @Inject constructor(
     var goodText: String = ""
     var badText: String = ""
 
-    // ✅ 어떤 교육 프로그램에 대한 피드백인지 식별용
-    private var programId: String = "default_program"   // 실제 값은 화면에서 setProgramId() 호출로 설정
+    private val _toastMessage = MutableStateFlow<String?>(null)
+    val toastMessage = _toastMessage.asStateFlow()
 
-    fun updateProgramId(id: String) {
-        programId = id
+    fun consumeToastMessage() {
+        _toastMessage.value = null
+    }
+
+    // ✅ 어떤 교육 프로그램에 대한 피드백인지 식별용
+    private var postId: Long = 0    // 실제 값은 화면에서 setProgramId() 호출로 설정
+
+    fun updatepostId(id: Long) {
+        postId = id
     }
 
     /**
@@ -54,20 +63,23 @@ class EduFeedbackViewModel @Inject constructor(
      * - 완료 후 onFinished 콜백
      */
     fun submitFeedback() = viewModelScope.launch {
-
         try {
-            // ✅ 요청 모델 생성
             val request = FeedbackRequest(
-                programId = programId,
-                rating = rating,
-                good = goodText,
-                bad = badText
+                score = rating,
+                pros = goodText,
+                cons = badText
             )
 
-            // ✅ 서버 전송 시도
-            repository.submitFeedback(request)
-        } catch (_: Exception) {
+            val res = repository.submitFeedback(postId = postId, request)
+            println("✅ 피드백 전송 성공: $res")
 
+            _toastMessage.value = "평가해주셔서 감사합니다!"
+            delay(500)
+            _goFeedback.value = false
+
+        } catch (e: Exception) {
+            println("❌ 피드백 전송 실패 : ${e.message}")
+            _toastMessage.value = "피드백 전송 실패 : ${e.message}"
         }
     }
 

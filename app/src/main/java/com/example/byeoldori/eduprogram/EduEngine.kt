@@ -97,6 +97,9 @@ class EduEngine @Inject constructor() {
             // ⬇️ 여기! 더 이상 감싸지 말고 그대로 사용
             val root = json
 
+            // 3초정도는 딜레이주어야함. 엔진 로딩 최소시간 보장
+            delay(3000)
+
             initialize(root.optJSONObject("init"))
             scenarioArray = root.optJSONArray("scenario") ?: JSONArray()
 
@@ -104,9 +107,6 @@ class EduEngine @Inject constructor() {
             currentSectionIndex = 0
             currentStepIndex = -1
             _currentSection.value = 0
-
-            // 2초정도는 딜레이주어야함. 엔진 로딩 최소시간 보장
-            delay(3000)
 
             _state.value = EduState.Ready
             Live2DControllerViewModel.chat("준비 다 됐어! 교육을 시작해볼까?", Emotion.Happy)

@@ -20,7 +20,8 @@ data class EducationDto(
     val tags: String? = null,
     val status: EduStatus? = null,
     val target: String? = null,
-    val averageScore: Double? = 0.0
+    val averageScore: Double? = 0.0,
+    val contentUrl: String? = null,
 )
 
 
@@ -65,9 +66,9 @@ data class EducationDetailResponse(
     val liked: Boolean
 )
 
+@JsonClass(generateAdapter = true)
 data class FeedbackRequest(
-    val programId: String,
-    val rating: Int,
-    val good: String,
-    val bad: String
+    val score: Int,
+    val pros: String,
+    val cons: String
 )

@@ -25,7 +25,7 @@ class EduViewModel @Inject constructor(
 ) : ViewModel() {
     // 테스트용 true 아니면 false
     // 테스트용일경우
-    private val testMode = true
+    private val testMode = false
 
     private val _viewEduProgram = MutableStateFlow(testMode)
     val viewEduProgram = _viewEduProgram.asStateFlow()
@@ -41,7 +41,18 @@ class EduViewModel @Inject constructor(
     val totalSections = engine.totalSections
     val autoPlay = engine.autoPlay
 
-    val programURL = "https://byeoldori-app.duckdns.org/files/json/2025/11/08/8b05875c0aca4497817881dce9d1ae44.json"
+    private val _programId = MutableStateFlow<Long?>(null)
+    val programId = _programId.asStateFlow()
+
+    private val _programUrl = MutableStateFlow("https://byeoldori-app.duckdns.org/files/json/2025/11/08/8b05875c0aca4497817881dce9d1ae44.json")
+    val programUrl = _programUrl.asStateFlow()
+
+    fun openProgram(programId: Long, url: String) {
+        _programId.value = programId
+        _programUrl.value = url
+        _viewEduProgram.value = true
+        println("✅ 교육 프로그램 열림: id=$programId, url=$url")
+    }
 
     fun preloadScenario(context: Context) = viewModelScope.launch {
         val json: JSONObject? = if (testMode) {
@@ -52,8 +63,8 @@ class EduViewModel @Inject constructor(
                 JSONObject(jsonText)
             }
         } else {
-            // ✅ 일반 모드: 서버에서 로드
-            jsonLoader.loadFromUrl( programURL )
+            val url = _programUrl.value
+            jsonLoader.loadFromUrl( url )
         }
 
         // ✅ 로드 결과 전달
