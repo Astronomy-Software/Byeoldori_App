@@ -22,7 +22,7 @@ interface EducationApi {
     /**
      * ✅ 교육 프로그램 JSON 원격 로드
      * - @Url 사용해서 풀 경로를 직접 요청 가능
-     *   ex) https://myserver.com/edu/Cygnus.json
+     *   ex) https://myserver.com/edu/test.json
      */
     @GET
     suspend fun loadScenarioJson(

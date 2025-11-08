@@ -6,10 +6,13 @@ import androidx.lifecycle.viewModelScope
 import com.example.byeoldori.character.Emotion
 import com.example.byeoldori.character.Live2DControllerViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.json.JSONObject
 import javax.inject.Inject
 
 // ===============================================================
@@ -17,9 +20,14 @@ import javax.inject.Inject
 // ===============================================================
 @HiltViewModel
 class EduViewModel @Inject constructor(
-    private val engine: EduEngine
+    private val engine: EduEngine,
+    private val jsonLoader: JsonLoader
 ) : ViewModel() {
-    private val _viewEduProgram = MutableStateFlow(true)
+    // 테스트용 true 아니면 false
+    // 테스트용일경우
+    private val testMode = true
+
+    private val _viewEduProgram = MutableStateFlow(testMode)
     val viewEduProgram = _viewEduProgram.asStateFlow()
 
     val state = engine.state
@@ -32,10 +40,24 @@ class EduViewModel @Inject constructor(
     val sectionIndex = engine.currentSection
     val totalSections = engine.totalSections
     val autoPlay = engine.autoPlay
+
+    val programURL = "https://byeoldori-app.duckdns.org/files/json/2025/11/08/8b05875c0aca4497817881dce9d1ae44.json"
+
     fun preloadScenario(context: Context) = viewModelScope.launch {
-        engine.loadScenarioWithLoading {
-            loadJsonFromAssets(context, "edu/Cygnus.json")
+        val json: JSONObject? = if (testMode) {
+            // ✅ 테스트 모드: assets에서 로드
+            withContext(Dispatchers.IO) {
+                val jsonText = context.assets.open("edu/test.json")
+                    .bufferedReader().use { it.readText() }
+                JSONObject(jsonText)
+            }
+        } else {
+            // ✅ 일반 모드: 서버에서 로드
+            jsonLoader.loadFromUrl( programURL )
         }
+
+        // ✅ 로드 결과 전달
+        engine.loadScenarioWithLoading { json }
     }
 
     fun start() = engine.start()

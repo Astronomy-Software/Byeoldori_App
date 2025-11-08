@@ -1,6 +1,6 @@
 {
   "init": {
-    "programTitle": "백조자리 이야기 – 확장 풀버전",
+    "programTitle": "테스트용",
     "mode": "education",
     "fov": 60,
     "view": { "yaw": 0, "pitch": 0 },

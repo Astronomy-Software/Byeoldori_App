@@ -18,6 +18,7 @@ import com.example.byeoldori.data.local.datastore.TokenDataStore
 import com.example.byeoldori.data.remote.interceptor.AuthInterceptor
 import com.example.byeoldori.data.remote.interceptor.NetworkCacheInterceptor
 import com.example.byeoldori.data.remote.interceptor.RefreshTokenAuthenticator
+import com.example.byeoldori.eduprogram.JsonLoader
 import com.squareup.moshi.Moshi
 import dagger.Module
 import dagger.Provides
@@ -236,4 +237,10 @@ object NetworkModule {
             .okHttpClient(okHttp)
             .crossfade(true)
             .build()
+
+    @Provides
+    @Singleton
+    fun provideJsonLoader(
+        @AuthedOkHttp okHttp: OkHttpClient
+    ): JsonLoader = JsonLoader(okHttp)
 }

@@ -77,8 +77,7 @@ class EduEngine @Inject constructor() {
 
 
     fun toggleAutoPlay() { _autoPlay.value = !_autoPlay.value }
-
-    fun loadScenarioWithLoading(jsonProvider: () -> String) {
+    fun loadScenarioWithLoading(jsonProvider: suspend () -> JSONObject?) {
         scope.launch {
             resetAll()
             _state.value = EduState.Loading
@@ -86,11 +85,18 @@ class EduEngine @Inject constructor() {
             Live2DControllerViewModel.playAppearanceMotion()
             Live2DControllerViewModel.chat("교육 프로그램 준비 중이에요!", Emotion.Idle)
 
-            val json = withContext(Dispatchers.IO) { jsonProvider() }
+            val json: JSONObject? = withContext(Dispatchers.IO) { jsonProvider() }
 
-            delay(6000)
+            // 안전장치
+            if (json == null) {
+                _log.value = "❌ 시나리오 JSON 로드 실패"
+                _state.value = EduState.Ready
+                return@launch
+            }
 
-            val root = JSONObject(json)
+            // ⬇️ 여기! 더 이상 감싸지 말고 그대로 사용
+            val root = json
+
             initialize(root.optJSONObject("init"))
             scenarioArray = root.optJSONArray("scenario") ?: JSONArray()
 
@@ -98,6 +104,9 @@ class EduEngine @Inject constructor() {
             currentSectionIndex = 0
             currentStepIndex = -1
             _currentSection.value = 0
+
+            // 2초정도는 딜레이주어야함. 엔진 로딩 최소시간 보장
+            delay(3000)
 
             _state.value = EduState.Ready
             Live2DControllerViewModel.chat("준비 다 됐어! 교육을 시작해볼까?", Emotion.Happy)
