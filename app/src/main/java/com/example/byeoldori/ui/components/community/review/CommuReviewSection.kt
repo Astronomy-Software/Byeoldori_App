@@ -42,7 +42,7 @@ fun ReviewResponse.toReview(): Review {
         id = id.toString(),
         title = title,
         author = authorNickname ?: "익명",
-        profile = R.drawable.profile1, // 서버에 프로필 리소스 없으면 null 유지
+        authorProfileImageUrl = authorProfileImageUrl,  // 서버에 프로필 리소스 없으면 null 유지
         createdAt = formatCreatedAt(createdAt),
         viewCount = viewCount,
         likeCount = likeCount,
@@ -65,7 +65,7 @@ fun ReviewDetailResponse.toDomain(author: String? = null): Review = Review(
     id = id.toString(),
     title = title,
     author = author ?: "익명",
-    profile =  R.drawable.profile1,
+    authorProfileImageUrl = authorProfileImageUrl,
     createdAt = createdAt,
     viewCount = viewCount,
     likeCount = likeCount,

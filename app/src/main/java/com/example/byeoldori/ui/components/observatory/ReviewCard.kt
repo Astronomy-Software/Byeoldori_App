@@ -5,6 +5,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -163,14 +164,18 @@ fun ReviewCard(
                 )
                 Spacer(Modifier.height(10.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    review.profile?.let {
-                        Icon(
-                            painter = painterResource(it),
-                            contentDescription = "프로필",
-                            tint = Color.Unspecified,
-                            modifier = Modifier.size(22.dp)
-                        )
-                    }
+                    AsyncImage(
+                        model = review.authorProfileImageUrl
+                            ?.takeIf { it.isNotBlank() }
+                            ?: "android.resource://${BuildConfig.APPLICATION_ID}/${R.drawable.byeoldori}",
+                        contentDescription = "프로필",
+                        placeholder = painterResource(R.drawable.byeoldori),
+                        error = painterResource(R.drawable.byeoldori),
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .size(22.dp)
+                            .clip(CircleShape)
+                    )
                     Spacer(Modifier.width(4.dp))
                     Text(review.author, color = TextHighlight, fontSize = 14.sp)
                 }

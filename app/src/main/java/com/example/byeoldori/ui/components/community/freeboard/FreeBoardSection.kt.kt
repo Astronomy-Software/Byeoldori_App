@@ -61,7 +61,7 @@ fun FreePost.asReview(): Review =
         rating = 0,              // 자유게시판엔 별점이 없으니 0으로
         likeCount = likeCount,
         commentCount = commentCount,
-        profile = R.drawable.profile1,
+        authorProfileImageUrl = authorProfileImageUrl,
         viewCount = viewCount,
         createdAt = createdAt,
         targets = emptyList(),
@@ -95,7 +95,8 @@ fun FreePostResponse.toFreePost(): FreePost {
         contentItems = listOf(Content.Text(contentSummary)),
         profile = null,
         liked = liked,
-        thumbnail = validThumbnail
+        thumbnail = validThumbnail,
+        authorProfileImageUrl = authorProfileImageUrl
     )
 }
 

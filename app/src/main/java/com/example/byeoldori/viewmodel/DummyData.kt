@@ -16,7 +16,6 @@ val dummyReviews = mutableStateListOf(
         rating = 5,
         likeCount = 70,
         commentCount = 0,
-        profile = R.drawable.profile1,
         viewCount = 60,
         createdAt = "20251029",
         targets = listOf("태양"),
@@ -28,7 +27,8 @@ val dummyReviews = mutableStateListOf(
             Content.Text("오늘은 태양 흑점을 관측했습니다."),
             Content.Image.Resource(R.drawable.img_dummy),
             Content.Text("날씨가 좋아 관측이 수월했습니다!.")
-        )
+        ),
+        authorProfileImageUrl = "R.drawable.byeoldori"
     ),
     Review(
         id = "r2",
@@ -37,7 +37,6 @@ val dummyReviews = mutableStateListOf(
         rating = 5,
         likeCount = 80,
         commentCount = 0,
-        profile = R.drawable.profile1,
         viewCount = 100,
         createdAt = "20251030",
         targets = listOf("태양"),
@@ -48,7 +47,8 @@ val dummyReviews = mutableStateListOf(
         contentItems = listOf(
             Content.Text("오늘은 태양 흑점을 관측했습니다."),
             Content.Image.Resource(R.drawable.img_dummy)
-        )
+        ),
+        authorProfileImageUrl = "R.drawable.byeoldori"
     ),
     Review(
         id = "r3",
@@ -57,7 +57,6 @@ val dummyReviews = mutableStateListOf(
         rating = 5,
         likeCount = 40,
         commentCount = 0,
-        profile = R.drawable.profile1,
         viewCount = 80,
         createdAt = "20251129",
         targets = listOf("태양"),
@@ -68,7 +67,8 @@ val dummyReviews = mutableStateListOf(
         contentItems = listOf(
             Content.Text("오늘은 태양 흑점을 관측했습니다."),
             Content.Image.Resource(R.drawable.img_dummy)
-        )
+        ),
+        authorProfileImageUrl = "R.drawable.byeoldori"
     ),
     Review(
         id = "r4",
@@ -77,7 +77,6 @@ val dummyReviews = mutableStateListOf(
         rating = 5,
         likeCount = 30,
         commentCount = 0,
-        profile = R.drawable.profile1,
         viewCount = 60,
         createdAt = "20251015",
         targets = listOf("태양"),
@@ -88,7 +87,8 @@ val dummyReviews = mutableStateListOf(
         contentItems = listOf(
             Content.Text("오늘은 태양 흑점을 관측했습니다."),
             Content.Image.Resource(R.drawable.img_dummy)
-        )
+        ),
+        authorProfileImageUrl = "R.drawable.byeoldori"
     ),
     Review(
         id = "r5",
@@ -97,7 +97,6 @@ val dummyReviews = mutableStateListOf(
         rating = 5,
         likeCount = 20,
         commentCount = 0,
-        profile = R.drawable.profile1,
         viewCount = 20,
         createdAt = "20251014",
         targets = listOf("태양"),
@@ -108,7 +107,8 @@ val dummyReviews = mutableStateListOf(
         contentItems = listOf(
             Content.Text("오늘은 태양 흑점을 관측했습니다."),
             Content.Image.Resource(R.drawable.img_dummy)
-        )
+        ),
+        authorProfileImageUrl = "R.drawable.byeoldori"
     ),
     Review(
         id = "r6",
@@ -117,7 +117,6 @@ val dummyReviews = mutableStateListOf(
         rating = 5,
         likeCount = 5,
         commentCount = 0,
-        profile = R.drawable.profile1,
         viewCount = 5,
         createdAt = "20251027",
         targets = listOf("태양"),
@@ -128,7 +127,8 @@ val dummyReviews = mutableStateListOf(
         contentItems = listOf(
             Content.Text("오늘은 태양 흑점을 관측했습니다."),
             Content.Image.Resource(R.drawable.img_dummy)
-        )
+        ),
+        authorProfileImageUrl = "R.drawable.byeoldori"
     ),
 )
 
@@ -266,7 +266,8 @@ val dummyFreePosts = mutableStateListOf(
             Content.Image.Resource(R.drawable.img_dummy),
             Content.Text("이런 곳은 어떤가요?? 잘 보이나요?")
         ),
-        liked = true
+        liked = true,
+        authorProfileImageUrl = "R.drawable.byeoldori"
     ),
     FreePost(
         id = "f2",
@@ -282,7 +283,8 @@ val dummyFreePosts = mutableStateListOf(
             Content.Image.Resource(R.drawable.img_dummy),
             Content.Text("좋은 관측 장소 공유 부탁드려요!")
         ),
-        liked = true
+        liked = true,
+        authorProfileImageUrl = "R.drawable.byeoldori"
     ),
     FreePost(
         id = "f3",
@@ -297,7 +299,8 @@ val dummyFreePosts = mutableStateListOf(
             Content.Text("안녕하세요 astro3입니다."),
             Content.Text("저는 주로 교외에서 관측해요 🌌")
         ),
-        liked = false
+        liked = false,
+        authorProfileImageUrl = "R.drawable.byeoldori"
     ),
     FreePost(
         id = "f4",
@@ -312,7 +315,8 @@ val dummyFreePosts = mutableStateListOf(
             Content.Text("astro4 입니다. 잘 부탁드려요!"),
             Content.Image.Resource(R.drawable.img_dummy)
         ),
-        liked = false
+        liked = false,
+        authorProfileImageUrl = "R.drawable.byeoldori"
     )
 )
 
@@ -336,7 +340,8 @@ val dummyPrograms = mutableStateListOf(
         ),
         liked = true,
         targets = listOf("망원경"),
-        averageScore = 4.5
+        averageScore = 4.5,
+        authorProfileImageUrl = "R.drawable.byeoldori"
     ),
     EduProgram(
         id = "p2",
@@ -356,7 +361,8 @@ val dummyPrograms = mutableStateListOf(
         ),
         liked = false,
         targets = listOf("유성우"),
-        averageScore = 4.8
+        averageScore = 4.8,
+        authorProfileImageUrl = "R.drawable.byeoldori"
     ),
     EduProgram(
         id = "p3",
@@ -375,7 +381,8 @@ val dummyPrograms = mutableStateListOf(
         ),
         liked = false,
         targets = listOf("별"),
-        averageScore = 3.5
+        averageScore = 3.5,
+        authorProfileImageUrl = "R.drawable.byeoldori"
     )
 )
 

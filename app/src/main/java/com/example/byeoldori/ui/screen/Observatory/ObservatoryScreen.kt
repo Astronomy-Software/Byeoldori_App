@@ -151,22 +151,22 @@ fun ObservatoryScreen(
                     onMapReady = { map -> naverMap = map }
                 )
                 //마커 한번 더 눌렀을 때, Popup추가
-                if (selectedLatLng != null && !selectedAddress.isNullOrBlank()) {
-                    MarkerPopup(
-                        selectedLatLng = selectedLatLng,
-                        selectedAddress = selectedAddress,
-                        onDismiss = {
-                            selectedLatLng = null
-                            selectedAddress = null
-                            showPopup = false
-                        },
-                        modifier = Modifier
-                            .align(Alignment.TopStart)
-                            .padding(top = 140.dp)         // 검색창 아래 정도로 띄움
-                            .fillMaxWidth(0.75f)
-                            .fillMaxWidth(0.4f)
-                    )
-                }
+//                if (selectedLatLng != null && !selectedAddress.isNullOrBlank()) {
+//                    MarkerPopup(
+//                        selectedLatLng = selectedLatLng,
+//                        selectedAddress = selectedAddress,
+//                        onDismiss = {
+//                            selectedLatLng = null
+//                            selectedAddress = null
+//                            showPopup = false
+//                        },
+//                        modifier = Modifier
+//                            .align(Alignment.TopStart)
+//                            .padding(top = 140.dp)         // 검색창 아래 정도로 띄움
+//                            .fillMaxWidth(0.75f)
+//                            .fillMaxWidth(0.4f)
+//                    )
+//                }
 
                 Box(
                     modifier = Modifier

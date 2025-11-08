@@ -4,11 +4,14 @@ import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.relocation.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.DrawerDefaults.shape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.*
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.*
 import androidx.compose.ui.res.painterResource
@@ -20,8 +23,10 @@ import com.example.byeoldori.ui.components.community.*
 import com.example.byeoldori.ui.theme.*
 import com.example.byeoldori.domain.Community.ReviewComment
 import androidx.compose.ui.focus.*
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.hilt.navigation.compose.hiltViewModel
+import coil.compose.AsyncImage
 import com.example.byeoldori.data.model.dto.*
 import com.example.byeoldori.domain.Content
 import com.example.byeoldori.domain.Observatory.Review
@@ -293,13 +298,20 @@ fun ReviewDetail(
                 )
                 Spacer(Modifier.height(10.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    // 프로필 이미지 (임시)
-                        Icon(
-                            painter = painterResource(R.drawable.profile1),
-                            contentDescription = "프로필 이미지",
-                            tint = Color.Unspecified,
-                            modifier = Modifier.size(50.dp)
-                        )
+                    val profileModel: Any = reviewForUi.authorProfileImageUrl
+                        ?.takeIf { it.isNotBlank() }
+                        ?: R.drawable.byeoldori
+
+                    AsyncImage(
+                        model = profileModel,
+                        contentDescription = "프로필 이미지",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .size(50.dp)
+                            .clip(CircleShape),
+                        placeholder = painterResource(R.drawable.byeoldori), // 기본 이미지
+                        error = painterResource(R.drawable.byeoldori)
+                    )
                     Spacer(Modifier.width(8.dp))
                     Column {
                         Text( //사용자 이름
