@@ -1,38 +1,70 @@
 package com.example.byeoldori.skymap
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.foundation.*
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.byeoldori.skymap.components.ObjectInfoCard
-import com.example.byeoldori.skymap.components.RealtimeInfoList
-import com.example.byeoldori.skymap.components.WikipediaCard
+import com.example.byeoldori.data.UserViewModel
+import com.example.byeoldori.data.model.dto.*
+import com.example.byeoldori.domain.Observatory.Review
+import com.example.byeoldori.skymap.components.*
 import com.example.byeoldori.skymap.viewmodel.ObjectDetailViewModel
 import com.example.byeoldori.ui.components.TopBar
+import com.example.byeoldori.ui.components.community.review.ReviewDetail
 import com.example.byeoldori.ui.theme.Background
 import com.example.byeoldori.utils.SweObjUtils
+import com.example.byeoldori.viewmodel.Community.CommentsViewModel
+import com.example.byeoldori.viewmodel.Community.ReviewViewModel
 
 @Composable
 fun ObjectDetailScreen(
-    viewModel: ObjectDetailViewModel = hiltViewModel()
+    viewModel: ObjectDetailViewModel = hiltViewModel(),
+    onOpenReviewDetail: (Triple<Review, ReviewResponse?, ReviewDetailResponse?>) -> Unit = {}
 ) {
     val detail by viewModel.selectedObject.collectAsState()
     val realtimeItems by viewModel.realtimeItems.collectAsState()
     val isVisible by viewModel.isDetailVisible.collectAsState()
 
+    val userVm: UserViewModel = hiltViewModel()
+    val me = userVm.userProfile.collectAsState().value
+    val currentUserName = me?.nickname ?: me?.name ?: "익명"
+    val currentUserId = me?.id
+
     if (!isVisible) return
+    var selectedReviewTriple by remember { mutableStateOf<Triple<Review, ReviewResponse?, ReviewDetailResponse?>?>(null) }
+
+    val reviewVm: ReviewViewModel = hiltViewModel()
+    val commentsVm: CommentsViewModel = hiltViewModel()
+
+    selectedReviewTriple?.let { triple ->
+        val ui: Review = triple.first
+        val apiPost: ReviewResponse? = triple.second
+        val apiDetail: ReviewDetailResponse? = triple.third
+
+        Background(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.85f))
+        ) {
+            ReviewDetail(
+                review = ui,
+                apiPost = apiPost,
+                apiDetail = apiDetail,
+                currentUser = currentUserName,
+                currentUserId = currentUserId,
+                onSyncReviewLikeCount = { _, _, _ -> },
+                onBack = { selectedReviewTriple = null },
+                vm = reviewVm,
+                commentsVm = commentsVm,
+                onEdit = true,
+            )
+        }
+        return
+    }
 
     Background(
         modifier = Modifier
@@ -40,11 +72,11 @@ fun ObjectDetailScreen(
             .background(Color.Black.copy(alpha = 0.85f))
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
+            Spacer(Modifier.height(20.dp))
             TopBar(
                 title = "천체 상세 정보",
                 onBack = { viewModel.setDetailVisible(false) }
             )
-
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -65,6 +97,14 @@ fun ObjectDetailScreen(
 
                     // 맨 아래 위키 요약
                     WikipediaCard(summary = detail!!.wikipediaSummary , name = detail!!.name)
+
+                    //관측 후기들
+                    ObjectReviewCard(
+                        objectName = detail!!.name,
+                        onReviewClick = { triple ->
+                            selectedReviewTriple = triple
+                        }
+                    )
                 } else {
                     Text(
                         text = "천체 정보 없음",
