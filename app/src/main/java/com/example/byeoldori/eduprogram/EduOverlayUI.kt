@@ -5,15 +5,18 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.byeoldori.ui.theme.TextHighlight
@@ -50,8 +53,8 @@ fun EduOverlayUI() {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(24.dp),
-                contentAlignment = Alignment.Center
+                    .padding(12.dp),
+                contentAlignment = Alignment.BottomCenter
             ) {
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
@@ -64,10 +67,6 @@ fun EduOverlayUI() {
 
                     Button(onClick = { vm.start() }) {
                         Text("다시 보기")
-                    }
-
-                    Button(onClick = { vm.eduClose() }) {
-                        Text("종료")
                     }
                 }
             }
@@ -88,13 +87,21 @@ fun EduOverlayUI() {
                 .padding(12.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Button(
+            if (autoPlay && stepDuration > 0 && timer in 1..stepDuration) {
+                val progress = (1f - timer.toFloat() / stepDuration).coerceIn(0f, 1f)
+                CircularProgressIndicator(
+                    progress = { progress },
+                    modifier = Modifier.size(40.dp).align(Alignment.CenterVertically),   // ✅ Row 내부에서 세로 중앙 정렬
+                    trackColor = Color.Transparent
+                )
+            }
+            OutlinedButton(
                 onClick = { vm.toggleAuto() },
             ) {
                 Text(if (autoPlay) "자동 ON" else "자동 OFF")
             }
 
-            Button(onClick = { vm.closeProgram() }) {
+            OutlinedButton(onClick = { vm.closeProgram() }) {
                 Text("종료")
             }
         }
@@ -115,12 +122,8 @@ fun EduOverlayUI() {
                 .padding(12.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            if (autoPlay && stepDuration > 0 && timer in 1..stepDuration) {
-                val progress = (1f - timer.toFloat() / stepDuration).coerceIn(0f, 1f)
-                CircularProgressIndicator(progress = { progress })
-            }
-            Button(onClick = { vm.prev() }) { Text("이전") }
-            Button(onClick = { vm.next() }) { Text("다음") }
+            OutlinedButton(onClick = { vm.prev() }) { Text("이전") }
+            OutlinedButton(onClick = { vm.next() }) { Text("다음") }
         }
     }
 
