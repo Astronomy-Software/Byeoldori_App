@@ -1,5 +1,6 @@
 package com.example.byeoldori.ui.components.mypage
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -43,45 +44,53 @@ fun MyComment(
     group: MyCommentGroup,
     myId: Long,
     myNickname: String?,
-    myProfileUrl: String?
+    myProfileUrl: String?,
+    onOpenDetail: () -> Unit
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         SourceBadge(group.source)
         Spacer(Modifier.height(6.dp))
-        Text(
-            group.postTitle,
-            color = TextHighlight,
-            style = MaterialTheme.typography.titleMedium.copy(
-                fontWeight = FontWeight.ExtraBold, fontSize = 25.sp
-            )
-        )
-        Spacer(Modifier.height(6.dp))
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            AsyncImage(
-                model = group.postAuthorProfileUrl,
-                placeholder = painterResource(id = R.drawable.byeoldori),
-                error = painterResource(id = R.drawable.byeoldori),
-                contentScale = ContentScale.Crop,
-                contentDescription = "작성자 프로필",
-                modifier = Modifier.size(48.dp).clip(CircleShape)
-            )
-            Spacer(Modifier.width(8.dp))
 
-            Column {
-                Text(
-                    text = group.postAuthorName,
-                    color = TextHighlight,
-                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onOpenDetail)
+        ) {
+            Text(
+                group.postTitle,
+                color = TextHighlight,
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.ExtraBold, fontSize = 25.sp
                 )
-                Spacer(Modifier.height(3.dp))
-                Text(
-                    text = group.postCreatedAt.toShortDate(),
-                    color = TextDisabled,
-                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
+            )
+            Spacer(Modifier.height(6.dp))
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                AsyncImage(
+                    model = group.postAuthorProfileUrl,
+                    placeholder = painterResource(id = R.drawable.byeoldori),
+                    error = painterResource(id = R.drawable.byeoldori),
+                    contentScale = ContentScale.Crop,
+                    contentDescription = "작성자 프로필",
+                    modifier = Modifier.size(48.dp).clip(CircleShape)
                 )
+                Spacer(Modifier.width(8.dp))
+
+                Column {
+                    Text(
+                        text = group.postAuthorName,
+                        color = TextHighlight,
+                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
+                    )
+                    Spacer(Modifier.height(3.dp))
+                    Text(
+                        text = group.postCreatedAt.toShortDate(),
+                        color = TextDisabled,
+                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
+                    )
+                }
             }
         }
 

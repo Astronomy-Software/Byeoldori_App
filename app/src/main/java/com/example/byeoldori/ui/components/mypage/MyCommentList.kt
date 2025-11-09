@@ -19,6 +19,15 @@ import com.example.byeoldori.viewmodel.Community.*
 import com.example.byeoldori.viewmodel.UiState
 import kotlinx.coroutines.*
 import androidx.compose.foundation.lazy.items
+import com.example.byeoldori.data.model.dto.ReviewDetailResponse
+import com.example.byeoldori.data.model.dto.ReviewResponse
+import com.example.byeoldori.ui.components.community.freeboard.FreeBoardDetail
+import com.example.byeoldori.ui.components.community.freeboard.toFreePost
+import com.example.byeoldori.ui.components.community.program.EduProgramDetail
+import com.example.byeoldori.ui.components.community.program.toEduProgram
+import com.example.byeoldori.ui.components.community.review.ReviewDetail
+import com.example.byeoldori.ui.components.community.review.toReview
+import org.w3c.dom.Comment
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -28,7 +37,10 @@ fun MyCommentList(
     userVm: UserViewModel = hiltViewModel(),
     commentsVm: CommentsViewModel = hiltViewModel(),
     vm: CommunityViewModel = hiltViewModel(),
-    eduVm: EducationViewModel = hiltViewModel()
+    eduVm: EducationViewModel = hiltViewModel(),
+    onOpenReviewDetail: (postId: Long) -> Unit = {},
+    onOpenFreeDetail: (postId: Long) -> Unit = {},
+    onOpenEducationDetail: (postId: Long) -> Unit = {}
 ) {
     LaunchedEffect(Unit) {
         userVm.getMyProfile()
@@ -47,6 +59,8 @@ fun MyCommentList(
     var loading by remember { mutableStateOf(true) }
     var error by remember { mutableStateOf<String?>(null) }
 
+    var selected by remember { mutableStateOf<Pair<CommentSourceType, Long>?>(null) }
+
     suspend fun <T> buildGroups(
         source: CommentSourceType,
         posts: List<T>,
@@ -59,9 +73,10 @@ fun MyCommentList(
         posts.map { p->
             async {
                 val postId = id(p)
-                val all = commentsVm.AllMyComments(postId)
-                val mine = all.filter { it.authorId == myId && !it.deleted }
+                val all = commentsVm.AllMyComments(postId) //해당 게시글에 달린 모든 댓글 수집
+                val mine = all.filter { it.authorId == myId && !it.deleted } //내가 쓴 댓글만 필터링
 
+                //내가 쓴 댓글이 존재하면 그룹 객체 생성
                 if(mine.isEmpty()) null else MyCommentGroup(
                     source = source,
                     postId = postId,
@@ -82,10 +97,11 @@ fun MyCommentList(
                     }
                 )
             }
-        }.mapNotNull { it.await() }
+        }.mapNotNull { it.await() } //async로 동시에 실행
     }
 
-    LaunchedEffect(myId,reviewState) {
+    //게시글 상태 변경되면 다시 로드
+    LaunchedEffect(myId,reviewState,vmState,eduState) {
         if (myId <= 0) return@LaunchedEffect
         loading = true; error = null
         runCatching {
@@ -93,7 +109,7 @@ fun MyCommentList(
             val boards = (vmState as? UiState.Success)?.data.orEmpty()
             val educations = (eduState as? UiState.Success)?.data.orEmpty()
 
-            val reviewGroup = buildGroups(
+            val reviewGroup = buildGroups( //관측 후기에서 내가 쓴 댓글들
                 source = CommentSourceType.REVIEW,
                 posts = reviews,
                 id = { it.id },
@@ -127,6 +143,74 @@ fun MyCommentList(
                 .sortedByDescending { it.postCreatedAt }
         }.onSuccess { groups = it; loading = false }
             .onFailure { e -> error = e.message ?: "댓글 로드 실패"; loading = false }
+    }
+
+    selected?.let { (src, postId) ->
+        when(src) {
+            CommentSourceType.FREE -> {
+                val boards = (vmState as? UiState.Success)?.data.orEmpty()
+                val post = boards.firstOrNull { it.id == postId }?.toFreePost()
+
+                LaunchedEffect(postId) { vm.loadPostDetail(postId) }
+
+                val postDetailUi by vm.postDetail.collectAsState()
+                val apiPost = (postDetailUi as? UiState.Success)?.data
+
+                if(post != null) {
+                    FreeBoardDetail(
+                        post = post,
+                        apiPost = apiPost,
+                        onBack = { selected = null },
+                        vm = vm,
+                        onDelete = { id ->
+                            vm.deletePost(id) {
+                                // 삭제 후 목록 갱신 및 복귀
+                                vm.loadPosts()
+                                selected = null
+                            }
+                        }
+                    )
+                }
+            }
+            CommentSourceType.REVIEW -> {
+                val reviewDtos = (reviewState as? UiState.Success)?.data.orEmpty()
+                val apiPost: ReviewResponse? = reviewDtos.firstOrNull { it.id == postId }
+
+                LaunchedEffect(postId) { reviewVm.loadReviewDetail(postId) }
+                val detailUi by reviewVm.detailUi.collectAsState()
+                val latestReview = (detailUi as? UiState.Success)?.data
+
+                val detailDto by reviewVm.detail.collectAsState()                  // UiState<ReviewDetailResponse>
+                val apiDetail = (detailDto as? UiState.Success)?.data              // ReviewDetailResponse?
+
+                val reviewForScreen = latestReview ?: apiPost?.toReview()
+
+                if(reviewForScreen != null) {
+                    ReviewDetail(
+                        review = reviewForScreen,
+                        onBack = { selected = null },
+                        currentUser = (me?.id?.toString() ?: me?.nickname ?: "익명"), // ReviewDetail 시그니처 맞춤
+                        currentUserId = me?.id,
+                        onSyncReviewLikeCount = { _, _, _ -> },
+                        apiDetail = apiDetail,
+                        apiPost = apiPost,
+                        vm = reviewVm,
+                    )
+                }
+            }
+            CommentSourceType.EDUCATION -> {
+                val educations = (eduState as? UiState.Success)?.data.orEmpty()
+                val education = educations.firstOrNull { it.id == postId}?.toEduProgram()
+                if(education != null) {
+                    EduProgramDetail(
+                        program = education,
+                        onBack = { selected = null },
+                        vm = eduVm
+                    )
+                }
+            }
+        }
+        return
     }
 
     Background(modifier = Modifier.fillMaxSize()) {
@@ -167,7 +251,8 @@ fun MyCommentList(
                         group = g,
                         myId = myId,
                         myNickname = me?.nickname,
-                        myProfileUrl = me?.profileImageUrl
+                        myProfileUrl = me?.profileImageUrl,
+                        onOpenDetail = { selected = g.source to g.postId }
                     )
                 }
             }
