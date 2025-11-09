@@ -162,6 +162,7 @@ fun MyCommentList(
                         apiPost = apiPost,
                         onBack = { selected = null },
                         vm = vm,
+                        onEdit = false,
                         onDelete = { id ->
                             vm.deletePost(id) {
                                 // 삭제 후 목록 갱신 및 복귀
@@ -192,6 +193,7 @@ fun MyCommentList(
                         currentUser = (me?.id?.toString() ?: me?.nickname ?: "익명"), // ReviewDetail 시그니처 맞춤
                         currentUserId = me?.id,
                         onSyncReviewLikeCount = { _, _, _ -> },
+                        onEdit = false,
                         apiDetail = apiDetail,
                         apiPost = apiPost,
                         vm = reviewVm,
@@ -205,6 +207,7 @@ fun MyCommentList(
                     EduProgramDetail(
                         program = education,
                         onBack = { selected = null },
+                        onEdit = false,
                         vm = eduVm
                     )
                 }
