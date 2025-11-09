@@ -4,13 +4,16 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.byeoldori.data.model.dto.PlanDetailDto
 import com.example.byeoldori.ui.theme.*
 import java.time.LocalDate
+import kotlinx.coroutines.flow.Flow
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -23,7 +26,7 @@ fun PlanBottomSheet(
     onDelete: (PlanDetailDto) -> Unit,
     onWriteReview: (PlanDetailDto) -> Unit,
     onOpenDetail: (PlanDetailDto) -> Unit,
-    getAlarmMinutes: (planId: Long) -> Int,
+    alarmMinutesOf: (planId: Long) -> Flow<Int>,
     setAlarmMinutes: (planId: Long, minutes: Int) -> Unit,
     onAlarm: (PlanDetailDto, Int) -> Unit
 ) {
@@ -82,6 +85,8 @@ fun PlanBottomSheet(
 
                     items(plans.size) { idx ->
                         val dto = plans[idx]
+                        val minutes by alarmMinutesOf(dto.id).collectAsStateWithLifecycle(initialValue = 60)
+
                         ObserveScheduleCard(
                             item = dto,
                             onEdit = onEdit,
@@ -89,9 +94,9 @@ fun PlanBottomSheet(
                             onWriteReview = onWriteReview,
                             onOpenDetail = onOpenDetail,
                             modifier = Modifier.fillMaxWidth(),
-                            minutesBefore = getAlarmMinutes(dto.id),
+                            minutesBefore = minutes,
                             onMinutesChange = { min -> setAlarmMinutes(dto.id, min) },
-                            onAlarm = { plan, _ -> onAlarm(plan, getAlarmMinutes(plan.id)) }
+                            onAlarm = { plan, _ -> onAlarm(plan, minutes) }
                         )
                         if (idx != plans.lastIndex) {
                             HorizontalDivider(

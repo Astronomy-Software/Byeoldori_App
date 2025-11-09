@@ -235,7 +235,7 @@ fun MyPageScreen(
                 showPlanSheet = false
                 onOpenSchedule()
             },
-            getAlarmMinutes = { planId -> planVm.getAlarmMinutes(planId) },
+            alarmMinutesOf = { planId -> planVm.alarmMinutesOf(planId) },
             setAlarmMinutes = { planId, minutes -> planVm.setAlarmMinutes(planId, minutes) },
 
             onAlarm = { plan, minutes ->
