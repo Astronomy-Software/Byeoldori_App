@@ -3,6 +3,7 @@ package com.example.byeoldori.viewmodel.Community
 import android.util.Log
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.lifecycle.*
+import com.example.byeoldori.data.local.datastore.PlanDataStore
 import com.example.byeoldori.data.model.dto.*
 import com.example.byeoldori.data.repository.PlanRepository
 import com.example.byeoldori.viewmodel.UiState
@@ -16,7 +17,8 @@ import kotlin.coroutines.cancellation.CancellationException
 @HiltViewModel
 class PlanViewModel @Inject constructor(
     private val repo: PlanRepository,
-    private val savedStateHandle: SavedStateHandle
+    private val savedStateHandle: SavedStateHandle,
+    private val planDataStore: PlanDataStore,
 ) : ViewModel() {
 
     private val _monthSummaryState = MutableStateFlow<UiState<List<MonthDaySummaryDto>>>(UiState.Idle)
@@ -44,21 +46,19 @@ class PlanViewModel @Inject constructor(
     private val _observationCount = MutableStateFlow<Int>(0)
     val observationCount: StateFlow<Int> = _observationCount
 
-    private companion object {
-        const val ALARM_MINUTES_KEY = "alarm_minutes_map"
-    }
-    private val alarmMinutesMap = mutableStateMapOf<Long, Int>().apply {
-        // 복원: Map<String, Int> 형태로 저장해두고 Long으로 변환
-        val restored: Map<String, Int>? = savedStateHandle[ALARM_MINUTES_KEY]
-        restored?.forEach { (k, v) -> put(k.toLongOrNull() ?: return@forEach, v) }
-    }
+    private val alarmMinutesCache = mutableStateMapOf<Long, Int>()
 
-    fun getAlarmMinutes(planId: Long): Int = alarmMinutesMap[planId] ?: 60
-    fun setAlarmMinutes(planId: Long, min: Int) {
-        alarmMinutesMap[planId] = min
-        // 저장: Long 키를 String으로 바꿔서 저장
-        val toSave: Map<String, Int> = alarmMinutesMap.mapKeys { it.key.toString() }
-        savedStateHandle[ALARM_MINUTES_KEY] = toSave
+    fun alarmMinutesOf(planId: Long): Flow<Int> =
+        planDataStore.minutesOf(planId)
+            .onEach { minutes -> alarmMinutesCache[planId] = minutes }
+
+    fun getAlarmMinutes(planId: Long): Int = alarmMinutesCache[planId] ?: 60
+    fun setAlarmMinutes(planId: Long, minutes: Int) {
+        // 즉시 캐시 반영 (UI 지연 최소화)
+        alarmMinutesCache[planId] = minutes
+        viewModelScope.launch {
+            planDataStore.setMinutesOf(planId, minutes)
+        }
     }
 
     fun loadMonthSummary(year: Int, month: Int) {

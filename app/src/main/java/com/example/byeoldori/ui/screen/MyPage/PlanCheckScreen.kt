@@ -308,9 +308,13 @@ fun PlanCheckScreen(
                                 LazyColumn(modifier = Modifier.fillMaxSize()) {
                                     items(items = monthPlans, key = { it.id }) { dto ->
                                         val ctx = LocalContext.current
+                                        val minutes by planVm
+                                            .alarmMinutesOf(dto.id)
+                                            .collectAsStateWithLifecycle(initialValue = 60)
+
                                         ObserveScheduleCard(
                                             item = dto,
-                                            minutesBefore = planVm.getAlarmMinutes(dto.id),
+                                            minutesBefore = minutes,
                                             onMinutesChange = { min -> planVm.setAlarmMinutes(dto.id, min) },
                                             onEdit = { plan ->           //수정 버튼 누르면
                                                 planVm.resetCreateState()
@@ -334,8 +338,7 @@ fun PlanCheckScreen(
                                                     notifPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
                                                     return@ObserveScheduleCard
                                                 }
-                                                val min = planVm.getAlarmMinutes(plan.id)
-                                                PlanAlarm(ctx, plan, min, autoRequestPermission = true, toastOnResult = true)
+                                                PlanAlarm(ctx, plan, minutes, autoRequestPermission = true, toastOnResult = true)
                                             },
                                             onOpenDetail = { plan ->
                                                 selectedPlan = plan

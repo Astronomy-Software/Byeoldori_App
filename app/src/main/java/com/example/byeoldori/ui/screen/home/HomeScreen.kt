@@ -352,9 +352,7 @@ fun HomeScreen(
                 onOpenSchedule()
             },
             onWriteReview = { _ -> showPlanSheet = false },
-
-            // 알람 분/설정(PlanViewModel 그대로 사용)
-            getAlarmMinutes = { planId -> planVm.getAlarmMinutes(planId) },
+            alarmMinutesOf = { planId -> planVm.alarmMinutesOf(planId) },
             setAlarmMinutes = { _, _ -> /* no-op: 홈에서는 수정 불가 */ },
             onAlarm = { _, _ -> /* no-op: 홈에서는 버튼 눌러도 반응 없음 */ }
         )

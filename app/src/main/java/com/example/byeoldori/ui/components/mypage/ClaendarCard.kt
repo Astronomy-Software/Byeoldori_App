@@ -49,7 +49,6 @@ fun CalendarCard(
 
     Surface(color = containerColor, shape = shape, tonalElevation = 2.dp, modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp)) {
-
             Row(verticalAlignment = Alignment.CenterVertically) {
                 val headerText = today.value.format(
                     DateTimeFormatter.ofPattern("M월 d일 (E)", Locale.KOREAN)
@@ -60,17 +59,15 @@ fun CalendarCard(
                         fontWeight = FontWeight.ExtraBold,
                         color = textColor
                     ),
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.fillMaxWidth()
                 )
-                IconButton(onClick = { /* 자리만 */ }) {
-                    Icon(Icons.Rounded.Edit,
-                        contentDescription = "편집",
-                        tint = textColor.copy(alpha = 0.9f))
-                }
             }
-            Spacer(Modifier.height(4.dp))
+            Spacer(Modifier.height(8.dp))
+
+            //현재 날짜 아래 색상 설명 추가
+            PlanDescription(textColor = textColor)
+            Spacer(Modifier.height(10.dp))
             Divider(color = MaterialTheme.colorScheme.outlineVariant)
-            Spacer(Modifier.height(6.dp))
 
             // 월 전후 이동
             Row(

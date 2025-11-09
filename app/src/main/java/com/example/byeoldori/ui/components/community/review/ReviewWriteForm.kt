@@ -263,6 +263,7 @@ fun ReviewWriteForm(
                 WriteBar(
                     onSubmit = {
                         if(validateRequirement()) {
+                            showValidationDialog = false
                             val matchedId = findMatchingSiteId(site, sites)
                             val payloadContent = buildContentText(items)
                             val targets = parseTargets(targetsText)
@@ -285,7 +286,6 @@ fun ReviewWriteForm(
                                     onSubmit() // 상위 완료 처리(알림, 다이얼로그 등)
                                 }
                             } else {
-                                showValidationDialog = true
                                 vm?.createReview(
                                     title = title.trim(),
                                     content = buildContentText(items),
