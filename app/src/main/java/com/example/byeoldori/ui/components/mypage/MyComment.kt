@@ -1,14 +1,18 @@
 package com.example.byeoldori.ui.components.mypage
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.*
+import coil.compose.AsyncImage
 import com.example.byeoldori.R
 import com.example.byeoldori.domain.Community.*
 import com.example.byeoldori.ui.components.community.*
@@ -38,7 +42,8 @@ fun SourceBadge(source: CommentSourceType) {
 fun MyComment(
     group: MyCommentGroup,
     myId: Long,
-    myNickname: String?
+    myNickname: String?,
+    myProfileUrl: String?
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         SourceBadge(group.source)
@@ -55,11 +60,13 @@ fun MyComment(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Icon(
-                painter = painterResource(id = R.drawable.profile1),
+            AsyncImage(
+                model = group.postAuthorProfileUrl,
+                placeholder = painterResource(id = R.drawable.byeoldori),
+                error = painterResource(id = R.drawable.byeoldori),
+                contentScale = ContentScale.Crop,
                 contentDescription = "작성자 프로필",
-                tint = Color.Unspecified,
-                modifier = Modifier.size(48.dp)
+                modifier = Modifier.size(48.dp).clip(CircleShape)
             )
             Spacer(Modifier.width(8.dp))
 
@@ -97,7 +104,7 @@ fun MyComment(
                         parentId = null,
                         authorId = myId,
                         authorNickname = myNickname,
-                        profile = R.drawable.profile1,
+                        authorProfileImageUrl = myProfileUrl,
                         content = m.content,
                         likeCount = 0,
                         commentCount = 0,

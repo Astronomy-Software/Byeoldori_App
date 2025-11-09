@@ -53,6 +53,7 @@ fun MyCommentList(
         id: (T) -> Long,
         title: (T) -> String,
         authorName: (T) -> String,
+        authorProfileUrl: (T) -> String?,
         createdAt: (T) -> String,
     ): List<MyCommentGroup> = coroutineScope {
         posts.map { p->
@@ -66,6 +67,7 @@ fun MyCommentList(
                     postId = postId,
                     postTitle = title(p),
                     postAuthorName = authorName(p),
+                    postAuthorProfileUrl = authorProfileUrl(p),
                     postCreatedAt = createdAt(p),
                     myComments = mine.map {
                         MyCommentUi(
@@ -97,6 +99,7 @@ fun MyCommentList(
                 id = { it.id },
                 title = { it.title },
                 authorName = { it.authorNickname ?: "익명" },
+                authorProfileUrl = { it.authorProfileImageUrl },
                 createdAt = { it.createdAt }
             )
 
@@ -106,6 +109,7 @@ fun MyCommentList(
                 id = { it.id },
                 title = { it.title },
                 authorName = { it.authorNickname ?: "익명" },
+                authorProfileUrl = { it.authorProfileImageUrl },
                 createdAt = { it.createdAt }
             )
 
@@ -115,6 +119,7 @@ fun MyCommentList(
                 id = { it.id },
                 title = { it.title },
                 authorName = { it.authorNickname ?: "익명" },
+                authorProfileUrl = { it.authorProfileImageUrl },
                 createdAt = { it.createdAt }
             )
 
@@ -161,7 +166,8 @@ fun MyCommentList(
                     MyComment(
                         group = g,
                         myId = myId,
-                        myNickname = me?.nickname
+                        myNickname = me?.nickname,
+                        myProfileUrl = me?.profileImageUrl
                     )
                 }
             }

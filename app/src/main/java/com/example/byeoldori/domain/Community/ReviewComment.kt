@@ -9,7 +9,6 @@ data class ReviewComment(
     val authorId: Long,
     val authorNickname: String?,
     val authorProfileImageUrl: String? = null,
-    val profile: Int?,
     val content: String? = null,
     val likeCount: Int,
     val commentCount: Int,
@@ -34,5 +33,6 @@ data class MyCommentGroup(
     val postTitle: String,
     val postAuthorName: String,
     val postCreatedAt: String,
+    val postAuthorProfileUrl: String?,
     val myComments: List<MyCommentUi>
 )
