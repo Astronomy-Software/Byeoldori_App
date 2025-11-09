@@ -3,19 +3,23 @@ package com.example.byeoldori.ui.components.community.freeboard
 import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.*
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
 import androidx.hilt.navigation.compose.hiltViewModel
+import coil.compose.AsyncImage
 import com.example.byeoldori.R
 import com.example.byeoldori.data.UserViewModel
 import com.example.byeoldori.data.model.dto.FreePostResponse
@@ -264,15 +268,15 @@ fun FreeBoardDetail (
 
                 Row(verticalAlignment = Alignment.CenterVertically
                 ) {
-                    val profilePainter = post.profile
-                        ?.let { painterResource(id = it) }
-                        ?: painterResource(id = R.drawable.profile1)
-
-                    Icon(
-                        painter = profilePainter,
+                    AsyncImage(
+                        model = apiPost?.authorProfileImageUrl ?: post.authorProfileImageUrl,
                         contentDescription = "프로필",
-                        tint = Color.Unspecified,
-                        modifier = Modifier.size(50.dp)
+                        placeholder = painterResource(R.drawable.byeoldori),
+                        error = painterResource(R.drawable.byeoldori),
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .size(50.dp)
+                            .clip(CircleShape)
                     )
                     Spacer(Modifier.width(8.dp))
                     Column { //작성자

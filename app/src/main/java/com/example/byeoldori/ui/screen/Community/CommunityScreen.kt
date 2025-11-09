@@ -223,7 +223,9 @@ fun CommunityScreen(
                     createdAt = "",
                     contentItems = emptyList(),
                     profile = null,
-                    liked = false
+                    liked = false,
+                    thumbnail = null,
+                    authorProfileImageUrl = null
                 )
             FreeBoardDetail(
                 post = uiPost,

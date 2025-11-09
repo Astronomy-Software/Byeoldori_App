@@ -37,7 +37,7 @@ fun EduProgram.asReview(): Review =
         rating = rating.toInt(),
         likeCount = likeCount,
         commentCount = commentCount,
-        profile = R.drawable.profile1,
+        authorProfileImageUrl = authorProfileImageUrl,
         viewCount = viewCount,
         createdAt = formatCreatedAt(createdAt),
         targets = emptyList(),
@@ -56,6 +56,7 @@ fun EducationResponse.toEduProgram(): EduProgram {
         id = id.toString(),
         title = title,
         author = authorNickname ?: "익명",
+        authorProfileImageUrl = authorProfileImageUrl,
         authorId = authorId,
         rating = (score ?: 0).toFloat(),
         likeCount = likeCount,
@@ -252,7 +253,10 @@ private fun Preview_EduProgramSection_Default() {
                     contentItems = listOf(
                        Content.Text("이 강의는 망원경 기초와 관측 매너를 다룹니다.")
                     ),
-                    liked = i % 3 == 0
+                    liked = i % 3 == 0,
+                    thumbnail = null,
+                    authorProfileImageUrl = null,
+                    targets = listOf("천체", "관측")
                 )
             }
         }

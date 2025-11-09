@@ -1,6 +1,9 @@
 package com.example.byeoldori.ui.components.mypage
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
@@ -11,10 +14,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import coil.compose.AsyncImage
 import com.example.byeoldori.R
 import com.example.byeoldori.data.UserUiState
 import com.example.byeoldori.data.UserViewModel
@@ -40,6 +45,15 @@ fun ProfileEditCard(
     var saving by remember { mutableStateOf(false) }
     var showSuccessDialog by remember { mutableStateOf(false) }
     var pendingSave by remember { mutableStateOf(false) }
+
+    val ctx = LocalContext.current
+    val pickImage = rememberLauncherForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri ->
+        if (uri != null) {
+            userVm.uploadProfileImage(ctx, uri)   // 업로드
+        }
+    }
 
     LaunchedEffect(ui) {
         when (ui) {
@@ -100,19 +114,37 @@ fun ProfileEditCard(
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // 프로필 이미지 카드
+            Spacer(Modifier.height(20.dp))
             Box(
                 modifier = Modifier.fillMaxWidth(),
                 contentAlignment = Alignment.Center
             ) {
-                Image(
-                    painter = painterResource(id = R.drawable.byeoldori), // 여기에 기본 이미지 지정
+                AsyncImage(
+                    model = me?.profileImageUrl,
+                    placeholder = painterResource(id = R.drawable.byeoldori),
+                    error = painterResource(id = R.drawable.byeoldori),
                     contentDescription = "프로필 이미지",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
-                        .size(100.dp)
+                        .size(120.dp)
                         .clip(CircleShape)
                 )
+                IconButton(
+                    onClick = { pickImage.launch("image/*") },
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .offset(x = 40.dp, y = 6.dp)
+                        .size(40.dp)
+                        .border(2.dp, Color.White, CircleShape)
+                        .padding(6.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_edit), // R.drawable 아이콘 사용
+                        contentDescription = "수정",
+                        tint = Color.White,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
             }
 
             OutlinedTextField(

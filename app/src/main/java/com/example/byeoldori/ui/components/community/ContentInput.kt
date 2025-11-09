@@ -6,8 +6,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.relocation.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
@@ -47,6 +50,13 @@ fun ContentInput(
 ) {
     var focusedParagraphIndex by remember { mutableStateOf<Int?>(null) }
     var previewIndex by remember { mutableStateOf<Int?>(null) }
+
+    val alivePhotoUrls = remember(items) {
+        items
+            .filterIsInstance<EditorItem.Photo>()
+            .mapNotNull { it.model as? String } // model = URL(String)만 추출
+            .toSet()
+    }
 
     Column(modifier = modifier.fillMaxWidth()) {
 
@@ -120,14 +130,20 @@ fun ContentInput(
             }
         }
 
+        val uploadUiItems = if (!readOnly) {
+            // URL이 있는(DONE) 항목은 items(=미리보기)에 남아있는 것만 표시
+            // URL이 없는(UPLOADING/ERROR) 항목은 그대로 보여줘도 됨(미리보기와 독립)
+            uploadItems.filter { it.url == null || it.url in alivePhotoUrls }
+        } else emptyList()
+
         //업로드된 파일명 리스트
-        if (!readOnly && uploadItems.isNotEmpty()) {
+        if (uploadUiItems.isNotEmpty()) {
             Spacer(Modifier.height(12.dp))
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                uploadItems.forEach { item ->
+                uploadUiItems.forEach { item ->
                     val color = when (item.status) {
                         UploadStatus.UPLOADING -> WarningYellow
                         UploadStatus.DONE -> SuccessGreen
@@ -201,17 +217,57 @@ fun ContentInput(
                     val context = LocalContext.current
                     val imageLoader = context.imageLoader //Coil이 이미지를 로드할 때 사용할 ImageLoader를 가져옴
 
-                    AsyncImage(
-                        model = photo.model,
-                        imageLoader = imageLoader,
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
+                    Box(
                         modifier = Modifier
                             .width(250.dp)
                             .height(200.dp)
                             .clip(RoundedCornerShape(12.dp))
-                            .clickable { previewIndex = i }
-                    )
+                    ) {
+                        AsyncImage(
+                            model = photo.model,
+                            imageLoader = imageLoader,
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .width(250.dp)
+                                .height(200.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .clickable { previewIndex = i }
+                        )
+
+                        if (!readOnly) {
+                            Surface(
+                                color = Color.Black.copy(alpha = 0.45f),
+                                shape = CircleShape,
+                                shadowElevation = 0.dp,
+                                modifier = Modifier
+                                    .align(Alignment.TopEnd)
+                                    .padding(8.dp)
+                            ) {
+                                IconButton(
+                                    onClick = {
+                                        // items에서 해당 Photo 제거
+                                        val idxInItems = items.indexOfFirst {
+                                            it is EditorItem.Photo && it.id == photo.id
+                                        }
+                                        if (idxInItems >= 0) {
+                                            val m = items.toMutableList()
+                                            m.removeAt(idxInItems)
+                                            onItemsChange(m)
+                                        }
+                                    },
+                                    modifier = Modifier.size(28.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Rounded.Close,
+                                        contentDescription = "사진 삭제",
+                                        tint = Color.White,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                }
+                            }
+                        }
+                    }
                     Spacer(Modifier.height(20.dp))
                 }
             }

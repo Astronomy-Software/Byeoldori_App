@@ -15,6 +15,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import coil.compose.AsyncImage
 import com.example.byeoldori.R
 import com.example.byeoldori.data.UserViewModel
 import com.example.byeoldori.ui.theme.*
@@ -24,8 +25,11 @@ fun ProfileCard(
     name: String,
     observationCount: Int,
     onEditProfile: () -> Unit,
-    onOpenProfile: () -> Unit
+    onOpenProfile: () -> Unit,
+    userVm: UserViewModel = hiltViewModel()
 ) {
+    val me by userVm.userProfile.collectAsState()
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -36,8 +40,10 @@ fun ProfileCard(
         Row(Modifier.padding(16.dp),
             verticalAlignment = Alignment.Top
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.byeoldori),
+            AsyncImage(
+                model = me?.profileImageUrl,
+                placeholder = painterResource(id = R.drawable.byeoldori),
+                error = painterResource(id = R.drawable.byeoldori),
                 contentDescription = "프로필",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
@@ -132,12 +138,14 @@ fun MyProfileContent(
                 modifier = Modifier.fillMaxWidth(),
                 contentAlignment = Alignment.Center
             ) {
-                Image(
-                    painter = painterResource(id = R.drawable.byeoldori), // 여기에 기본 이미지 지정
+                AsyncImage(
+                    model = me?.profileImageUrl,
+                    placeholder = painterResource(id = R.drawable.byeoldori),
+                    error = painterResource(id = R.drawable.byeoldori),
                     contentDescription = "프로필 이미지",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
-                        .size(150.dp)
+                        .size(200.dp)
                         .clip(CircleShape)
                 )
             }

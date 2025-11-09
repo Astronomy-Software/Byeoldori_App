@@ -7,6 +7,7 @@ data class FreePost(
     val title: String,
     val author: String? = null,
     val authorId: Long? = null,
+    val authorProfileImageUrl: String?,
     val profile: Int?,
     val likeCount: Int,
     //val content: String,

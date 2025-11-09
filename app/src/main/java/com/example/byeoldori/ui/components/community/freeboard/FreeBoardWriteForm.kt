@@ -133,6 +133,13 @@ fun FreeBoardWriteForm (
         )
     }
 
+    LaunchedEffect(items) {
+        // items에 남아 있는 Photo만 서버 전송용 URL로 유지
+        uploadedImageUrls = items
+            .filterIsInstance<EditorItem.Photo>()
+            .mapNotNull { it.model as? String }
+    }
+
     //업로드 성공 시 URL을 items/리스트에 반영
     val uploadState by fileUploadVm.uploadState.collectAsState()
     LaunchedEffect(uploadState) {
@@ -173,21 +180,6 @@ fun FreeBoardWriteForm (
             .joinToString("\n") { it.value.text }
 
     Box(Modifier.fillMaxSize()) {
-        SnackbarHost(
-            hostState = snackbar,
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(16.dp)
-        ) { data ->
-            Snackbar(
-                containerColor = Purple600,
-                contentColor = Color.White,
-                shape = RoundedCornerShape(12.dp),
-                modifier = Modifier.padding(horizontal = 16.dp)
-            ) {
-                Text(data.visuals.message)
-            }
-        }
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -258,6 +250,21 @@ fun FreeBoardWriteForm (
                     onChecklist = { scope.launch { snackbar.showSnackbar("아직 준비중인 기능입니다",duration = SnackbarDuration.Short)} },
                     readOnly = false
                 )
+            }
+        }
+        SnackbarHost(
+            hostState = snackbar,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(16.dp)
+        ) { data ->
+            Snackbar(
+                containerColor = Purple600,
+                contentColor = Color.White,
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.padding(horizontal = 16.dp)
+            ) {
+                Text(data.visuals.message)
             }
         }
         if (showCancelDialog) {

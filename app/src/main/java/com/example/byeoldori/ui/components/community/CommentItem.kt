@@ -4,16 +4,20 @@ import android.util.Log
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
+import coil.compose.AsyncImage
 import com.example.byeoldori.R
 import com.example.byeoldori.ui.theme.*
 import com.example.byeoldori.domain.Community.ReviewComment
@@ -76,12 +80,19 @@ fun CommentItem(
             .padding(horizontal = 12.dp, vertical = 20.dp)
     ) {
         Row(modifier = Modifier.fillMaxWidth()) {
-            val profile = comment.profile ?: R.drawable.profile1
-            Icon(
-                painter = painterResource(profile),
-                contentDescription = "프로필 이미지",
-                tint = Color.Unspecified,
-                modifier = Modifier.size(40.dp)
+            val avatarModel: Any = comment.authorProfileImageUrl
+                ?.takeIf { it.isNotBlank() }
+                ?: R.drawable.byeoldori
+
+            AsyncImage(
+                model = avatarModel,
+                contentDescription = "프로필",
+                placeholder = painterResource(R.drawable.byeoldori),
+                error = painterResource(R.drawable.byeoldori),
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
             )
             Spacer(Modifier.width(8.dp))
 

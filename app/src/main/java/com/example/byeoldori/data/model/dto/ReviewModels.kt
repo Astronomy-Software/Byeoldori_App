@@ -28,6 +28,7 @@ data class ReviewResponse(
     val title: String,
     val authorId: Long,
     val authorNickname: String? = null,
+    val authorProfileImageUrl: String? = null,
     val contentSummary: String? = null,       // 본문 일부/요약
     val viewCount: Int,
     val likeCount: Int,
@@ -55,6 +56,8 @@ data class ReviewDetailResponse(
     val title: String,
     val content: String,
     val authorId: Long,
+    val authorNickname: String? = null,
+    val authorProfileImageUrl: String? = null,
     val images: List<String> = emptyList(),
     val review: ReviewDto?,
     val viewCount: Int,

@@ -8,6 +8,7 @@ data class ReviewComment(
     val parentId: Long?, //대댓글인 경우 부모 댓글의 id
     val authorId: Long,
     val authorNickname: String?,
+    val authorProfileImageUrl: String? = null,
     val profile: Int?,
     val content: String? = null,
     val likeCount: Int,

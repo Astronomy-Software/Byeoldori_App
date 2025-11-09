@@ -7,10 +7,11 @@ data class Review (
     val id: String,
     val title: String,
     val author: String,
+    val authorProfileImageUrl: String?,
     val rating: Int, //관측 평점
     val likeCount: Int,
     val commentCount: Int,
-    val profile: Int?,
+    //val profile: Int?,
     val viewCount: Int,  //조회수
     val createdAt: String, //작성 시점
     val targets: List<String> = emptyList(),  //관측 대상

@@ -19,6 +19,10 @@ data class UpdateUserProfile(
     val birthdate: String? = null // yyyy-MM-dd
 )
 
+@JsonClass(generateAdapter = true)
+data class ProfileImageResponse(
+    val profileImageUrl: String
+)
 
 @JsonClass(generateAdapter = true)
 data class UserProfile(
@@ -34,6 +38,7 @@ data class UserProfile(
     val createdAt: String,
     val updatedAt: String,
     val passwordHash: String? = null,
-    val onboardingRequired: Boolean? = null,
+    val profileImageUrl: String? = null,
+    val onboardingRequired: Boolean? = null
     // passwordHash 는 보안상 굳이 앱에서 쓸 필요 없으면 뺄 수 있음
 )
