@@ -40,7 +40,7 @@ data class EducationResponse(
     val createdAt: String,
     val liked: Boolean,
     val score: Int? = null,
-    val thumbnail: String? = null
+    val thumbnailUrl: String? = null
 )
 
 @JsonClass(generateAdapter = true)
