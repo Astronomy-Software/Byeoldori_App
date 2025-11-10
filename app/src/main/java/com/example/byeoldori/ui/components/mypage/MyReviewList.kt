@@ -3,12 +3,14 @@ package com.example.byeoldori.ui.components.mypage
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.byeoldori.data.UserViewModel
 import com.example.byeoldori.data.model.dto.ReviewResponse
 import com.example.byeoldori.domain.Observatory.Review
 import com.example.byeoldori.ui.components.community.review.*
+import com.example.byeoldori.ui.theme.TextDisabled
 import com.example.byeoldori.viewmodel.Community.*
 import com.example.byeoldori.viewmodel.UiState
 
@@ -96,13 +98,22 @@ fun MyReviewList(
                 )
             }
             else -> {
-                ReviewGrid(
-                    reviews = myReviews.map { it.toReview() },
-                    onClickReview = { selectedReview = it },
-                    onToggleLike = { id ->
-                        reviewVm.toggleLike(id.toLong()) { reviewVm.loadPosts() }
+                if (myReviews.isEmpty()) {
+                    Box(
+                        Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("내가 작성한 관측 후기가 없습니다.", color = TextDisabled)
                     }
-                )
+                } else {
+                    ReviewGrid(
+                        reviews = myReviews.map { it.toReview() },
+                        onClickReview = { selectedReview = it },
+                        onToggleLike = { id ->
+                            reviewVm.toggleLike(id.toLong()) { reviewVm.loadPosts() }
+                        }
+                    )
+                }
             }
         }
     }

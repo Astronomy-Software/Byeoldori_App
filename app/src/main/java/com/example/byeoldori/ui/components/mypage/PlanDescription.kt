@@ -26,7 +26,7 @@ fun PlanDescription(
     ) {
         ColorItem(dotColor = doneColor, label = "관측 완료", textColor = textColor)
         ColorItem(dotColor = upcomingColor, label = "관측 예정", textColor = textColor)
-        ColorItem(dotColor = missingReviewColor, label = "관측 완료·미작성", textColor = textColor)
+        ColorItem(dotColor = missingReviewColor, label = "관측 완료· 후기 미작성", textColor = textColor)
     }
 }
 
