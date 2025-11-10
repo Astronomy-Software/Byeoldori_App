@@ -14,6 +14,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.byeoldori.BuildConfig
 import com.example.byeoldori.R
 import com.example.byeoldori.data.model.dto.EducationResponse
 import com.example.byeoldori.data.model.dto.SortBy
@@ -50,8 +51,16 @@ fun EduProgram.asReview(): Review =
         thumbnail = thumbnail
     )
 
-
 fun EducationResponse.toEduProgram(): EduProgram {
+    val validThumb =
+        if (!thumbnailUrl.isNullOrBlank() &&
+            (thumbnailUrl.startsWith("http://") || thumbnailUrl.startsWith("https://"))
+        ) {
+            thumbnailUrl
+        } else {
+            "android.resource://${BuildConfig.APPLICATION_ID}/${R.drawable.img_dummy}"
+        }
+
     return EduProgram(
         id = id.toString(),
         title = title,
@@ -62,11 +71,11 @@ fun EducationResponse.toEduProgram(): EduProgram {
         likeCount = likeCount,
         commentCount = commentCount,
         viewCount = viewCount,
-        profile = R.drawable.profile1,
+        profile = R.drawable.byeoldori,
         createdAt = formatCreatedAt(createdAt),
         contentItems = listOf(Content.Text(contentSummary.orEmpty())),
         liked = liked,
-        thumbnail = thumbnail
+        thumbnail = validThumb
     )
 }
 
@@ -248,7 +257,7 @@ private fun Preview_EduProgramSection_Default() {
                     likeCount = 40 + i * 3,
                     commentCount = 8 + i,
                     viewCount = 200 + i * 15,
-                    profile = R.drawable.profile1,
+                    profile = R.drawable.byeoldori,
                     createdAt = "25.10${29-1}", //String으로 변환
                     contentItems = listOf(
                        Content.Text("이 강의는 망원경 기초와 관측 매너를 다룹니다.")

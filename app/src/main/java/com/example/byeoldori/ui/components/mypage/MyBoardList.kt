@@ -3,6 +3,7 @@ package com.example.byeoldori.ui.components.mypage
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -131,7 +132,10 @@ fun MyBoardList(
                     HorizontalDivider(color = Color.White.copy(alpha = 0.6f), thickness = 2.dp)
 
                     if (myPosts.isEmpty()) {
-                        Box(Modifier.fillMaxSize()) {
+                        Box(
+                            Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
                             Text("내가 작성한 게시글이 없습니다.", color = TextDisabled)
                         }
                     } else {

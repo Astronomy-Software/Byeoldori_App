@@ -64,7 +64,7 @@ fun ObservationReviewList(
     if(siteUi.isEmpty()) {
         Text("해당 관측지에서 진행한 후기", color = TextHighlight)
         Spacer(Modifier.height(10.dp))
-        Text("아직 관측 후기가 없습니다", color = TextDisabled)
+        Text("이 관측지에는 후기가 등록되지 않았습니다", color = TextDisabled)
     } else {
         ReviewSection(
             title = "해당 관측지에서 진행한 관측후기",

@@ -199,32 +199,50 @@ fun CommuReviewSection(
                 )
             }
             Spacer(Modifier.height(12.dp))
-            LazyVerticalGrid(
-                state = gridState,
-                columns = GridCells.Fixed(2), //컬럼 개수 2개
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.fillMaxSize()
-            ) {
-                items(items = filtered, key = { it.id }) { review ->
-                    LaunchedEffect(review.id) {
-                        review.id.toLongOrNull()?.let { vm?.ensureScoreLoaded(it) }
-                    }
-                    ReviewCard(
-                        review = review,
-                        modifier = Modifier.clickable { onReviewClick(review) },
-                        onSyncLikeCount = { next ->
-                        },
-                        onToggleLike = {
-                            review.id.toLongOrNull()?.let { pid ->
-                                vm?.toggleLike(pid) { result ->
-                                    onSyncReviewLike(review.id, result.liked, result.likes.toInt()) // ★
-                                }
-                            }
-                        }
+            if (filtered.isEmpty() && state is UiState.Success) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "게시글이 없습니다",
+                        color = TextDisabled,
+                        style = MaterialTheme.typography.bodyMedium
                     )
                 }
-                item { Spacer(Modifier.height(60.dp)) }
+            } else {
+                LazyVerticalGrid(
+                    state = gridState,
+                    columns = GridCells.Fixed(2), //컬럼 개수 2개
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    items(items = filtered, key = { it.id }) { review ->
+                        LaunchedEffect(review.id) {
+                            review.id.toLongOrNull()?.let { vm?.ensureScoreLoaded(it) }
+                        }
+                        ReviewCard(
+                            review = review,
+                            modifier = Modifier.clickable { onReviewClick(review) },
+                            onSyncLikeCount = { next ->
+                            },
+                            onToggleLike = {
+                                review.id.toLongOrNull()?.let { pid ->
+                                    vm?.toggleLike(pid) { result ->
+                                        onSyncReviewLike(
+                                            review.id,
+                                            result.liked,
+                                            result.likes.toInt()
+                                        ) // ★
+                                    }
+                                }
+                            }
+                        )
+                    }
+                    item { Spacer(Modifier.height(60.dp)) }
+                }
             }
         }
         when (state) {

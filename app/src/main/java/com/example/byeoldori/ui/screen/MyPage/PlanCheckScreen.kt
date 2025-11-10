@@ -32,6 +32,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.byeoldori.data.model.dto.EventStatus
 import com.example.byeoldori.data.model.dto.UpdatePlanRequest
 import com.example.byeoldori.ui.components.community.review.ReviewWriteForm
+import com.example.byeoldori.ui.theme.TextDisabled
 import com.example.byeoldori.utils.SweObjUtils
 import com.example.byeoldori.viewmodel.Community.ReviewViewModel
 
@@ -305,50 +306,79 @@ fun PlanCheckScreen(
                                 )
                             }
                             is UiState.Idle, is UiState.Success -> {
-                                LazyColumn(modifier = Modifier.fillMaxSize()) {
-                                    items(items = monthPlans, key = { it.id }) { dto ->
-                                        val ctx = LocalContext.current
-                                        val minutes by planVm
-                                            .alarmMinutesOf(dto.id)
-                                            .collectAsStateWithLifecycle(initialValue = 60)
-
-                                        ObserveScheduleCard(
-                                            item = dto,
-                                            minutesBefore = minutes,
-                                            onMinutesChange = { min -> planVm.setAlarmMinutes(dto.id, min) },
-                                            onEdit = { plan ->           //수정 버튼 누르면
-                                                planVm.resetCreateState()
-                                                planVm.resetUpdateState()
-                                                selectedPlan = plan
-                                                showDetail = false       // 혹시 열려있을 수도 있으니 닫고
-                                                showReviewForm = false
-                                                showWriteForm = true     // WriteForm 열기
-                                            },
-                                            onDelete = { plan ->
-                                                confirmDeleteTarget = plan
-                                            },
-                                            onWriteReview = {
-                                                selectedPlan = dto          //선택한 계획 기억
-                                                showDetail = false
-                                                showWriteForm = false
-                                                showReviewForm = true
-                                            },
-                                            onAlarm = { plan, _ ->
-                                                if (Build.VERSION.SDK_INT >= 33 && !notifGranted) {
-                                                    notifPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
-                                                    return@ObserveScheduleCard
-                                                }
-                                                PlanAlarm(ctx, plan, minutes, autoRequestPermission = true, toastOnResult = true)
-                                            },
-                                            onOpenDetail = { plan ->
-                                                selectedPlan = plan
-                                                showWriteForm = false
-                                                showReviewForm = false
-                                                showDetail = true
-                                            },
-                                            modifier = Modifier.fillMaxWidth()
+                                if (monthPlans.isEmpty()) {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxSize(),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = "등록된 관측 일정이 없습니다",
+                                            color = TextDisabled,
+                                            style = MaterialTheme.typography.bodyMedium
                                         )
-                                        HorizontalDivider(color = Color.White.copy(alpha = 0.60f), thickness = 2.dp, modifier = Modifier.padding(vertical = 8.dp))
+                                    }
+                                } else {
+                                    LazyColumn(modifier = Modifier.fillMaxSize()) {
+                                        items(items = monthPlans, key = { it.id }) { dto ->
+                                            val ctx = LocalContext.current
+                                            val minutes by planVm
+                                                .alarmMinutesOf(dto.id)
+                                                .collectAsStateWithLifecycle(initialValue = 60)
+
+                                            ObserveScheduleCard(
+                                                item = dto,
+                                                minutesBefore = minutes,
+                                                onMinutesChange = { min ->
+                                                    planVm.setAlarmMinutes(
+                                                        dto.id,
+                                                        min
+                                                    )
+                                                },
+                                                onEdit = { plan ->           //수정 버튼 누르면
+                                                    planVm.resetCreateState()
+                                                    planVm.resetUpdateState()
+                                                    selectedPlan = plan
+                                                    showDetail = false       // 혹시 열려있을 수도 있으니 닫고
+                                                    showReviewForm = false
+                                                    showWriteForm = true     // WriteForm 열기
+                                                },
+                                                onDelete = { plan ->
+                                                    confirmDeleteTarget = plan
+                                                },
+                                                onWriteReview = {
+                                                    selectedPlan = dto          //선택한 계획 기억
+                                                    showDetail = false
+                                                    showWriteForm = false
+                                                    showReviewForm = true
+                                                },
+                                                onAlarm = { plan, _ ->
+                                                    if (Build.VERSION.SDK_INT >= 33 && !notifGranted) {
+                                                        notifPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+                                                        return@ObserveScheduleCard
+                                                    }
+                                                    PlanAlarm(
+                                                        ctx,
+                                                        plan,
+                                                        minutes,
+                                                        autoRequestPermission = true,
+                                                        toastOnResult = true
+                                                    )
+                                                },
+                                                onOpenDetail = { plan ->
+                                                    selectedPlan = plan
+                                                    showWriteForm = false
+                                                    showReviewForm = false
+                                                    showDetail = true
+                                                },
+                                                modifier = Modifier.fillMaxWidth()
+                                            )
+                                            HorizontalDivider(
+                                                color = Color.White.copy(alpha = 0.60f),
+                                                thickness = 2.dp,
+                                                modifier = Modifier.padding(vertical = 8.dp)
+                                            )
+                                        }
                                     }
                                 }
                             }
