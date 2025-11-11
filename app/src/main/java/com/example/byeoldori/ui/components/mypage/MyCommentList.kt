@@ -19,15 +19,10 @@ import com.example.byeoldori.viewmodel.Community.*
 import com.example.byeoldori.viewmodel.UiState
 import kotlinx.coroutines.*
 import androidx.compose.foundation.lazy.items
-import com.example.byeoldori.data.model.dto.ReviewDetailResponse
 import com.example.byeoldori.data.model.dto.ReviewResponse
-import com.example.byeoldori.ui.components.community.freeboard.FreeBoardDetail
-import com.example.byeoldori.ui.components.community.freeboard.toFreePost
-import com.example.byeoldori.ui.components.community.program.EduProgramDetail
-import com.example.byeoldori.ui.components.community.program.toEduProgram
-import com.example.byeoldori.ui.components.community.review.ReviewDetail
-import com.example.byeoldori.ui.components.community.review.toReview
-import org.w3c.dom.Comment
+import com.example.byeoldori.ui.components.community.freeboard.*
+import com.example.byeoldori.ui.components.community.program.*
+import com.example.byeoldori.ui.components.community.review.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -242,21 +237,48 @@ fun MyCommentList(
             )
             HorizontalDivider(color = Color.White.copy(alpha = 0.6f), thickness = 2.dp)
 
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
-            ) {
-                items(
-                    items = groups,
-                    key = { g -> "${g.source}-${g.postId}" }
-                ) { g ->
-                    MyComment(
-                        group = g,
-                        myId = myId,
-                        myNickname = me?.nickname,
-                        myProfileUrl = me?.profileImageUrl,
-                        onOpenDetail = { selected = g.source to g.postId }
-                    )
+            when {
+                loading -> {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
+                    }
+                }
+                error != null -> {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text(
+                            text = error ?: "알 수 없는 오류",
+                            color = TextDisabled,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                }
+                groups.isEmpty() -> {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text(
+                            text = "내가 작성한 댓글이 없습니다",
+                            color = TextDisabled,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                }
+                else -> {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+                    ) {
+                        items(
+                            items = groups,
+                            key = { g -> "${g.source}-${g.postId}" }
+                        ) { g ->
+                            MyComment(
+                                group = g,
+                                myId = myId,
+                                myNickname = me?.nickname,
+                                myProfileUrl = me?.profileImageUrl,
+                                onOpenDetail = { selected = g.source to g.postId }
+                            )
+                        }
+                    }
                 }
             }
         }

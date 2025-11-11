@@ -235,29 +235,77 @@ fun LikeSection(
                 HorizontalDivider(color = Color.White.copy(alpha = 0.6f), thickness = 2.dp)
 
                 when (selectedTab) {
-                    0 -> EduProgramGrid(
-                            programs = likedPrograms,
-                            onClickProgram = { selectedProgram = it },
-                            onToggleLike = { id -> eduVm.toggleLike(id.toLong()) }
-                    )
-                    1 -> ReviewGrid(
-                        reviews = likedReviews,
-                        onClickReview = { selectedReview = it },
-                        onToggleLike = { id ->
-                            reviewVm.toggleLike(id.toLong()) {
-                                reviewVm.loadPosts()
+                    0 -> {
+                        if (likedPrograms.isEmpty()) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "좋아요를 누른 교육 프로그램이 없습니다",
+                                    color = TextDisabled,
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
                             }
+                        } else {
+                            EduProgramGrid(
+                                programs = likedPrograms,
+                                onClickProgram = { selectedProgram = it },
+                                onToggleLike = { id -> eduVm.toggleLike(id.toLong()) }
+                            )
                         }
-                    )
-                    2 -> FreeGrid(
-                        posts = likedFreePosts,
-                        onClick = { selectedFree = it },
-                        onToggle = { id ->
-                            vm.toggleLike(id.toLong()) {
-                                vm.loadPosts()
+                    }
+
+                    1 ->
+                        if (likedReviews.isEmpty()) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "좋아요를 누른 관측 후기가 없습니다",
+                                    color = TextDisabled,
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
                             }
+                        } else {
+                            ReviewGrid(
+                                reviews = likedReviews,
+                                onClickReview = { selectedReview = it },
+                                onToggleLike = { id ->
+                                    reviewVm.toggleLike(id.toLong()) {
+                                        reviewVm.loadPosts()
+                                    }
+                                }
+                            )
                         }
-                    )
+
+                    2 ->
+                        if (likedFreePosts.isEmpty()) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "좋아요를 누른 자유게시판이 없습니다",
+                                    color = TextDisabled,
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                            }
+                        } else {
+                            FreeGrid(
+                                posts = likedFreePosts,
+                                onClick = { selectedFree = it },
+                                onToggle = { id ->
+                                    vm.toggleLike(id.toLong()) {
+                                        vm.loadPosts()
+                                    }
+                                }
+                            )
+                        }
                 }
             }
         }

@@ -111,73 +111,85 @@ fun <T> PagerSection(
     val nextEnabled = pagerState.currentPage < pageCount - 1
 
     Column(modifier.fillMaxWidth()) {
-        Text(title,color= TextHighlight, fontSize = 16.sp)
+        Text(title, color = TextHighlight, fontSize = 16.sp)
         Spacer(Modifier.height(8.dp))
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(540.dp)
-        ) {
-            HorizontalPager(
-                state = pagerState,
-                pageSpacing = 12.dp,
-                modifier = Modifier
-                    .matchParentSize()
-            ) { page ->
-                val start = page * pageSize
-                val pageItems = items.drop(start).take(pageSize)
 
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(2),
-                    userScrollEnabled = false,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    items(pageItems) { item ->
-                        itemContent(item)
+        if (items.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(540.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("게시글이 없습니다.", color = TextDisabled)
+            }
+        } else {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(540.dp)
+            ) {
+                HorizontalPager(
+                    state = pagerState,
+                    pageSpacing = 12.dp,
+                    modifier = Modifier
+                        .matchParentSize()
+                ) { page ->
+                    val start = page * pageSize
+                    val pageItems = items.drop(start).take(pageSize)
+
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(2),
+                        userScrollEnabled = false,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        items(pageItems) { item ->
+                            itemContent(item)
+                        }
                     }
                 }
-            }
-            //이전 버튼
-            IconButton(
-                onClick = {
-                    scope.launch {
-                        val prev = (pagerState.currentPage - 1).coerceAtLeast(0)
-                        pagerState.animateScrollToPage(prev)
-                    }
-                },
-                enabled = prevEnabled,
-                modifier = Modifier
-                    .align(Alignment.CenterStart)
-                    .offset(x = (-25).dp, y = (-22).dp)
-                    .size(50.dp)
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_before),
-                    contentDescription = "이전",
-                    tint = if (prevEnabled) Color.White else Color.Gray
-                )
-            }
-            //다음 버튼
-            IconButton(
-                onClick = {
-                    scope.launch {
-                        val next = (pagerState.currentPage + 1).coerceAtMost(pageCount - 1)
-                        pagerState.animateScrollToPage(next)
-                    }
-                },
-                enabled = nextEnabled,
-                modifier = Modifier
-                    .align(Alignment.CenterEnd)
-                    .offset(x = 25.dp, y = (-22).dp)
-                    .size(50.dp)
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_next),
-                    contentDescription = "다음",
-                    tint = if (nextEnabled) Color.White else Color.Gray
-                )
+                //이전 버튼
+                IconButton(
+                    onClick = {
+                        scope.launch {
+                            val prev = (pagerState.currentPage - 1).coerceAtLeast(0)
+                            pagerState.animateScrollToPage(prev)
+                        }
+                    },
+                    enabled = prevEnabled,
+                    modifier = Modifier
+                        .align(Alignment.CenterStart)
+                        .offset(x = (-25).dp, y = (-22).dp)
+                        .size(50.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_before),
+                        contentDescription = "이전",
+                        tint = if (prevEnabled) Color.White else Color.Gray
+                    )
+                }
+                //다음 버튼
+                IconButton(
+                    onClick = {
+                        scope.launch {
+                            val next = (pagerState.currentPage + 1).coerceAtMost(pageCount - 1)
+                            pagerState.animateScrollToPage(next)
+                        }
+                    },
+                    enabled = nextEnabled,
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .offset(x = 25.dp, y = (-22).dp)
+                        .size(50.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_next),
+                        contentDescription = "다음",
+                        tint = if (nextEnabled) Color.White else Color.Gray
+                    )
+                }
             }
         }
     }
