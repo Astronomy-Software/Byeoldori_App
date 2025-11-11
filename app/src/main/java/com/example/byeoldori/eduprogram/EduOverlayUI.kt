@@ -106,15 +106,15 @@ fun EduOverlayUI() {
             }
         }
         // TODO : 테스트 끝나면 log는 삭제
-        Text(
-            text =
-            if (totalSections > 0 && currentSection >= 0)
-                "SECTION ${currentSection + 1}/$totalSections · $log"
-            else log,
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = 64.dp)
-        )
+//        Text(
+//            text =
+//            if (totalSections > 0 && currentSection >= 0)
+//                "SECTION ${currentSection + 1}/$totalSections · $log"
+//            else log,
+//            modifier = Modifier
+//                .align(Alignment.BottomCenter)
+//                .padding(bottom = 64.dp)
+//        )
 
         Row(
             modifier = Modifier
