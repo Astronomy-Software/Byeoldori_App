@@ -17,3 +17,7 @@
 - local.properties 파일에 아래의 내용 작성
   - NAVER_CLIENT_ID=Your Client ID
   - NAVER_CLIENT_SECRET=Your Client Secret Key
+ 
+# 🌌 Byeoldori (별도리)
+초보자 및 학생을 위한 **천체 관측 교육용 Android 애플리케이션**  
+마스코트 기반 가이드를 통해 천체 관측의 진입 장벽을 낮추는 것을 목표로 합니다.
