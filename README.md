@@ -53,7 +53,7 @@
 ### ⭐ 별지도 페이지(ex.Deneb) 
 별자리와 주요 천체를 지도 형태로 제공하며, 검색을 통해 특정 천체의 위치와 상세 정보를 확인할 수 있습니다.
 
-| 별지도 | 별지도 (데네브 검색) | 별지도 (데네브 상세) | 별지도 (데네브 상세 확대) |
+| 별지도 | 별지도 (데네브 검색) | 별지도 (데네브 상세) | 별지도 (데네브 상세) |
 |-------|--------------------|---------------------|--------------------------|
 | <img src="https://github.com/user-attachments/assets/4b313549-2935-4d97-aa2d-f71e1db3e5b6" width="180"/> | <img src="https://github.com/user-attachments/assets/3b0a2401-ae80-45d7-9928-d587f8e8b81e" width="180"/> | <img src="https://github.com/user-attachments/assets/c903442b-9c61-410e-a28d-761e957e455c" width="180"/> | <img src="https://github.com/user-attachments/assets/a983f529-5d76-48fa-8c93-5984a704217b" width="180"/> |
 
