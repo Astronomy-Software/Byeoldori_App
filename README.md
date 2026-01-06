@@ -37,7 +37,7 @@
 - 말풍선을 이용한 대화 방식과 여러 감정 표현을 통하여 사용자와 상호작용을 할 수 있습니다.
 
 😊 마스코트 감정 표현
-관측 가이드의 진행 상황과 사용자 행동에 따라 마스코트 캐릭터의 감정 상태를 시각적으로 표현합니다.
+- 관측 가이드의 진행 상황과 사용자 행동에 따라 마스코트 캐릭터의 감정 상태를 시각적으로 표현합니다.
 | Crying (우는 상태) | Standing (기본/대기 상태) | Her (놀란 상태) |
 |-------------------|---------------------------|----------------|
 | <img src="https://github.com/user-attachments/assets/729d85eb-5361-4c2b-98e5-f595f94b2609" width="220"/> | <img src="https://github.com/user-attachments/assets/59f2a952-fced-48df-88d0-9a0d5b079954" width="220"/> | <img src="https://github.com/user-attachments/assets/783125e9-1194-41b5-8085-d756ccb32628" width="220"/> |
