@@ -87,6 +87,11 @@
 |----------------|-----------------|----------------|-----------------|
 | <img src="https://github.com/user-attachments/assets/4d745fd4-91e2-432a-8e5e-d360fce7075a" width="180"/> | <img src="https://github.com/user-attachments/assets/33b7ac51-85b8-4c91-95cf-2ec32642edd7" width="180"/> |  <img src="https://github.com/user-attachments/assets/413c89ee-04a4-4ab0-b2f2-7a51e06c6057" width="180"/> | <img src="https://github.com/user-attachments/assets/0de4f7d3-755c-4877-a818-7b9222b4569b" width="180"/> | 
 
+| 커뮤니티(관측후기 게시글) | 커뮤니티(댓글) | 커뮤니티(게시글) 
+|----------------|-----------------|----------------|
+| <img src="https://github.com/user-attachments/assets/26ea6210-ebb3-4f4e-be97-91f95994f545" width="180"/> | <img src="https://github.com/user-attachments/assets/fa10be27-de59-4957-9975-fc212bae58ee" width="180"/> |  <img src="https://github.com/user-attachments/assets/0925ecba-7032-4b6b-a4a9-9b1ac0bf76ca" width="180"/> | 
+
+
 
 
 ### 6. 마이페이지
