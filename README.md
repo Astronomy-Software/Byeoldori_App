@@ -36,7 +36,7 @@
 - 천체 관측 학습을 지원해주는 역할을 합니다.
 - 말풍선을 이용한 대화 방식과 여러 감정 표현을 통하여 사용자와 상호작용을 할 수 있습니다.
 
-### 😊 마스코트 감정 표현
+😊 마스코트 감정 표현
 관측 가이드의 진행 상황과 사용자 행동에 따라 마스코트 캐릭터의 감정 상태를 시각적으로 표현합니다.
 | Crying (우는 상태) | Standing (기본/대기 상태) | Her (놀란 상태) |
 |-------------------|---------------------------|----------------|
@@ -44,7 +44,7 @@
 
 | Angry (화난 상태) | Happy (즐거운 상태) |  |
 |------------------|--------------------|--|
-| <img src="https://github.com/user-attachments/assets/3f023764-3f59-42f5-ab82-6e739c3e61ad" width="220"/> | <img src="https://github.com/user-attachments/assets/cf82ccc8-a2cb-44cd-96f5-6aa67e96e0d6" width="220"/> |  |
+| <img src="https://github.com/user-attachments/assets/3f023764-3f59-42f5-ab82-6e739c3e61ad" width="220"/> | <img src="https://github.com/user-attachments/assets/cf82ccc8-a2cb-44cd-96f5-6aa67e96e0d6" width="220"/> |  
 
 
 
