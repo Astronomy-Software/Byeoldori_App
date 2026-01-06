@@ -81,6 +81,12 @@
 - 사용자가 직접 관측한 결과를 커뮤니티에 게시하거나 이를 공유할 수 있습니다.
 - 다른 사용자들이 작성한 게시글에 대해 소통할 수 있고 댓글을 통해 정보를 공유할 수 있습니다
 
+### 커뮤니티 페이지
+
+| 커뮤니티(홈) | 커뮤니티(교육 프로그램) | 커뮤니티(관측 후기) | 커뮤니티(자유게시판)
+|----------------|-----------------|----------------|-----------------|
+| <img src="https://github.com/user-attachments/assets/4d745fd4-91e2-432a-8e5e-d360fce7075a" width="180"/> | <img src="https://github.com/user-attachments/assets/33b7ac51-85b8-4c91-95cf-2ec32642edd7" width="180"/> | | <img src="https://github.com/user-attachments/assets/3b3b007c-6262-4562-8da9-dc7f07b2f324" width="180"/> | <img src="https://github.com/user-attachments/assets/8cd42cdf-61b7-41c0-af7f-bcf8a886b03f" width="180"/> | 
+
 
 
 ### 6. 마이페이지
