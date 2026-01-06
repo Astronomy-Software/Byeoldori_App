@@ -47,9 +47,15 @@
 | <img src="https://github.com/user-attachments/assets/3f023764-3f59-42f5-ab82-6e739c3e61ad" width="220"/> | <img src="https://github.com/user-attachments/assets/cf82ccc8-a2cb-44cd-96f5-6aa67e96e0d6" width="220"/> |  
 
 
-
 ### 3. 별지도 기능
 - 자기장 센서, 자이로스코프 기능, GPS 시스템을 이용하여 실시간으로 별자리와 천체의 위치를 시각적으로 표시해 줍니다.
+
+### ⭐ 별지도 페이지(ex.Deneb) 
+별자리와 주요 천체를 지도 형태로 제공하며, 검색을 통해 특정 천체의 위치와 상세 정보를 확인할 수 있습니다.
+
+| 별지도 | 별지도 (데네브 검색) | 별지도 (데네브 상세) | 별지도 (데네브 상세 확대) |
+|-------|--------------------|---------------------|--------------------------|
+| <img src="https://github.com/user-attachments/assets/4b313549-2935-4d97-aa2d-f71e1db3e5b6" width="180"/> | <img src="https://github.com/user-attachments/assets/3b0a2401-ae80-45d7-9928-d587f8e8b81e" width="180"/> | <img src="https://github.com/user-attachments/assets/c903442b-9c61-410e-a28d-761e957e455c" width="180"/> | <img src="https://github.com/user-attachments/assets/a983f529-5d76-48fa-8c93-5984a704217b" width="180"/> |
 
 ### 4. 관측지 정보 제공
 - 사용자가 천체 관측 일정을 계획할 때, 날씨, 달의 위상, 광량 등을 종합적으로 고려해서 관측 적합도를 사용자에게 제공해주어 관측에 적합한 시간이나 장소를 정할 수 있도록 도움을 줍니다.
