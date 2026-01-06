@@ -36,6 +36,17 @@
 - 천체 관측 학습을 지원해주는 역할을 합니다.
 - 말풍선을 이용한 대화 방식과 여러 감정 표현을 통하여 사용자와 상호작용을 할 수 있습니다.
 
+### 😊 마스코트 감정 표현
+| Crying (우는 상태) | Standing (기본/대기 상태) | Her (놀란 상태) |
+|------------------|--------------------------|----------------|
+| <img src="https://github.com/user-attachments/assets/78f23cdf-5a1e-42a3-b972-ae91377ff785" width="220"/> | <img src="https://github.com/user-attachments/assets/a2aec363-fcdd-4a25-82ad-6805b47bd408" width="220"/> | <img src="https://github.com/user-attachments/assets/4d21ed9a-2fe8-4e0c-8053-69ce2dc5aa5b" width="220"/> |
+
+| Angry (화난 상태) | Happy (즐거운 상태) |  |
+|------------------|--------------------|--|
+| <img src="https://github.com/user-attachments/assets/7adecdcf-5f5e-4481-b49a-adce37d2bf94" width="220"/> | <img src="https://github.com/user-attachments/assets/36f5ac25-8ce8-4b52-be1a-2ceeb5b386ee" width="220"/> |  |
+
+
+
 ### 3. 별지도 기능
 - 자기장 센서, 자이로스코프 기능, GPS 시스템을 이용하여 실시간으로 별자리와 천체의 위치를 시각적으로 표시해 줍니다.
 
