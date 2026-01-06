@@ -69,9 +69,9 @@
 |------------|---------------|------------|
 | <img src="https://github.com/user-attachments/assets/1a7aef7f-f837-4825-ac06-45f3cb632474" width="180"/> | <img src="https://github.com/user-attachments/assets/d7828556-4cf5-4977-9397-78da508a7af3" width="180"/> | <img src="https://github.com/user-attachments/assets/344eed25-2e96-4308-a6fc-5bc9361852dc" width="180"/> |
 
-| 관측지 상세 정보 | 관측 환경 및 날씨 |  |
-|----------------|-----------------|--|
-| <img src="https://github.com/user-attachments/assets/2b2db648-824e-4b5c-be0c-a24515bab932" width="220"/> | <img src="https://github.com/user-attachments/assets/50c56124-340c-493f-bd3a-77fe20075105" width="220"/> |  |
+| 관측지 상세 정보(날씨) | 관측지 상세 정보(관측 후기) |  
+|----------------|-----------------|
+| <img src="https://github.com/user-attachments/assets/2b2db648-824e-4b5c-be0c-a24515bab932" width="220"/> | <img src="https://github.com/user-attachments/assets/50c56124-340c-493f-bd3a-77fe20075105" width="220"/> |  
 
 
 
