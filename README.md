@@ -32,6 +32,7 @@
 - 천체 관측 및 교육에 관하여 천체 별로 관리하여 사용자의 관측 및 교육에 도움을 줍니다.
 - 마스코트 캐릭터를 사용해 천체에 대한 학습을 지원해주고, 천체 관측을 단계별로 안내합니다.
 
+
 ### 2. 마스코트 캐릭터
 - 천체 관측 학습을 지원해주는 역할을 합니다.
 - 말풍선을 이용한 대화 방식과 여러 감정 표현을 통하여 사용자와 상호작용을 할 수 있습니다.
@@ -57,8 +58,22 @@
 |-------|--------------------|---------------------|--------------------------|
 | <img src="https://github.com/user-attachments/assets/4b313549-2935-4d97-aa2d-f71e1db3e5b6" width="180"/> | <img src="https://github.com/user-attachments/assets/3b0a2401-ae80-45d7-9928-d587f8e8b81e" width="180"/> | <img src="https://github.com/user-attachments/assets/c903442b-9c61-410e-a28d-761e957e455c" width="180"/> | <img src="https://github.com/user-attachments/assets/a983f529-5d76-48fa-8c93-5984a704217b" width="180"/> |
 
+
 ### 4. 관측지 정보 제공
 - 사용자가 천체 관측 일정을 계획할 때, 날씨, 달의 위상, 광량 등을 종합적으로 고려해서 관측 적합도를 사용자에게 제공해주어 관측에 적합한 시간이나 장소를 정할 수 있도록 도움을 줍니다.
+
+### 📍 관측지 페이지
+지도 기반으로 전국 주요 관측지를 제공하며, 관측 환경과 현재 조건을 종합적으로 확인할 수 있습니다.
+
+| 관측지 지도 | 광공해 오버레이 | 관측지 선택 |
+|------------|---------------|------------|
+| <img src="https://github.com/user-attachments/assets/1a7aef7f-f837-4825-ac06-45f3cb632474" width="180"/> | <img src="https://github.com/user-attachments/assets/d7828556-4cf5-4977-9397-78da508a7af3" width="180"/> | <img src="https://github.com/user-attachments/assets/344eed25-2e96-4308-a6fc-5bc9361852dc" width="180"/> |
+
+| 관측지 상세 정보 | 관측 환경 및 날씨 |  |
+|----------------|-----------------|--|
+| <img src="https://github.com/user-attachments/assets/2b2db648-824e-4b5c-be0c-a24515bab932" width="220"/> | <img src="https://github.com/user-attachments/assets/50c56124-340c-493f-bd3a-77fe20075105" width="220"/> |  |
+
+
 
 ### 5. 관측 커뮤니티
 - 사용자가 직접 관측한 결과를 커뮤니티에 게시하거나 이를 공유할 수 있습니다.
