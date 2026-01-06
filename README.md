@@ -42,8 +42,8 @@
 |-------------------|---------------------------|----------------|
 | <img src="https://github.com/user-attachments/assets/729d85eb-5361-4c2b-98e5-f595f94b2609" width="220"/> | <img src="https://github.com/user-attachments/assets/59f2a952-fced-48df-88d0-9a0d5b079954" width="220"/> | <img src="https://github.com/user-attachments/assets/783125e9-1194-41b5-8085-d756ccb32628" width="220"/> |
 
-| Angry (화난 상태) | Happy (즐거운 상태) |  |
-|------------------|--------------------|--|
+| Angry (화난 상태) | Happy (즐거운 상태) |  
+|------------------|--------------------|
 | <img src="https://github.com/user-attachments/assets/3f023764-3f59-42f5-ab82-6e739c3e61ad" width="220"/> | <img src="https://github.com/user-attachments/assets/cf82ccc8-a2cb-44cd-96f5-6aa67e96e0d6" width="220"/> |  
 
 
