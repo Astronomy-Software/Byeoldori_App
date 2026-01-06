@@ -85,7 +85,7 @@
 
 | 커뮤니티(홈) | 커뮤니티(교육 프로그램) | 커뮤니티(관측 후기) | 커뮤니티(자유게시판)
 |----------------|-----------------|----------------|-----------------|
-| <img src="https://github.com/user-attachments/assets/4d745fd4-91e2-432a-8e5e-d360fce7075a" width="180"/> | <img src="https://github.com/user-attachments/assets/33b7ac51-85b8-4c91-95cf-2ec32642edd7" width="180"/> | | <img src="https://github.com/user-attachments/assets/413c89ee-04a4-4ab0-b2f2-7a51e06c6057" width="180"/> | <img src="https://github.com/user-attachments/assets/0de4f7d3-755c-4877-a818-7b9222b4569b" width="180"/> | 
+| <img src="https://github.com/user-attachments/assets/4d745fd4-91e2-432a-8e5e-d360fce7075a" width="180"/> | <img src="https://github.com/user-attachments/assets/33b7ac51-85b8-4c91-95cf-2ec32642edd7" width="180"/> |  <img src="https://github.com/user-attachments/assets/413c89ee-04a4-4ab0-b2f2-7a51e06c6057" width="180"/> | <img src="https://github.com/user-attachments/assets/0de4f7d3-755c-4877-a818-7b9222b4569b" width="180"/> | 
 
 
 
