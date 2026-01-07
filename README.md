@@ -58,6 +58,8 @@
 |-------|--------------------|---------------------|--------------------------|
 | <img src="https://github.com/user-attachments/assets/4b313549-2935-4d97-aa2d-f71e1db3e5b6" width="180"/> | <img src="https://github.com/user-attachments/assets/3b0a2401-ae80-45d7-9928-d587f8e8b81e" width="180"/> | <img src="https://github.com/user-attachments/assets/c903442b-9c61-410e-a28d-761e957e455c" width="180"/> | <img src="https://github.com/user-attachments/assets/a983f529-5d76-48fa-8c93-5984a704217b" width="180"/> |
 
+시연 영상
+
 
 ### 4. 관측지 정보 제공
 - 사용자가 천체 관측 일정을 계획할 때, 날씨, 달의 위상, 광량 등을 종합적으로 고려해서 관측 적합도를 사용자에게 제공해주어 관측에 적합한 시간이나 장소를 정할 수 있도록 도움을 줍니다.
